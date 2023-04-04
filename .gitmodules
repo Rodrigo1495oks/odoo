@@ -1,0 +1,6 @@
+[submodule "OCA/storage"]
+	path = OCA/storage
+	url = https://github.com/OCA/storage.git
+[submodule "OCA/vertical-association"]
+	path = OCA/vertical-association
+	url = https://github.com/OCA/vertical-association.git
