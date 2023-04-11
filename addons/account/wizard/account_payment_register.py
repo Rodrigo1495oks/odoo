@@ -51,6 +51,8 @@ class AccountPaymentRegister(models.TransientModel):
         related='company_id.currency_id')
 
     # == Fields given through the context ==
+    # ver como se pasa los valores del contexto al
+    # al crearse el wizard
     line_ids = fields.Many2many('account.move.line', 'account_payment_register_move_line_rel', 'wizard_id', 'line_id',
         string="Journal items", readonly=True, copy=False,)
     payment_type = fields.Selection([
@@ -834,6 +836,7 @@ class AccountPaymentRegister(models.TransientModel):
                     .reconcile()
 
     def _create_payments(self):
+        # analizar este metodo para crear los pagos
         self.ensure_one()
         batches = self._get_batches()
         first_batch_result = batches[0]

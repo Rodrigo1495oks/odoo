@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Accion para crear la accion -->
+        <record id="account_share_action" model="ir.actions.act_window">
+            <field name="name">Crear Acción</field>
+            <field name="res_model">acount.share</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <!-- vistas -->
+
+        <record id="estate_property_view_tree" model="ir.ui.view">
+            <field name="name">estate.property.tree</field>
+            <field name="model">estate.property</field>
+            <field name="arch" type="xml">
+                <tree string="Property" decoration-success="state=='offer' or state=='accept'"
+                    decoration-bf='state=="accept"' decoration-muted="state=='sold'">
+                    <field name="priority" widget="priority" class="mr-3" />
+                    <field name="name" />
+                    <field name='post_code' />
+                    <field name="bedrooms" />
+                    <field name="user_id" widget="many2one_avatar_user " />
+                    <field name="living_area" />
+                    <field name="expected_price" />
+                    <field name="selling_price" />
+                    <field name="date_availability" />
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state == 'accept' or state == 'offer'"
+                        decoration-warning="state == 'canceled'"
+                        decoration-info="state == 'draft' or state == 'new' or state=='sold'" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- formulario -->
+        <record id="estate_property_view_form" model="ir.ui.view">
+            <field name="name">estate.property.form</field>
+            <field name="model">estate.property</field>
+            <field name="arch" type="xml">
+                <form string="Estate Property">
+                    <header>
+                        <button name="action_set_sold" string="Vender" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'sold')]}" />
+                        <button name="action_set_canceled" string="Cancelar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'canceled')]}" />
+                        <button name="action_confirm" string="Confirmar Alta" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}" />
+                        <button name="action_draft" string="Cambiar a borrador" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'draft')]}" />
+                        <button name="action_offer" string="Cerrar Ofertas" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'new')]}" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,new,offer,accept,sold,canceled" />
+                    </header>
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('active', '=', True)]}" />
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="name" />
+                            </div>
+                            <h1 class="mb32">
+                                <field name="name" class="mb16" />
+                                <field name="priority" widget="priority" class="mr-3" />
+                            </h1>
+
+                        </div>
+                        <group>
+                            <group id="header_left_group">
+                                <field name='short_name' />
+                                <div class="o_td_label">
+                                    <label for='name' string='Nombre Completo'
+                                        style="font-weight:bold;" />
+                                </div>
+                                <field name="type"
+                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}" />
+                                <field name="tags_ids" widget="many2many_tags"
+                                    options="{'color_field': 'color'}" />
+                                <field name="name" widget='char' />
+                                <field name='building' />
+                                <!-- <field name='active' widget='boolean' /> -->
+                                <!-- <field name="active" widget="boolean_button"
+                                    options='{"terminology": "active"}' /> -->
+                                <field name="active" widget='boolean_favorite' />
+                            </group>
+                            <group id="header_right_group">
+                                <field name="availability" widget='boolean_toggle' />
+                                <field name="destination" />
+                                <field name="post_code" options='{"type": "number"}' />
+                                <field name="date_reserve"
+                                    options='{"datepicker": {"daysOfWeekDisabled": [0, 6]}}' />
+                                <field name="date_availability" optional='True' />
+                                <field name="estate_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="building_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('building', '=', False)]}" />
+                                <field name="total_value" />
+                                <field name="selling_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="best_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="expected_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page id="property_tab" string="Descripción">
+                                <group id="header_left_group">
+                                    <group string="Descripción Básica">
+                                        <field name="destination" />
+                                        <field name="description" />
+                                        <field name="sell_margin"
+                                            options="{'type':'number', 'step': 0.1}"
+                                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                    </group>
+                                    <group string="Divisiones">
+                                        <field name="offices" options='{"type": "number"}' />
+                                        <field name="bedrooms" options='{"type": "number"}' />
+                                        <field name="floors" options='{"type": "number"}' />
+                                        <field name="garage" />
+                                    </group>
+                                    <group string="Area">
+                                        <field name="garden" />
+                                        <field name="garden_area" options='{"type": "number"}'
+                                            attrs="{'invisible': [('garden', '=', False)]}" />
+                                        <field name="garden_orientation" widget="label_selection"
+                                            attrs="{'invisible': [('garden', '=', False)]}" />
+                                        <field name="living_area"
+                                            string="Area del Living (Metros Cuadrados) - " />
+
+                                        <field name="estate_area" options='{"type": "number"}' />
+                                        <field name="total_area" options='{"type": "number"}' />
+                                        <field name="facades"
+                                            options='{"type": "number", "step": 2}' />
+                                    </group>
+                                </group>
+                            </page>
+                            <page id="property_info" string="Otra Información">
+                                <group id="header_left_group">
+                                    <field name="user_id" />
+                                    <field name="buyer" />
+                                </group>
+                            </page>
+                            <page id="property_offers" string="Ofertas Recibidas">
+                                <group id="header_left_group">
+                                    <field name="offers_id"
+                                        attrs="{'readonly': ['&amp;', ('state', '!=', 'draft'), ('state','!=','new')]}" />
+                                </group>
+                            </page>
+                            <page id="test_fields" string="Campos de prueba :->">
+                                <group id="header_left_group">
+                                    <field name="boolean_toggle" widget='boolean_toggle' />
+                                    <field name="percentage_pie" string="Replied"
+                                        widget="percentpie" />
+                                    <field name="money_earned" widget="progressbar"
+                                        options="{'current_value': 'money_earned', 'max_value': 'expected_price', 'editable': True, 'edit_max_value':True, 'title':'Titulo'}" />
+                                    <field name="toggle_button" widget="toggle_button"
+                                        options='{"active": "Reported in last payslips", "inactive": "To Report in Payslip"}'
+                                    />
+                                    <field name="selection_a" widget="radio"
+                                        options="{'horizontal':true}" />
+                                    <field name="selection_b"
+                                        widget="selection_badge" />
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="estate_property_view_search" model="ir.ui.view">
+            <field name="name">estate.property.search</field>
+            <field name="model">estate.property</field>
+            <field name="arch" type="xml">
+                <search string="Propiedades">
+                    <field name="name" string="Propiedad" />
+                    <field name="short_name" string="Nombre Corto" />
+                    <field name="post_code" string="Código Postal" />
+                    <field name="expected_price" string="Precio Esperado" />
+                    <field name="bedrooms" string="Habitaciones" />
+                    <field name="living_area" string="Area del Living (Metros Cuadrados) - " />
+                    <field name="availability" string="Disponibilidad" />
+                    <field name="facades" string="Fachadas" />
+
+                    <separator />
+                    <filter name="living_area" string="Living Area"
+                        domain="[('living_area','>=','230')]"
+                        help="Mostrar valores por encima de 230mts cuadrados" />
+                    <filter name="availability" string="Disponibilidad"
+                        domain="[('availability','=','True')]"
+                        help="Mostrar propiedades disponibles" />
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
+                    <filter string="Active" name="active" domain="[('active', '=', True)]" />
+                    <filter string="Propiedades Disponibles" name="available_properties" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Orientación" name="orientation"
+                            context="{'group_by':'garden_orientation'}" />
+                        <filter string="Estado" name="state" context="{'group_by':'state'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Estate Property Kanban View  -->
+        <record model="ir.ui.view" id="view_estate_property_kanban">
+            <field name="name">estate.property.kanban</field>
+            <field name="model">estate.property</field>
+            <field name="arch" type="xml">
+                <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
+                <kanban>
+                    <field name="name" />
+                    <field name="buyer" readonly="1" />
+                    <field name="state" />
+                    <field name="date_availability" />
+                    <field name="priority" widget="priority" class="mr-3" />
+                    <field name="expected_price"
+                        attrs="{'invisible': [('state', '!=', 'accept'), ('state', '!=', 'sold')]}" />
+                    <field name="best_price" attrs="{'invisible': [('state', '!=', 'offer')]}" />
+                    <field name="tags_ids" widget="many2many_tags"
+                        options="{'color_field': 'color'}" />
+                    <field name="selling_price"
+                        attrs="{'invisible': [('state', '=', 'offer'),('state', '=', 'accept'), ('state', '=', 'sold') ]}" />
+                    <!-- ('draft', 'Borrador'),
+                ('new', 'Nuevo'),
+                ('offer', 'Oferta Recibida'),
+                ('accept', 'Oferta Aceptada'),
+                ('sold', 'Vendido'),
+                ('canceled', 'Cancelado') -->
+                    <progressbar field="state"
+                        colors='{"sold": "success", "today": "offer", "overdue": "canceled"}' />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top mb16">
+                                    <field name="priority" widget="priority" />
+                                    <div class="o_kanban_record_headings ml-1">
+                                        <strong class="o_kanban_record_title">
+                                            <span>
+                                                <t t-esc="record.buyer.value" />
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <strong>
+                                        <field name="expected_price" widget="monetary" />
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span>
+                                            <t t-esc="record.name.value" />
+                                            <t
+                                                t-esc="record.date_availability.value and record.date_availability.value.split(' ')[0] or False" />
+                                        </span>
+                                        <!-- <field name="activity_ids" widget="kanban_activity" /> -->
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection"
+                                            options="{'classes': {'draft': 'default', 'new': 'default', 'sold': 'success', 'accept': 'warning'}}" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <p t-if="record.state.raw_value == 'accept'">
+                                        <strong>
+                                            <field name="selling_price" widget="monetary" />
+                                        </strong>
+                                    </p>
+                                    <p t-elif="record.state.raw_value == 'offer'">
+                                        <strong>
+                                            <field name="best_price" widget="monetary" />
+                                        </strong>
+                                    </p>
+                                    <p t-else="">
+                                        <strong>
+                                            <field name="expected_price" />
+                                        </strong>
+                                    </p>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="tags_ids" widget="many2many_tags"
+                                            options="{'color_field': 'color'}" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="user_id" widget="many2one_avatar_user" />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+    </data>
+</odoo>

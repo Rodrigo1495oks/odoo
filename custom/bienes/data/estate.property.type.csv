@@ -1,0 +1,5 @@
+id,short_name,name,active
+prop_types_01,Res,Residential,True
+prop_types_02,Com,Comertial,True
+prop_types_03,Ind,Industrial,True
+prop_types_04,Ln,Land,True

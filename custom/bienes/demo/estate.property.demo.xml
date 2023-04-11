@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="id1" model="estate.property">
+            <field name="short_name">Big Villa</field>
+            <field name="name">Big Villa</field>
+            <field name="state">new</field>
+            <field name="destination">home</field>
+            <field name="description">Una descripcion para ejemplo a ver que hace</field>
+            <field name="post_code">3360</field>
+            <field name="estate_price">120000</field>
+            <field name="building">True</field>
+            <field name="building_price">60000</field>
+            <field name="offices">0</field>
+            <field name="bedrooms">4</field>
+            <field name="facades">5</field>
+            <field name="floors">2</field>
+            <field name="garden">True</field>
+            <field name="garden_area">21</field>
+            <field name="garden_orientation">north</field>
+        </record>
+        <record id="id2" model="estate.property">
+            <field name="short_name">Trailer home</field>
+            <field name="name">Trailer home</field>
+            <field name="state">new</field>
+            <field name="destination">home</field>
+            <field name="description">Una descripcion para ejemplo a ver que hace</field>
+            <field name="post_code">3360</field>
+            <field name="estate_price">120000</field>
+            <field name="building">False</field>
+            <field name="building_price">0</field>
+            <field name="offices">0</field>
+            <field name="bedrooms">2</field>
+            <field name="facades">1</field>
+            <field name="floors">0</field>
+            <field name="garden">False</field>
+            <field name="garden_area">0</field>
+            <field name="garden_orientation">none</field>
+        </record>
+        <record id="id2" model="estate.property">
+            <field name="short_name">Trailer home</field>
+            <field name="name">Trailer home</field>
+            <field name="state">new</field>
+            <field name="destination">home</field>
+            <field name="description">Una descripcion para ejemplo a ver que hace</field>
+            <field name="post_code">3360</field>
+            <field name="estate_price">120000</field>
+            <field name="building">False</field>
+            <field name="building_price">0</field>
+            <field name="offices">0</field>
+            <field name="bedrooms">2</field>
+            <field name="facades">1</field>
+            <field name="floors">0</field>
+            <field name="garden">False</field>
+            <field name="garden_area">0</field>
+            <field name="garden_orientation">none</field>
+            <field name="offers_id"
+                eval="[
+        (0, 0, {
+            'name': 'My name',
+            'short_name': 'Your name',
+            'price':'142000',
+            'status':'new',
+            'is_ongoing':'False'
+        }),
+        (0, 0, {
+            'name': 'dfdfdf',
+            'short_name': 'dfdf',
+            'price':'120000',
+            'status':'new',
+            'is_ongoing':'False'
+        }),
+        (4, ref('estate.property.offer.estate_property_offer_action')),
+    ]" />
+        </record>
+    </data>
+</odoo>

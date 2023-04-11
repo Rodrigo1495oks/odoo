@@ -550,6 +550,9 @@ class AccountMove(models.Model):
     show_payment_term_details = fields.Boolean(compute="_compute_show_payment_term_details")
     show_discount_details = fields.Boolean(compute="_compute_show_payment_term_details")
 
+
+    # subscription_id=fields.One2many(string='Subscription', comodel_name='subscription.order', inverse_name='account_move', readonly=True)
+    # subscription_id=fields.One2many(string='Subscription', comodel_name='integration.order', inverse_name='account_move', readonly=True)
     def _auto_init(self):
         super()._auto_init()
         self.env.cr.execute("""

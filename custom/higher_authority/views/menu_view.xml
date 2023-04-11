@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <!-- sistema de menus -->
+        <menuitem
+            id="shareholding_root_menu"
+            name="Gestion de Autoridad Superior"
+            sequence="11" />
+        <menuitem
+            id="shareholding_first_level_menu"
+            name="Registros"
+            parent="shareholding_root_menu" />
+        <menuitem
+            id="shareholding_menu_action"
+            name="Accionistas"
+            action="account_shareholder_action"
+            parent="shareholding_first_level_menu"
+            sequence="1" />
+            
+    </data>
+</odoo>

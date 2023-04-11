@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate='1'>
+
+
+  <record id="book_cookbook" model="library.book">
+    <field name="name">Odoo 14 Development Cookbook</field>
+    <field name="short_name">Odoo</field>
+    <field name="notes">Ejemplo de notas internas</field>
+  </record>
+
+  <record id="base.main_company" model="res.company">
+    <field name="name">Packt Publishing</field>
+  </record>
+
+
+  <record id="res_partner_packt" model="res.partner">
+    <field name="name">Packt Publishing</field>
+    <field name="city">Birmingham</field>
+    <field name="country_id" ref='base.uk'/>
+
+  </record>
+
+  <record id='book_category_all' model='library.book.category' forcecreate='false'>
+    <field name="name">All Books</field>
+  </record>
+
+  <!-- deleting records from XML files  - rara vez se usa -->
+  <record id="book_category_name" model="library.book.category">
+    <!-- <field name="field_name">field_value</field> -->
+    <field name="name">Test Categori</field>
+  </record>
+
+  <record id="book_category_not_delete" model="library.book.category">
+    <field name="name">Test Category</field>
+  </record>
+
+  <!-- <delete model='library.book.category' search="[('name','ilike','Test')]"/> -->
+
+  <!-- invocar funciones desde XML -->
+
+  <!-- <function model="library.book" name="_update_book_price">
+
+  </function> -->
+
+  <function model="library.book" name="update_book_price" eval="(ref('category_xml_id',20)"/>
+</odoo>

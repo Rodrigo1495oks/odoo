@@ -20,7 +20,7 @@ class AccountMoveLine(models.Model):
     _order = "date desc, move_name desc, id"
     _check_company_auto = True
     _rec_names_search = ['name', 'move_id', 'product_id']
-
+    
     # ==============================================================================================
     #                                          JOURNAL ENTRY
     # ==============================================================================================

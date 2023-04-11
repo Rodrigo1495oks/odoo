@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Data records go here -->
+  <!-- Primero creo la accion que crea el menu -->
+
+  <record id='library_member_action' model='ir.actions.act_window'>
+    <field name="name">Library Members</field>
+    <field name="res_model">library.member</field>
+    <field name="view_mode">tree,form</field>
+  </record>
+  <!-- Luego creo los elementos del menu su estrcura y jerarqia, guiarme por los IDs -->
+
+  <menuitem name="Members" id="library_members_menu" parent="library_base_menu" action="library_member_action" />
+
+  <!-- Luego creo el formulario personalizado con los campos que voy a ingresar -->
+
+  <record id="library_member_view_form" model="ir.ui.view">
+    <field name="name">Library Member Form</field>
+    <field name="model">library.member</field>
+    <field name="arch" type="xml">
+      <form>
+        <group>
+          <group>
+            <field name="partner_id" />
+            <field name="date_start" />
+            <field name="date_end" />
+            <field name="date_of_birth" />
+          </group>
+        </group>
+        <button name="log_all_library_members" string="Log Members" type="object"/>
+      </form>
+    </field>
+  </record>
+
+  <!-- Se crea la lista de arbol, que permite ver una tabla generica al cargar el menu -->
+
+  <record id="library_member_view_tree" model="ir.ui.view">
+    <field name="name">Library Member List</field>
+    <field name="model">library.member</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="name" />
+        <field name="date_start" />
+        <field name="date_end"/>
+      </tree>
+    </field>
+  </record>
+
+  <!-- Creo el cuadro de busqueda -->
+
+  <record id="library_member_view_search" model="ir.ui.view">
+    <field name="name">Library Members Search</field>
+    <field name="model">library.member</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="name" />
+      </search>
+    </field>
+  </record>
+</odoo>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Accion para crear la propiedad -->
+        <record id="estate_property_tag_action" model="ir.actions.act_window">
+            <field name="name">Crear Etiqueta Propiedad</field>
+            <field name="res_model">estate.property.tag</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+        <!-- sistema de menus -->
+
+        <menuitem
+            id="estate_property_settings_tag_menu_action"
+            name="Etiquetas de Propiedad"
+            action="estate_property_tag_action"
+            parent="estate_property_settings_menu"
+            sequence="1" />
+
+        <!-- vistas -->
+
+        <record id="estate_property_tag_view_tree" model="ir.ui.view">
+            <field name="name">estate.property.tag.tree</field>
+            <field name="model">estate.property.tag</field>
+            <field name="arch" type="xml">
+                <tree string="Property Type" editable="bottom">
+                    <field name="name" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- formulario -->
+        <record id="estate_property_tag_view_form" model="ir.ui.view">
+            <field name="name">estate.property.tag.form</field>
+            <field name="model">estate.property.tag</field>
+            <field name="arch" type="xml">
+                <form string="Estate Property Type">
+                    <sheet>
+                        <widget
+                            name="web_ribbon"
+                            title="Archived"
+                            bg_color="bg-danger"
+                            attrs="{'invisible': [('active', '=', True)]}"
+                        />
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" />
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="short_name" />
+                            <field name="active" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="estate_property_tag_view_search" model="ir.ui.view">
+            <field name="name">estate.property.tag.search</field>
+            <field name="model">estate.property.tag</field>
+            <field name="arch" type="xml">
+                <search string="Tipo de Propiedad">
+                    <field name="name" string="Nombre" />
+                    <separator />
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
+                    <filter string="Active" name="active" domain="[('active', '=', True)]" />
+                    <separator />
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

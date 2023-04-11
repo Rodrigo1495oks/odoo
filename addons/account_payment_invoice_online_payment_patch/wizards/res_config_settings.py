@@ -6,4 +6,4 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    pay_invoices_online = fields.Boolean(config_parameter='account_payment.enable_portal_payment')
+    pay_invoices_online = fields.Boolean(string='Pay Invoices Online', config_parameter='account_payment.enable_portal_payment')

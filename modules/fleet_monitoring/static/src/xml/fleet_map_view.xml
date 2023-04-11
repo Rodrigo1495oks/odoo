@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <div t-name="fleet_monitoring.FleetMap" class="o_action" owl="1">
+        <div class="add_map">
+             <div id="mapid"></div>             
+             <div id="map"  t-ref="map_div" style="position:fixed !important;"><h3 style="text-align:center">Loading Map</h3></div>
+             <link rel="stylesheet" type="text/css" href="/fleet_monitoring/static/src/js/map_view.css" />
+        </div>
+    </div>
+
+</templates>

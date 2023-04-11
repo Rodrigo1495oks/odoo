@@ -1,0 +1,24 @@
+<odoo>
+  <data>
+
+    <record model="ir.ui.view" id="fleet_vehicle_form_inherit">
+        <field name="name">fleet.vehicle.form</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='next_assignation_date']" position="after">
+                <field name="latitude"/>
+                <field name="longitude"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="fleet_monitoring_action" model="ir.actions.client">
+        <field name="name">Fleet Monitoring</field>
+        <field name="tag">action_fleet_monitoring</field>
+    </record>
+
+    <menuitem id="fleet_monitoring_menu" name="Fleet Monitoring" action="fleet_monitoring_action" parent="fleet.fleet_vehicles" sequence="15"/>
+
+  </data>
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="estate_property_view_form" model="ir.ui.view">
+            <field name="name">estate.property.form</field>
+            <field name="model">estate.property</field>
+            <field name="inherit_id" ref="bienes.estate_property_view_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//page[@id='test_fields']" position="inside">
+                     <group name="invoice_info_id">
+                         <field name="company_id" />
+                         <field name='qty_to_invoice' />
+                     </group>
+                 </xpath>
+                 <!-- <xpath expr="//kanban[@id='kanban_del_property']" position="inside">
+                    <field name="company_id" readonly="1" />
+                 </xpath> -->
+            </field>
+        </record>
+    </data>
+</odoo>

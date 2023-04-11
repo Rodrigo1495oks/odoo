@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Data records go here -->
+  <!-- Primero creo la accion que crea el menu -->
+  <record id='library_book_category_action' model='ir.actions.act_window'>
+    <field name="name">Category Book</field>
+    <field name="res_model">library.book.category</field>
+    <field name="view_mode">tree,form</field>
+  </record>
+  <!-- Luego creo los elementos del menu su estrcura y jerarqia, guiarme por los IDs -->
+
+  <menuitem name="Book Categories" id="library_book_category_menu" parent="library_base_menu" action="library_book_category_action"/>
+
+  <!-- Luego creo el formulario personalizado con los campos que voy a ingresar -->
+
+  <record id="library_book_category_view_form" model="ir.ui.view">
+    <field name="name">Library Categories Form</field>
+    <field name="model">library.book.category</field>
+    <field name="arch" type="xml">
+      <form>
+        <group>
+          <group>
+            <field name="name" />
+          </group>
+          <group>
+            <field name="parent_id"/>
+            <field name="email"/>
+          </group>
+          <group>
+            <field name="child_ids"/>
+          </group>
+        </group>
+        <button name="create_categories" string="Create Categories" type="object"/>
+      </form>
+    </field>
+  </record>
+
+  <!-- Se crea la lista de arbol, que permite ver una tabla generica al cargar el menu -->
+
+  <record id="library_book_category_view_tree" model="ir.ui.view">
+    <field name="name">Library Book List</field>
+    <field name="model">library.book.category</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="name" />
+      </tree>
+    </field>
+  </record>
+
+  <!-- Creo el cuadro de busqueda -->
+
+  <record id="library_book_category_view_search" model="ir.ui.view">
+    <field name="name">Library Book Search</field>
+    <field name="model">library.book.category</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="name" />
+      </search>
+    </field>
+  </record>
+</odoo>
