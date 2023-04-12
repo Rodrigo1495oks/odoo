@@ -69,21 +69,22 @@ class SubscriptionOrder(models.Model):
     def _compute_qty_pending(self):
         for order in self:
             order.qty_pending=order.qty_integrated-order.amount_total
-    
 
     short_name = fields.Char(string='Referencia')
     name = fields.Char(string='Nombre')
     subscription_date = fields.Date(string='Fecha de Subscripción')
-    estimated_integration_date = fields.Date(
-        string='Fecha de integración', help='Coloque aquí la fecha estimada de integración')
+    integration_date_due = fields.Date(
+        string='Fecha de integración', help='Coloque aquí la fecha estimada de integración',states={'draft': [('readonly', False)]})
     code = fields.Integer(string='Código', required=True)
     state = fields.Selection(string='Estado', selection=[
         ('draft', 'Borrador'),
         ('new', 'Nuevo'),
         ('approved', 'Aprobado'),
         ('confirm', 'Confirmado'),
+        ('posted','Contabilizado')
         ('cancel', 'Cancelado')
     ])
+
     pending=fields.Boolean(string='Pendiente', default=True)
 
     nominal_value = fields.Float(related='share_issuance.nominal_value',
@@ -148,6 +149,8 @@ class SubscriptionOrder(models.Model):
 
     # asiento de subscripcion correspondiente
     account_move=fields.Many2one(string='Asiento contable', comodel_name='account.move', index=True, help='Asiento contable Relacionado', readonly=True, domain=[('move_type','=','subscription')])
+
+
     # restricciones
 
     @api.constrains('amount_total')

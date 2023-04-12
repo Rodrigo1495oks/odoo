@@ -63,6 +63,7 @@ class AccountPaymentRegister(models.TransientModel):
     partner_type = fields.Selection([
         ('customer', 'Customer'),
         ('supplier', 'Vendor'),
+        ('shareholder','Shareholder')
     ], store=True, copy=False,
         compute='_compute_from_lines')
     source_amount = fields.Monetary(
@@ -221,12 +222,13 @@ class AccountPaymentRegister(models.TransientModel):
         if move.is_invoice(include_receipts=True):
             partner_bank_account = move.partner_bank_id._origin
 
+        
         return {
             'partner_id': line.partner_id.id,
             'account_id': line.account_id.id,
             'currency_id': line.currency_id.id,
             'partner_bank_id': partner_bank_account.id,
-            'partner_type': 'customer' if line.account_type == 'asset_receivable' else 'supplier',
+            'partner_type': 'shareholder' if move.move_type=='subscription' else 'customer' if line.account_type == 'asset_receivable' else 'supplier',
         }
 
     def _get_batches(self):
