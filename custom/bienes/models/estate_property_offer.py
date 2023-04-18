@@ -42,7 +42,7 @@ class EstatePropertyOffer(models.Model):
 
     @api.depends('property_id.type')
     def _compute_property_type(self):
-        """Esta funcion retona el valor por defecto del tipo de propiedad establecido en la propiedad, para rellena el campo tipo
+        """Esta funcion retona el valor por defecto del tipo de propiedad establecido en la propiedad, para rellenar el campo tipo
             de propiedad en las ofertas.
         """
         for offer in self:
