@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 from odoo.tools.float_utils import float_is_zero, float_compare
 
-from odoo import models, fields, api, tools
+from odoo import SUPERUSER_ID, models, fields, api, tools
 from odoo.osv.expression import get_unaccent_wrapper
 
 from odoo.exceptions import ValidationError
@@ -96,14 +96,14 @@ class AccountShareholder(models.Model):
     bank_id = fields.Many2one(
         'res.bank', related='bank_account_id.bank_id', readonly=False)
     property_account_shareholding_id = fields.Many2one('account.account', company_dependent=True,
-                                                       string="Cuenta de Acciones",
+                                                       string="Cuenta de Capital",
                                                        domain="[('deprecated', '=', False), ('company_id', '=', current_company_id)]",
-                                                       help="Esta cuenta será usada para las suscripciones e integraciones del accionista, a pesar que sea establecida una cuenta por defecto diferente",
+                                                       help="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente",
                                                        required=True)
     property_account_subscription_id=fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Acciones",
                                                        domain="[('internal_type', '=', 'receivable'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
-                                                       help="Esta cuenta será usada para las suscripciones e integraciones del accionista, a pesar que sea establecida una cuenta por defecto diferente",
+                                                       help="Esta cuenta será usada para registrar los saldos de subscripción del accionista, a pesar que sea establecida una cuenta por defecto diferente",
                                                        required=True)
     # pagos
     property_shareholder_payment_term_id = fields.Many2one('account.payment.term', company_dependent=True,
@@ -121,14 +121,17 @@ class AccountShareholder(models.Model):
 
     property_sharehold_currency_id = fields.Many2one(
         'res.currency', string="Móneda de las acciones", company_dependent=True,
-        help="Esta moneda será usada en lugar de la moneda por defecto para los asiento contables")
+        help="Esta moneda será usada en lugar de la moneda por defecto para los asientos contables")
 
     # Inventario
 
-    property_stock_shareholder = fields.Many2one(
+    property_stock_shareholder = fields.Many2one( # una alternativa es crear una ubucacion solo para integraciones
         'stock.location', string="Ubicación de Accionista", company_dependent=True, check_company=True,
         domain="['|', ('company_id', '=', False), ('company_id', '=', allowed_company_ids[0])]",
         help="La localizacion usada como origen para este accionista.")
+    
+    integration_orders=fields.One2many(string='Integraciones', comodel_name='integration.order', inverse_name='shareholder_id')
+    subscription_orders=fields.One2many(string='Subscripciones', comodel_name='subscription.order', inverse_name='shareholder_id')
 
     @api.depends('is_company', 'name', 'parent_id.display_name', 'type', 'company_name')
     def _compute_display_name(self):

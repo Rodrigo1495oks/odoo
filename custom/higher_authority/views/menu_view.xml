@@ -11,13 +11,32 @@
         <menuitem
             id="shareholding_first_level_menu"
             name="Registros"
-            parent="shareholding_root_menu" />
-        <menuitem
-            id="shareholding_menu_action"
-            name="Accionistas"
-            action="account_shareholder_action"
-            parent="shareholding_first_level_menu"
-            sequence="1" />
-            
+            parent="shareholding_root_menu">
+            <menuitem
+                id="shareholding_menu_action"
+                name="Accionistas"
+                action="account_shareholder_action"
+                parent="shareholding_first_level_menu"
+                sequence="1" />
+
+        </menuitem>
+        
+        <menuitem id="account_shareholding_first_level_menu"
+            name="Contabilidad"
+            parent="shareholding_root_menu">
+
+            <menuitem id="menu_action_move_subscription_type" action="action_move_subscription_type" sequence="1"/>
+            <menuitem id="menu_action_move_integration_type" action="action_move_integration_type" sequence="2"/>
+
+        </menuitem>
+
+        <menuitem id="adding_shareholding_first_level_menu"
+            name="Incorporaciones"
+            parent="shareholding_root_menu">
+
+            <menuitem id="menu_action_subscription" action="subscription_order_action" sequence="1"/>
+            <menuitem id="menu_action_integration" action="integration_order_action" sequence="2"/>
+
+        </menuitem>
     </data>
 </odoo>

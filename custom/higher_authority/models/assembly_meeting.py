@@ -226,8 +226,8 @@ class AssemblyMeeting(models.Model):
         ('canceled', 'Cancelada')
     ])
 
-    # topics = fields.One2many(string='Temas a Tratar', comodel_name='assembly.meeting.topic',
-    #                          inverse_name='assembly_meeting', store=True, index=True)
+    topics = fields.One2many(string='Temas a Tratar', comodel_name='assembly.meeting.topic',
+                             inverse_name='assembly_meeting', store=True, index=True, domain="[('state','in','new')]")
 
     # computos copiados del modelo calenbdar.event (recordar que los modelos delegados no heredan los metodos, solo los campos)
 
@@ -883,14 +883,45 @@ class AssemblyMeetingTopic(models.Model):
         ('approved', 'Aprobado'),
         ('refused', 'Rechazado'),
         ('cancel', 'Cancelado')
-    ])
-    topic_type=fields.Selection(string='Tipo de Asunto', selection=[
-        ('issuance','Emisión de Acciones'),
-        ('irrevocable','Aporte Irrevocable')
+    ], default='draft', required=True, readonly=True)
+    topic_type = fields.Selection(string='Tipo de Asunto', selection=[
+        ('issuance', 'Emisión de Acciones'),
+        ('irrevocable', 'Aporte Irrevocable')
     ], required=True)
     # campos relacionales
-    # assembly_meeting=fields.Many2one(string='Reunion Tratante', comodel_name='assembly.meeting')
+    assembly_meeting = fields.Many2one(
+        string='Reunion Tratante', comodel_name='assembly.meeting')
     # secuencia numerica
     # emision de acciones
 
-    # issuance_of_shares=fields.One2many(string='Emisiones de Acciones', comodel_name='shares.issuance', inverse_name='topic', index=True)
+
+    share_issuance = fields.One2many(
+        string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance', inverse_name='topic')
+
+    def action_set_new(self):
+        for topic in self:
+            if topic.state not in ['new'] and topic.assembly_meeting.state not in ['draft','finished','canceled']:
+                topic.state='new' 
+            else: 
+                raise UserError('topico ya tratado o reunion no establecida')
+
+
+    def action_approve_topic(self):
+        for topic in self:
+            if topic.state=='new' and topic.assembly_meeting.state not in ['draft','finished','canceled']:
+                topic.state='aproved'
+                # if topic.topic_type=='issuance': 
+                #     for issuance in topic.share_issuance:
+                #         issuance.action_approve()
+
+            else: raise UserError('No puede aprobarse este tópico')
+    
+    def action_refuse_topic(self):
+        for topic in self:
+            if topic.state not in ['draft','aproved','refused'] and topic.assembly_meeting.state not in ['draft','finished','canceled']:
+                topic.state='refused'
+                # if topic.topic_type=='issuance': 
+                #     for issuance in topic.share_issuance:
+                #         issuance.action_cancel()
+            else:
+                raise UserError('No puede rechazarse este tópico')

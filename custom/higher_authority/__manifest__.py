@@ -13,6 +13,7 @@
     'data': [
         'security/ir.model.access.csv',
         'security/higher_authority_security.xml',
+        'data/data.xml',
         'views/account_shareholder.xml',
         'views/res_partner.xml',
         'views/menu_view.xml',

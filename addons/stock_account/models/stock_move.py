@@ -341,7 +341,9 @@ class StockMove(models.Model):
         self.ensure_one()
         self = self.with_company(self.company_id)
         accounts_data = self.product_id.product_tmpl_id.get_product_accounts()
-
+        # agrega las cuentas de stock relacionadas al producto y retorna un diccionario
+				# contenidendo informacion de las cuentas de gasto(resultado negativo) y venta de mercaderias (resultado positivo)
+        
         acc_src = self._get_src_account(accounts_data)
         acc_dest = self._get_dest_account(accounts_data)
 
@@ -382,6 +384,7 @@ class StockMove(models.Model):
 
     def _get_dest_account(self, accounts_data):
         return self.location_dest_id.valuation_in_account_id.id or accounts_data['stock_output'].id
+        # la cuenta de la ubicacion del producto o en su defecto la predeterminada establecida en la categoria
 
     def _prepare_account_move_line(self, qty, cost, credit_account_id, debit_account_id, svl_id, description):
         """

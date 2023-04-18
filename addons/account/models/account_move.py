@@ -291,6 +291,7 @@ class AccountMove(models.Model):
         change_default=True,
         ondelete='restrict',
     )
+
     commercial_partner_id = fields.Many2one(
         'res.partner',
         string='Commercial Entity',

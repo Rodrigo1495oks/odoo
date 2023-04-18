@@ -1,0 +1,15 @@
+stock.move
+se podria vincular el movimiento de estock con la orden de integración
+_account_entry_move
+_get_accounting_data_for_valuation
+	retorna las cuentas y el diario para usar en las entradas de diario para la valuacion en tiempo real
+	=> stock.template: 
+	get_product_accounts()- agrega las cuentas de stock relacionadas al producto y retorna un diccionario
+				contenidendo informacion de las cuentas de gasto(resultado negativo) y venta de mercaderias (resultado positivo)
+				establece las cuenta de valoracion de inventario, y las contrapartidas de salida y entrada para la valoracion en caso
+				de establecerse la valorion automatizada, diario preteterminado. 
+			property_stock_journal
+	acc_dest = self._get_dest_account(accounts_data) cuenta de resultado negativo "stock_output" de la ubicacion o la categoria
+	acc_src = self._get_src_account(accounts_data) cuenta de resultado positivo "stock_input" de la ubicacion o la categoria
+	# una alternativa es crear una ubucacion solo para integraciones
+_prepare_account_move_vals

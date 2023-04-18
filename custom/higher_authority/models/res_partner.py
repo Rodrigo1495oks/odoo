@@ -18,3 +18,5 @@ class Partner(models.Model):
     _inherit = 'res.partner'
 
     specie_id = fields.Many2one(string='Especie', comodel_name='species')
+
+    

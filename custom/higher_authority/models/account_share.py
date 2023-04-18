@@ -21,12 +21,6 @@ class AccountShare(models.Model):
     _order = 'short_name desc'
     _rec_name = 'short_name'
 
-    @api.depends('date_of_issue', 'currency_id', 'company_id', 'company_id.currency_id')
-    def _compute_currency_rate(self):
-        for share in self:
-            share.currency_rate = self.env['res.currency']._get_conversion_rate(
-                share.company_id.currency_id, share.currency_id, share.company_id, share.date_share)
-
     @api.depends('nominal_value', 'price')
     # busca en el modelo relacionado e l campo precio total
     def _compute_price(self):
@@ -54,18 +48,20 @@ class AccountShare(models.Model):
     state = fields.Selection(string='Estado', selection=[
         ('draft', 'Borrador'),
         ('new', 'Nuevo'),
-        ('suscribed', 'Suscripto'),
-        ('integrated', 'Integrado'),
+        ('subscribed', 'Suscripto'),
+        # ('integrated', 'Integrado'),
         ('portfolio', 'En Cartera'),
         ('negotiation', 'En Negociación'),
         ('canceled', 'Cancelado')
     ], help='Defina el estado de la acción')
 
     date_of_issue = fields.Datetime(string='Fecha de Emisión', readonly=True)
+    date_of_integration = fields.Datetime(
+        string='Fecha de Emisión', readonly=True)
     date_of_cancellation = fields.Datetime(
         string='Fecha de Cancelación', readonly=True)
     date_of_redemption = fields.Datetime(
-        string='Fechad de Rescate', readonly=True)
+        string='Fecha de Rescate', readonly=True)
 
     share_type = fields.Many2one(
         string='Grupo de acciones', comodel_name='account.share.type', ondelete='restrict')
@@ -90,13 +86,31 @@ class AccountShare(models.Model):
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id)
-    currency_id = fields.Many2one('res.currency', 'Currency', required=True,
-                                  default=lambda self: self.env.company.currency_id.id)
 
-    currency_rate = fields.Float("Currency Rate", compute='_compute_currency_rate', compute_sudo=True,
-                                 store=True, readonly=True, help='Ratio between the share currency and the company currency')
+    share_issuance = fields.Many2one(
+        string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance')
 
-    # share_issuance = fields.Many2one(
-    #     string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance')
+    suscription_order = fields.Many2one(
+        string='Orden de Subscripción', comodel_name='suscription.order', index=True)
 
-    # subscription_order=fields.Many2one(string='Orden de Subscripción', comodel_name='subscription.order', index=True)
+    # def action_integrate(self):
+    #     for share in self:
+    #         if share.state == 'new' or share.state == 'subscribed':
+    #             share.state == 'integrated'
+    #             share.date_ofintegration = fields.Datetime.now()
+    #         else:
+    #             raise UserError(
+    #                 'La accion ya ha sido emitida o aun no esta \n autorizado para ello')
+
+    def share_aprove(self):
+        for share in self:
+            if share.state == 'new':
+                share.state = 'subscribed'
+                share.date_of_issue = fields.Datetime.now()
+            else:
+                raise UserError(
+                    'La accion ya ha sido emitida o aun no esta \n autorizado para ello')
+
+    def share_cancel(self):
+        for share in self:
+            share.state='canceled'

@@ -5,7 +5,7 @@
         <field name="model">account.asset</field>
         <field name="inherit_id" ref="account_asset_management.account_asset_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='ref_name']" position="after">
+            <xpath expr="//field[@name='ref']" position="after">
                 <field name='estate_id' widget='one2many' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                 <field name='asset_type' widget="radio"
                 options="{'horizontal':true}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>

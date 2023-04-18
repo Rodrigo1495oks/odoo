@@ -62,8 +62,7 @@ class AccountPaymentRegister(models.TransientModel):
         compute='_compute_from_lines')
     partner_type = fields.Selection([
         ('customer', 'Customer'),
-        ('supplier', 'Vendor'),
-        ('shareholder','Shareholder')
+        ('supplier', 'Vendor')
     ], store=True, copy=False,
         compute='_compute_from_lines')
     source_amount = fields.Monetary(

@@ -34,6 +34,7 @@ from odoo.tools.misc import get_lang
 from odoo.tools import pycompat
 from odoo.exceptions import UserError, AccessError
 
+
 class SharesIssuance(models.Model):
     _name = 'shares.issuance'
     _inherit = ['mail.thread', 'mail.activity.mixin']
@@ -61,20 +62,21 @@ class SharesIssuance(models.Model):
                     'issue_discount': currency.round(nom_price-price),
                     'issue_premium': 0
                 })
-            if nom_price<price:
+            if nom_price < price:
                 issuance.update({  # actualizo loscampos de este modelo
                     'issue_discount': 0,
                     'issue_premium': currency.round(price-nom_price)
                 })
 
-    short_name=fields.Char(string='Referencia')
+    short_name = fields.Char(string='Referencia')
 
-    name=fields.Char(string='Nombre')
+    name = fields.Char(string='Nombre')
 
-    makeup_date=fields.Datetime(string='Fecha de Confección', readonly=True, help='Fecha en que se ha creado esta orden, a partir del topico aprobado correspondiente')
-    date_of_issue=fields.Datetime(string='Fecha de Emisión', help='Fecha en que se ha ejecutado esta orden y creado las acciones')
+    makeup_date = fields.Datetime(string='Fecha de Confección', readonly=True,
+                                  help='Fecha en que se ha creado esta orden, a partir del topico aprobado correspondiente')
+    date_of_issue = fields.Datetime(
+        string='Fecha de Emisión', help='Fecha en que se ha ejecutado esta orden y creado las acciones')
     # campos relacionales
-
 
     # campos para crear las acciones
 
@@ -82,12 +84,14 @@ class SharesIssuance(models.Model):
         string='Grupo de acciones', comodel_name='account.share.type', ondelete='restrict')
 
     votes_num = fields.Integer(string='Número de Votos',
-                               related='share_type.number_of_votes', store=True)
+                               related='share_type.number_of_votes', store=True)  # puede modificarse en la accion mientras sea "editable"
+
     shareholder = fields.Many2one(
         string='Accionista', comodel_name='account.shareholder', store=True, index=True)
 
     # valores y cotizacion
-    shares_qty=fields.Integer(string='Cantidad', default=0, required=True, help='Cantidad de acciones a emitir')
+    shares_qty = fields.Integer(
+        string='Cantidad', default=0, required=True, help='Cantidad de acciones a emitir')
 
     nominal_value = fields.Float(
         string='Valor de Emisión', required=True, copy=True)
@@ -103,21 +107,70 @@ class SharesIssuance(models.Model):
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id, readonly=True)
-    currency_id = fields.Many2one('res.currency', 'Currency', required=True,
-                                  default=lambda self: self.env.company.currency_id.id)
+    state = fields.Selection(string='Estado', selection=[
+        ('draft', 'Borrador'),
+        ('new', 'Nuevo'),
+        ('approved', 'Aprobado'),
+        ('suscribed', 'Suscrito')
+        ('cancel', 'Cancelado')
+    ], default='draft')
 
-    currency_rate = fields.Float("Currency Rate", compute='_compute_currency_rate', compute_sudo=True,
-                                 store=True, readonly=True, help='Ratio between the share currency and the company currency')
-    state=fields.Selection(string='Estado', selection=[
-        ('draft','Borrador'),
-        ('new','Nuevo'),
-        ('approved','Aprobado'),
-        ('cancel','Cancelado')
-    ])
+    shareholder = fields.Many2one(
+        string='Accionista', comodel_name='account.shareholder')
+    share_type = fields.Many2one(
+        string='Grupo de acciones', comodel_name='account.share.type', ondelete='restrict')
+    shares = fields.One2many(string='Acciones a emitir', help='Acciones creadas',
+                             comodel_name='account.share', inverse_name='share_issuance', index=True)
+    suscription_order = fields.Many2one(
+        string='Suscripción', help='Suscripcion de acciones creada', comodel_name='suscription.order', index=True)
+    share_cost = fields.One2many(
+        string='Costos de Emisión', comodel_name='account.share.cost', inverse_name='share_issuance', readonly=True)
+    topic = fields.Many2one(string='Tema de Reunión',
+                            comodel_name='assembly.meeting.topic', ondelete='restrict')
 
-    # shareholder=fields.Many2one(string='Accionista', comodel_name='account.shareholder')
+    irrevocable_contribution = fields.Many2one(
+        string='Aporte Irrevocable', comodel_name='irrevocable.contribution', index=True, copy=True, readonly=True)
 
-    # shares=fields.One2many(string='Acciones a emitir', help='Acciones creadas', comodel_name='account.share', inverse_name='share_issuance', index=True)
-    # subscription_order=fields.Many2One(string='Suscripción', help='Suscripcion de acciones creada', comodel_name='subscription.order', index=True)
-    # share_cost=fields.One2many(string='Costos de Emisión', comodel_name='account.share.cost', inverse_name='share_issuance', readonly=True)
-    # topic=fields.Many2one(string='Tema de Reunión', comodel_name='assembly.meeting.topic', ondelete='restrict')
+    def action_approve(self):
+        for issuance in self:
+            if issuance.state not in ['draft', 'cancel', 'suscribed', 'approved'] and issuance.topic.id.state == 'approved':
+                issuance.state = 'approved'
+                # creo las acciones
+                for i in self.shares_qty:
+                    share_vals = issuance._prepare_share_values()
+                    self.env['account.share'].create(share_vals)
+            else:
+                raise UserError('Orden de emision no autorizada')
+
+    def action_cancel(self):
+        for issuance in self:
+            if issuance.state not in ['draft', 'new', 'suscribed'] and issuance.topic.id.state == 'refused':
+                issuance.state = 'cancel'
+                for share in issuance.shares:
+                    share.share_cancel()
+
+    def action_suscribe(self):
+        for issuance in self:
+            if issuance.state == 'approved':
+                for share in issuance.shares:
+                    share.share_aprove()
+            else:
+                raise UserError('Acción no válida')
+
+    # methods
+
+    def _prepare_share_values(self):
+        res = {
+            'state': 'draft',
+            'date_of_issue': self.date_of_issue,
+            'share_type': self.share_type.id,
+            'votes_num': self.votes_num,
+            'shareholder': self.shareholder.id,
+            'nominal_value': self.nominal_value,
+            'price': self.price,
+            'issue_premium': self.issue_premium,
+            'issue_discount': self.issue_discount,
+            'share_issuance': self.id,
+            'suscription_order': self.suscription_order.id,
+        }
+        return res
