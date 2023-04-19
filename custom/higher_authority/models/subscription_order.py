@@ -35,7 +35,7 @@ from odoo.tools import pycompat
 from odoo.exceptions import UserError, AccessError
 
 
-class suscriptionOrder(models.Model):
+class SuscriptionOrder(models.Model):
     _name = 'suscription.order'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Objeto Subscripción de Acciones'
@@ -84,7 +84,7 @@ class suscriptionOrder(models.Model):
         ('draft', 'Borrador'),
         ('new', 'Nuevo'),
         ('approved', 'Aprobado'),
-        ('confirm', 'Confirmado'), 
+        ('confirm', 'Confirmado'),
         ('cancel', 'Cancelado')
     ], default='draft')
 
@@ -195,22 +195,27 @@ class suscriptionOrder(models.Model):
                 'credit': self.qty_to_subscribe,
             }
             suscription_vals['line_ids'].append(
-                (0, 0, debit_line, credit_line))
+                (0, 0, debit_line))
+            suscription_vals['line_ids'].append(
+                (0, 0, credit_line))
+
+            suscription_vals_list.append(suscription_vals)
 
         # 3) Create invoices.
-        moves = self.env['account.move']
+        IntMoves = self.env['account.move']
         AccountMove = self.env['account.move'].with_context(
-            default_move_type='integration')
-        for vals in suscription_vals:
-            moves |= AccountMove.with_company(vals['company_id']).create(vals)
+            default_move_type='suscription')
+        for vals in suscription_vals_list:
+            IntMoves |= AccountMove.with_company(
+                vals['company_id']).create(vals)
 
         # 4) Some moves might actually be refunds: convert them if the total amount is negative
         # We do this after the moves have been created since we need taxes, etc. to know if the total
         # is actually negative or not
-        moves.filtered(lambda m: m.currency_id.round(m.amount_total)
-                       < 0).action_switch_invoice_into_refund_credit_note()
+        IntMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
+                          < 0).action_switch_invoice_into_refund_credit_note()
 
-        return self.action_view_suscription(moves)
+        return self.action_view_suscription(IntMoves)
 
     def _prepare_suscription(self):
         """Prepare the dict of values to create the new invoice for a purchase order.
@@ -239,6 +244,39 @@ class suscriptionOrder(models.Model):
             'company_id': self.company_id.id,
         }
         return suscription_vals
+
+    def action_view_integration(self, integrations=False):
+        """This function returns an action that display existing  integrations entries of
+        given Integration order ids. When only one found, show the integration entries
+        immediately.
+        """
+        if not integrations:
+            # Invoice_ids may be filtered depending on the user. To ensure we get all
+            # suscriptions related to the suscription order, we read them in sudo to fill the
+            # cache.
+            self.invalidate_model(['integration_order'])
+            self.sudo()._read(['integration_order'])
+            integrations = self.integration_orders
+
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_move_integration_type')
+        # choose the view_mode accordingly
+        if len(integrations) > 1:
+            result['domain'] = [('id', 'in', integrations.ids)]
+        elif len(integrations) == 1:
+            res = self.env.ref('higher_authority.view_integration_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + \
+                    [(state, view)
+                     for state, view in result['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            result['res_id'] = integrations.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+
+        return result
 
     def action_view_suscription(self, suscriptions=False):
         """This function returns an action that display existing  suscriptions entries of
@@ -281,9 +319,25 @@ class suscriptionOrder(models.Model):
             else:
                 raise UserError('La accion ya fue aprobada o cancelada')
 
+    def button_confirm(self):
+        for order in self:
+            if order.state == 'aproved':
+                int_vals = order._create_integration_order()
+                self.env['integration.order'].create(int_vals)
+            else:
+                raise UserError('No se puede confirmar esta orden')
     # metodos
 
+    def _compute_total_cash(self):
+        total = 0
+        for order in self:
+            for cash_line in order.cash_lines:
+                total += cash_line.amount
+
+        return total
+
     def _action_create_share_issuance(self):
+        self.ensure_one()
         """Crea la emision de acciones correspondiente para 
             ser tratada por la asamblea
         """
@@ -300,8 +354,80 @@ class suscriptionOrder(models.Model):
         }
         self.env['shares.issuance'].create(vals)
         return True
-    # restricciones
 
+    def action_create_integration(self):
+        precision = self.env['decimal.precision'].precision_get(
+            'Product Unit of Measure')
+
+        # 1) Prepare integration vals
+
+        integration_vals_list = []
+
+        for order in self:
+            if order.state != 'approved':
+                continue
+
+            order = order.with_company(self.company_id)
+            # integration_vals
+            integration_vals = self._prepare_integration_order()
+            # lines
+            # primero las lineas de crédito
+            for credit_line in order.credit_lines:
+                if not float_is_zero(credit_line.amount, precision_digits=precision):
+                    continue
+                line_credit_vals = credit_line._prepare_credit_line_vals()
+                integration_vals['credit_lines'].append(
+                    (0, 0, line_credit_vals))
+            # luego las lineas de productos y activos fijos y/o intagibles
+
+            for line in order.product_lines:
+                if not float_is_zero(line.price_total, precision_digits=precision):
+                    continue
+                line_vals = line._prepare_order_line()
+                integration_vals['product_lines'].append((0, 0, line_vals))
+        integration_vals_list.append(integration_vals)
+
+        # 3) Create invoices.
+        intOrder = IntegrationOrder = self.env['integration.order']
+
+        for vals in integration_vals_list:
+            intOrder |= IntegrationOrder.with_company(
+                vals['company_id']).create(vals)
+
+        return self.action_view_integration(integrations=intOrder)
+
+    def _prepare_integration_order(self):
+        self.ensure_one()
+        res = {
+            'nominal_value': self.nominal_value,
+            'price': self.price,
+            'issue_premium': self.issue_premium,
+            'issue_discount': self.issue_discount,
+            'cash_subscription': self._compute_total_cash(),
+            'subscription_order': self.id,
+            'shareholder_id': self.shareholder_id.id,
+            'origin': self.number,
+            'date_order': fields.Datetime.now(),
+            'partner_id': self.shareholder_id.partner_id,
+            'state': 'draft',
+            'order_line': [],
+            'date_planned': self.integration_date_due,
+            'payment_term_id': self.payment_term_id,
+            'credit_lines': []
+        }
+        return res
+    
+     # low level methods
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') == 'New':
+            vals['reference'] = self.env['ir.sequence'].next_by_code(
+                'suscription.order') or 'New'
+        res = super(SuscriptionOrder, self.create(vals))
+        return res
+    # restricciones
+   
+        
     @api.constrains('amount_total')
     def _check_amount_total(self):
         precision = self.env['decimal.precision'].precision_get(
@@ -404,9 +530,6 @@ class suscriptionOrderLine(models.Model):
         index='trigram',
     )
 
-    sequence = fields.Integer(
-        string='Sequence', store=True, readonly=False, precompute=True)
-
     partner_id = fields.Many2one(
         comodel_name='res.partner',
         string='Partner',
@@ -481,9 +604,31 @@ class suscriptionOrderLine(models.Model):
         ondelete="restrict",
     )
 
-    # -------------------------------------------------------------------------
-    # INVERSE METHODS
-    # -------------------------------------------------------------------------
+    def _prepare_order_line(self):
+        self.ensure_one()
+
+        vals = {
+            'short_name': self.short_name,
+            'company_id': self.company_id.id,
+            'company_currency_id': self.company_currency_id.id,
+            'move_name': self.move_name,
+            'parent_state': self.parent_state,
+            'date': fields.Datetime.now(),
+            'ref': self.ref,
+            'partner_id': self.partner_id,
+            'shareholder_id': self.shareholder_id.id,
+            'suscription_order_line': self.id,
+            'product_id': self.product_id.id,
+            'product_uom_id': self.product_uom_id.id,
+            'product_uom_category_id': self.product_uom_category_id.id,
+            'quantity': self.quantity,
+            'price_unit': self.price_unit,
+            'price_subtotal': self.price_subtotal,
+            'price_total': self.price_total,
+            'discount': self.discount,
+            'asset_profile_id': self.asset_profile_id.id
+        }
+        return vals
 
 
 class suscriptionOrderLineCredit(models.Model):
@@ -549,6 +694,23 @@ class suscriptionOrderLineCredit(models.Model):
                 line.value = line.company_id.currency_id.round(
                     line.amount_currency / line.currency_rate)
         # Do not depend on `move_id.partner_id`, the inverse is taking care of that
+
+    # methods
+
+    def _prepare_credit_line_vals(self):
+        self.ensure_one()
+        vals = {
+            'amount': self.amount,
+            'partner_id': self.partner_id,
+            'source_document': self.source_document,
+            'amount_currency': self.amount_currency,
+            'company_currency_id': self.company_currency_id.id,
+            'currency_id': self.currency_id.id,
+            'is_same_currency': self.is_same_currency,
+            'suscription_line_id': self.id
+        }
+        return vals
+
     amount = fields.Monetary(
         string='Monto', help='Monto extraido de la ultima valuacion de la deuda', currency_field='company_currency_id')
 
@@ -580,17 +742,10 @@ class suscriptionOrderLineCredit(models.Model):
     )
     is_same_currency = fields.Boolean(compute='_compute_same_currency')
 
-    # low level methods
-    @api.model
-    def create(self, vals):
-        if vals.get('name', 'New') == 'New':
-            vals['reference'] = self.env['ir.sequence'].next_by_code(
-                'suscription.order') or 'New'
-        res = super(suscriptionOrder, self.create(vals))
-        return res
 
 
-class suscriptionOrderLineCredit(models.Model):
+
+class suscriptionOrderLineCash(models.Model):
     _name = 'suscription.order.line.cash'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     # _inherits = {'calendar.event': 'event_id'}

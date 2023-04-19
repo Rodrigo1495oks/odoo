@@ -147,7 +147,7 @@ class IntegrationOrder(models.Model):
                                   default=lambda self: self.env.company.currency_id.id)
 
     # pasar este valor desde la orden de subscription_order
-    cash_subscription=fields.Monetary(string='Efectivo a Integrar', help='Indique el efectivo a integrar', compute='_compute_cash_to_integrate')
+    cash_subscription=fields.Monetary(string='Efectivo a Integrar', help='Indique el efectivo a integrar')
 
     qty_integrated=fields.Monetary(string='Cantidad Integrada', currency_field='company_currency_id', compute='_compute_qty_integrated', help='Cantidad que se ha integrado')
 
@@ -160,7 +160,7 @@ class IntegrationOrder(models.Model):
 
     subscription_order=fields.Many2one(string='Orden de Subscripción', comodel_name='subscription.order', help='Orden de suscripción relacionada')
 
-    shares=fields.One2many(string='Acciones a emitir', help='Acciones creadas', comodel_name='account.share', inverse_name='subscription_order', index=True)
+    # shares=fields.One2many(string='Acciones a emitir', help='Acciones creadas', comodel_name='account.share', inverse_name='subscription_order', index=True)
 
 
     shareholder_id=fields.Many2one(string='Accionista', comodel_name='account.shareholder')
@@ -241,7 +241,7 @@ class IntegrationOrder(models.Model):
 
 
     # campos que integran el stock
-     # campos para administrar recepciones (traidos de PurchaseORderStock)
+     # campos para administrar recepciones (traidos de IntegrationOrderStock)
     incoterm_id = fields.Many2one('account.incoterms', 'Incoterm', states={'done': [('readonly', True)]}, help="International Commercial Terms are a series of predefined commercial terms used in international transactions.")
     incoterm_location = fields.Char(string='Incoterm Location', states={'done': [('readonly', True)]})
     incoming_picking_count = fields.Integer("Incoming Shipment count", compute='_compute_incoming_picking_count')
@@ -263,10 +263,7 @@ class IntegrationOrder(models.Model):
     ], string='Receipt Status', compute='_compute_receipt_status', store=True)
 
     credit_lines = fields.One2many(string='Líneas de Crédito', comodel_name='subscription.order.line.credit', inverse_name='order_id', copy=False, readonly=True,
-
                                    states={'draft': [('readonly', False)]})
-    cash_lines = fields.One2many(string='Líneas de Efectivo', comodel_name='subscription.order.line.cash', inverse_name='order_id', copy=False, readonly=True,
-                                 states={'draft': [('readonly', False)]})
 
 
     @api.constrains('company_id', 'order_line')
@@ -283,7 +280,7 @@ class IntegrationOrder(models.Model):
                 ))
 
     def _compute_access_url(self):
-        super(PurchaseOrder, self)._compute_access_url()
+        super(IntegrationOrder, self)._compute_access_url()
         for order in self:
             order.access_url = '/my/purchase/%s' % (order.id)
 
@@ -360,10 +357,10 @@ class IntegrationOrder(models.Model):
                 seq_date = None
                 if 'date_order' in vals:
                     seq_date = fields.Datetime.context_timestamp(self, fields.Datetime.to_datetime(vals['date_order']))
-                vals['name'] = self_comp.env['ir.sequence'].next_by_code('purchase.order', sequence_date=seq_date) or '/'
+                vals['name'] = self_comp.env['ir.sequence'].next_by_code('integration.order', sequence_date=seq_date) or '/'
             vals, partner_vals = self._write_partner_values(vals)
             partner_vals_list.append(partner_vals)
-            orders |= super(PurchaseOrder, self_comp).create(vals)
+            orders |= super(IntegrationOrder, self_comp).create(vals)
         for order, partner_vals in zip(orders, partner_vals_list):
             if partner_vals:
                 order.sudo().write(partner_vals)  # Because the purchase user doesn't have write on `res.partner`
@@ -379,7 +376,7 @@ class IntegrationOrder(models.Model):
         ctx = dict(self.env.context)
         ctx.pop('default_product_id', None)
         self = self.with_context(ctx)
-        new_po = super(PurchaseOrder, self).copy(default=default)
+        new_po = super(IntegrationOrder, self).copy(default=default)
         for line in new_po.order_line:
             if line.product_id:
                 seller = line.product_id._select_seller(
@@ -396,7 +393,7 @@ class IntegrationOrder(models.Model):
         """Override onchange to NOT to update all date_planned on PO lines when
         date_planned on PO is updated by the change of date_planned on PO lines.
         """
-        result = super(PurchaseOrder, self).onchange(values, field_name, field_onchange)
+        result = super(IntegrationOrder, self).onchange(values, field_name, field_onchange)
         if self._must_delete_date_planned(field_name) and 'value' in result:
             already_exist = [ol[1] for ol in values.get('order_line', []) if ol[1]]
             for line in result['value'].get('order_line', []):
@@ -465,12 +462,12 @@ class IntegrationOrder(models.Model):
     def message_post(self, **kwargs):
         if self.env.context.get('mark_rfq_as_sent'):
             self.filtered(lambda o: o.state == 'draft').write({'state': 'sent'})
-        return super(PurchaseOrder, self.with_context(mail_post_autofollow=self.env.context.get('mail_post_autofollow', True))).message_post(**kwargs)
+        return super(IntegrationOrder, self.with_context(mail_post_autofollow=self.env.context.get('mail_post_autofollow', True))).message_post(**kwargs)
 
     def _notify_get_recipients_groups(self, msg_vals=None):
         """ Tweak 'view document' button for portal customers, calling directly
         routes for confirm specific to PO model. """
-        groups = super(PurchaseOrder, self)._notify_get_recipients_groups(msg_vals=msg_vals)
+        groups = super(IntegrationOrder, self)._notify_get_recipients_groups(msg_vals=msg_vals)
         if not self:
             return groups
 
@@ -525,7 +522,7 @@ class IntegrationOrder(models.Model):
             return self.env.ref('purchase.mt_rfq_done')
         elif 'state' in init_values and self.state == 'sent':
             return self.env.ref('purchase.mt_rfq_sent')
-        return super(PurchaseOrder, self)._track_subtype(init_values)
+        return super(IntegrationOrder, self)._track_subtype(init_values)
 
     # ------------------------------------------------------------
     # ACTIONS
@@ -1101,7 +1098,7 @@ class IntegrationOrderLine(models.Model):
     display_type = fields.Selection([
         ('line_section', "Section"),
         ('line_note', "Note")], default=False, help="Technical field for UX purpose.")
-
+    
     _sql_constraints = [
         ('accountable_required_fields',
             "CHECK(display_type IS NOT NULL OR (product_id IS NOT NULL AND product_uom IS NOT NULL AND date_planned IS NOT NULL))",
@@ -1634,7 +1631,7 @@ class IntegrationOrderLine(models.Model):
         if vals.get('order_line') and self.state == 'purchase':
             for order in self:
                 pre_order_line_qty = {order_line: order_line.product_qty for order_line in order.mapped('order_line')}
-        res = super(PurchaseOrder, self).write(vals)
+        res = super(IntegrationOrder, self).write(vals)
         if vals.get('order_line') and self.state == 'purchase':
             for order in self:
                 to_log = {}
@@ -1650,7 +1647,7 @@ class IntegrationOrderLine(models.Model):
     # --------------------------------------------------
 
     def button_approve(self, force=False):
-        result = super(PurchaseOrder, self).button_approve(force=force)
+        result = super(IntegrationOrder, self).button_approve(force=force)
         self._create_picking()
         return result
 
@@ -1677,7 +1674,7 @@ class IntegrationOrderLine(models.Model):
 
             order.order_line.write({'move_dest_ids':[(5,0,0)]})
 
-        return super(PurchaseOrder, self).button_cancel()
+        return super(IntegrationOrder, self).button_cancel()
 
     def action_view_picking(self):
         return self._get_action_view_picking(self.picking_ids)
@@ -2784,15 +2781,9 @@ class IntegrationOrderLineCredit(models.Model):
         required=True,
     )
     is_same_currency = fields.Boolean(compute='_compute_same_currency')
+    suscription_line_id=fields.Many2one(string='Línea de Suscripción', comodel_name='suscription.order')
+    
 
-    # low level methods
-    @api.model
-    def create(self, vals):
-        if vals.get('name', 'New') == 'New':
-            vals['reference'] = self.env['ir.sequence'].next_by_code(
-                'subscription.order') or 'New'
-        res = super(IntegrationOrder, self.create(vals))
-        return res
 
 
 class IntegrationOrderLineCash(models.Model):
