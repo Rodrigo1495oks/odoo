@@ -24,7 +24,7 @@ class AccountJournal(models.Model):
             ('sale', 'Sales'),
             ('purchase', 'Purchase'),
             ('integration','Integrations'),
-            ('subscription','Subscripctions'),
+            ('suscription','Subscripctions'),
             ('cash', 'Cash'),
             ('bank', 'Bank'),
             ('general', 'Miscellaneous'),

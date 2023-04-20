@@ -202,11 +202,11 @@ class SuscriptionOrder(models.Model):
             suscription_vals_list.append(suscription_vals)
 
         # 3) Create invoices.
-        IntMoves = self.env['account.move']
-        AccountMove = self.env['account.move'].with_context(
+        IntMoves = self.env['suscription.move']
+        SuscriptionMove = self.env['suscription.move'].with_context(
             default_move_type='suscription')
         for vals in suscription_vals_list:
-            IntMoves |= AccountMove.with_company(
+            IntMoves |= SuscriptionMove.with_company(
                 vals['company_id']).create(vals)
 
         # 4) Some moves might actually be refunds: convert them if the total amount is negative
@@ -229,14 +229,14 @@ class SuscriptionOrder(models.Model):
             ['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)])[:1]
 
         suscription_vals = {
-            'ref': self.partner_ref or '',  # modificar con una sECUENCIA
+            'ref': self.partner_ref or '', 
             'move_type': move_type,
             'narration': self.notes,
             'currency_id': self.currency_id.id,
             'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
             'shareholder_id': self.shareholder_id.id,
             'fiscal_position_id': (self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
-            'payment_reference': self.partner_ref or '',  # agregar una secuencia
+            'payment_reference': self.partner_ref or '',  
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': self.name,
             'invoice_payment_term_id': self.payment_term_id.id,
@@ -285,7 +285,7 @@ class SuscriptionOrder(models.Model):
         """
         if not suscriptions:
             # Invoice_ids may be filtered depending on the user. To ensure we get all
-            # suscriptions related to the suscription order, we read them in sudo to fill the
+            # suscriptions related to the suscription order, we read them in sudo to fill the00
             # cache.
             self.invalidate_model(['account_move'])
             self.sudo()._read(['account_move'])
@@ -425,6 +425,12 @@ class SuscriptionOrder(models.Model):
                 'suscription.order') or 'New'
         res = super(SuscriptionOrder, self.create(vals))
         return res
+    
+    @api.ondelete(at_uninstall=False)
+    def _unlink_if_cancelled(self):
+        for order in self:
+            if not order.state == 'cancel':
+                raise UserError(_('In order to delete a purchase order, you must cancel it first.'))
     # restricciones
    
         

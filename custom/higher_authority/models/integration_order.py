@@ -7,15 +7,17 @@ from functools import lru_cache
 import hashlib
 from itertools import groupby
 import re
-import pytz
+from dateutil import relativedelta
+from pytz import timezone, UTC
+from markupsafe import escape, Markup
 import requests
 from odoo.exceptions import UserError
 from werkzeug import urls
 
 from datetime import datetime, timedelta
-
+from werkzeug.urls import url_encode
 from odoo.tools.float_utils import float_is_zero, float_compare, float_round
-
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT, format_amount, format_date, formatLang, get_lang, groupby
 from odoo import SUPERUSER_ID, models, fields, api, tools
 
 from odoo.osv.expression import get_unaccent_wrapper
@@ -32,7 +34,6 @@ from odoo.addons.base.models.res_partner import _tz_get
 from odoo.addons.calendar.models.calendar_attendee import Attendee
 from odoo.addons.calendar.models.calendar_recurrence import weekday_to_field, RRULE_TYPE_SELECTION, END_TYPE_SELECTION, MONTH_BY_SELECTION, WEEKDAY_SELECTION, BYDAY_SELECTION
 from odoo.tools.translate import _
-from odoo.tools.misc import get_lang
 from odoo.tools import pycompat
 from odoo.exceptions import UserError, AccessError
 
@@ -130,15 +131,15 @@ class IntegrationOrder(models.Model):
 
     int_date=fields.Date(string='Fecha de Integración', readonly=True)
     pending=fields.Boolean(string='Pendiente', default=True, compute='_compute_order_is_pending')
-    nominal_value = fields.Float(related='share_issuance.nominal_value',
+    nominal_value = fields.Float(
         string='Valor de Emisión', required=True, copy=True)
-    price = fields.Float(related='share_issuance.price',string='Valor pactado en la suscripción',
+    price = fields.Float(string='Valor pactado en la suscripción',
                          help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True, readonly=True, store=True)
 
-    issue_premium = fields.Float(related='share_issuance.issue_premium',
+    issue_premium = fields.Float(
         string='Prima de emision', help='Cotizacion sobre la par', readonly=True, store=True)
 
-    issue_discount = fields.Float(related='share_issuance.issue_discount',
+    issue_discount = fields.Float(
         string='Descuento de Emisión', help='Descuento bajo la par', readonly=True, store=True)
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
@@ -161,7 +162,6 @@ class IntegrationOrder(models.Model):
     subscription_order=fields.Many2one(string='Orden de Subscripción', comodel_name='subscription.order', help='Orden de suscripción relacionada')
 
     # shares=fields.One2many(string='Acciones a emitir', help='Acciones creadas', comodel_name='account.share', inverse_name='subscription_order', index=True)
-
 
     shareholder_id=fields.Many2one(string='Accionista', comodel_name='account.shareholder')
     
@@ -191,7 +191,7 @@ class IntegrationOrder(models.Model):
         ('draft', 'RFQ'),
         ('sent', 'RFQ Sent'),
         ('to approve', 'To Approve'),
-        ('purchase', 'Purchase Order'),
+        ('purchase', 'Integration Order'),
         ('done', 'Locked'),
         ('cancel', 'Cancelled')
     ], string='Status', readonly=True, index=True, copy=False, default='draft', tracking=True)
@@ -227,7 +227,7 @@ class IntegrationOrder(models.Model):
 
     product_id = fields.Many2one('product.product', related='order_line.product_id', string='Product')
     user_id = fields.Many2one(
-        'res.users', string='Buyer', index=True, tracking=True,
+        'res.users', string='Operator', index=True, tracking=True,
         default=lambda self: self.env.user, check_company=True)
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True, states=READONLY_STATES, default=lambda self: self.env.company.id)
     country_code = fields.Char(related='company_id.account_fiscal_country_id.code', string="Country code")
@@ -239,6 +239,9 @@ class IntegrationOrder(models.Model):
     receipt_reminder_email = fields.Boolean('Receipt Reminder Email', related='partner_id.receipt_reminder_email', readonly=False)
     reminder_date_before_receipt = fields.Integer('Days Before Receipt', related='partner_id.reminder_date_before_receipt', readonly=False)
 
+    @api.model
+    def _default_picking_type(self):
+        return self._get_picking_type(self.env.context.get('company_id') or self.env.company.id)
 
     # campos que integran el stock
      # campos para administrar recepciones (traidos de IntegrationOrderStock)
@@ -262,9 +265,9 @@ class IntegrationOrder(models.Model):
         ('full', 'Fully Received'),
     ], string='Receipt Status', compute='_compute_receipt_status', store=True)
 
-    credit_lines = fields.One2many(string='Líneas de Crédito', comodel_name='subscription.order.line.credit', inverse_name='order_id', copy=False, readonly=True,
+    credit_lines = fields.One2many(string='Líneas de Crédito', comodel_name='integration.order.line.credit', inverse_name='order_id', copy=False, readonly=True,
                                    states={'draft': [('readonly', False)]})
-
+    
 
     @api.constrains('company_id', 'order_line')
     def _check_order_line_company_id(self):
@@ -403,7 +406,7 @@ class IntegrationOrder(models.Model):
 
     def _get_report_base_filename(self):
         self.ensure_one()
-        return 'Purchase Order-%s' % (self.name)
+        return 'Integration Order-%s' % (self.name)
 
     @api.onchange('partner_id', 'company_id')
     def onchange_partner_id(self):
@@ -430,7 +433,7 @@ class IntegrationOrder(models.Model):
 
     @api.onchange('partner_id')
     def onchange_partner_id_warning(self):
-        if not self.partner_id or not self.env.user.has_group('purchase.group_warning_purchase'):
+        if not self.partner_id or not self.env.user.has_group('higher_authority.group_warning_suscription'):
             return
 
         partner = self.partner_id
@@ -547,8 +550,8 @@ class IntegrationOrder(models.Model):
             compose_form_id = False
         ctx = dict(self.env.context or {})
         ctx.update({
-            'default_model': 'purchase.order',
-            'active_model': 'purchase.order',
+            'default_model': 'integration.order',
+            'active_model': 'integration.order',
             'active_id': self.ids[0],
             'default_res_id': self.ids[0],
             'default_use_template': bool(template_id),
@@ -572,7 +575,7 @@ class IntegrationOrder(models.Model):
         if self.state in ['draft', 'sent']:
             ctx['model_description'] = _('Request for Quotation')
         else:
-            ctx['model_description'] = _('Purchase Order')
+            ctx['model_description'] = _('Integration Order')
 
         return {
             'name': _('Compose Email'),
@@ -627,7 +630,7 @@ class IntegrationOrder(models.Model):
 
     def button_done(self):
         self.write({'state': 'done', 'priority': '0'})
-
+        
     def _prepare_supplier_info(self, partner, line, price, currency):
         # Prepare supplierinfo data when adding a product
         return {
@@ -733,8 +736,8 @@ class IntegrationOrder(models.Model):
         invoice_vals_list = new_invoice_vals_list
 
         # 3) Create invoices.
-        moves = self.env['account.move']
-        AccountMove = self.env['account.move'].with_context(default_move_type='integration')
+        moves = self.env['integration.move']
+        AccountMove = self.env['integration.move'].with_context(default_move_type='integration')
         for vals in invoice_vals_list:
             moves |= AccountMove.with_company(vals['company_id']).create(vals)
 
@@ -767,6 +770,7 @@ class IntegrationOrder(models.Model):
             'invoice_origin': self.name,
             'invoice_payment_term_id': self.payment_term_id.id,
             'invoice_line_ids': [],
+            'line_ids': [],
             'company_id': self.company_id.id,
         }
         return invoice_vals
@@ -784,12 +788,12 @@ class IntegrationOrder(models.Model):
             self.sudo()._read(['invoice_ids'])
             invoices = self.invoice_ids
 
-        result = self.env['ir.actions.act_window']._for_xml_id('account.action_move_in_invoice_type')
+        result = self.env['ir.actions.act_window']._for_xml_id('higher_authority.action_move_integration_type')
         # choose the view_mode accordingly
         if len(invoices) > 1:
             result['domain'] = [('id', 'in', invoices.ids)]
         elif len(invoices) == 1:
-            res = self.env.ref('account.view_move_form', False)
+            res = self.env.ref('higher_authority.view_integration_form', False)
             form_view = [(res and res.id or False, 'form')]
             if 'views' in result:
                 result['views'] = form_view + [(state, view) for state, view in result['views'] if view != 'form']
@@ -905,8 +909,8 @@ class IntegrationOrder(models.Model):
             compose_form_id = False
         ctx = dict(self.env.context or {})
         ctx.update({
-            'default_model': 'purchase.order',
-            'active_model': 'purchase.order',
+            'default_model': 'integration.order',
+            'active_model': 'integration.order',
             'active_id': self.ids[0],
             'default_res_id': self.ids[0],
             'default_use_template': bool(template_id),
@@ -922,7 +926,7 @@ class IntegrationOrder(models.Model):
             if template and template.lang:
                 lang = template._render_lang([ctx['default_res_id']])[ctx['default_res_id']]
         self = self.with_context(lang=lang)
-        ctx['model_description'] = _('Purchase Order')
+        ctx['model_description'] = _('Integration Order')
         return {
             'name': _('Compose Email'),
             'type': 'ir.actions.act_window',
@@ -1038,793 +1042,6 @@ class IntegrationOrder(models.Model):
             partner_values['reminder_date_before_receipt'] = vals.pop('reminder_date_before_receipt')
         return vals, partner_values
 
-
-class IntegrationOrderLine(models.Model):
-    _name = 'integration.order.line'
-    _inherit = 'analytic.mixin'
-    _description = 'Integration Order Line'
-    _order = 'order_id, sequence, id'
-    
-    name = fields.Text(
-        string='Description', required=True, compute='_compute_price_unit_and_date_planned_and_name', store=True, readonly=False)
-    sequence = fields.Integer(string='Sequence', default=10)
-    product_qty = fields.Float(string='Quantity', digits='Product Unit of Measure', required=True,
-                               compute='_compute_product_qty', store=True, readonly=False)
-    product_uom_qty = fields.Float(string='Total Quantity', compute='_compute_product_uom_qty', store=True)
-    date_planned = fields.Datetime(
-        string='Expected Arrival', index=True,
-        compute="_compute_price_unit_and_date_planned_and_name", readonly=False, store=True,
-        help="Delivery date expected from vendor. This date respectively defaults to vendor pricelist lead time then today's date.")
-    taxes_id = fields.Many2many('account.tax', string='Taxes', domain=['|', ('active', '=', False), ('active', '=', True)])
-    product_uom = fields.Many2one('uom.uom', string='Unit of Measure', domain="[('category_id', '=', product_uom_category_id)]")
-    product_uom_category_id = fields.Many2one(related='product_id.uom_id.category_id')
-    product_id = fields.Many2one('product.product', string='Product', domain=[('purchase_ok', '=', True)], change_default=True, index='btree_not_null')
-    product_type = fields.Selection(related='product_id.detailed_type', readonly=True)
-    price_unit = fields.Float(
-        string='Unit Price', required=True, digits='Product Price',
-        compute="_compute_price_unit_and_date_planned_and_name", readonly=False, store=True)
-
-    price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal', store=True)
-    price_total = fields.Monetary(compute='_compute_amount', string='Total', store=True)
-    price_tax = fields.Float(compute='_compute_amount', string='Tax', store=True)
-
-    order_id = fields.Many2one('purchase.order', string='Order Reference', index=True, required=True, ondelete='cascade')
-
-    company_id = fields.Many2one('res.company', related='order_id.company_id', string='Company', store=True, readonly=True)
-    state = fields.Selection(related='order_id.state', store=True)
-
-    invoice_lines = fields.One2many('account.move.line', 'purchase_line_id', string="Bill Lines", readonly=True, copy=False)
-
-    # Replace by integrated Qty
-    qty_integrated = fields.Float(compute='_compute_qty_integrated', string="Billed Qty", digits='Product Unit of Measure', store=True)
-
-    qty_received_method = fields.Selection([('manual', 'Manual')], string="Received Qty Method", compute='_compute_qty_received_method', store=True,
-        help="According to product configuration, the received quantity can be automatically computed by mechanism :\n"
-             "  - Manual: the quantity is set manually on the line\n"
-             "  - Stock Moves: the quantity comes from confirmed pickings\n")
-    qty_received = fields.Float("Received Qty", compute='_compute_qty_received', inverse='_inverse_qty_received', compute_sudo=True, store=True, digits='Product Unit of Measure')
-    qty_received_manual = fields.Float("Manual Received Qty", digits='Product Unit of Measure', copy=False)
-    qty_to_invoice = fields.Float(compute='_compute_qty_integrated', string='to integrate Quantity', store=True, readonly=True,
-                                  digits='Product Unit of Measure')
-
-    partner_id = fields.Many2one('res.partner', related='order_id.partner_id', string='Partner', readonly=True, store=True)
-    currency_id = fields.Many2one(related='order_id.currency_id', store=True, string='Currency', readonly=True)
-    date_order = fields.Datetime(related='order_id.date_order', string='Order Date', readonly=True)
-    date_approve = fields.Datetime(related="order_id.date_approve", string='Confirmation Date', readonly=True)
-    product_packaging_id = fields.Many2one('product.packaging', string='Packaging', domain="[('purchase', '=', True), ('product_id', '=', product_id)]", check_company=True,
-                                           compute="_compute_product_packaging_id", store=True, readonly=False)
-    product_packaging_qty = fields.Float('Packaging Quantity', compute="_compute_product_packaging_qty", store=True, readonly=False)
-
-    display_type = fields.Selection([
-        ('line_section', "Section"),
-        ('line_note', "Note")], default=False, help="Technical field for UX purpose.")
-    
-    _sql_constraints = [
-        ('accountable_required_fields',
-            "CHECK(display_type IS NOT NULL OR (product_id IS NOT NULL AND product_uom IS NOT NULL AND date_planned IS NOT NULL))",
-            "Missing required fields on accountable purchase order line."),
-        ('non_accountable_null_fields',
-            "CHECK(display_type IS NULL OR (product_id IS NULL AND price_unit = 0 AND product_uom_qty = 0 AND product_uom IS NULL AND date_planned is NULL))",
-            "Forbidden values on non-accountable purchase order line"),
-    ]
-    
-
-
-    @api.depends('product_qty', 'price_unit', 'taxes_id')
-    def _compute_amount(self):
-        for line in self:
-            tax_results = self.env['account.tax']._compute_taxes([line._convert_to_tax_base_line_dict()])
-            totals = list(tax_results['totals'].values())[0]
-            amount_untaxed = totals['amount_untaxed']
-            amount_tax = totals['amount_tax']
-
-            line.update({
-                'price_subtotal': amount_untaxed,
-                'price_tax': amount_tax,
-                'price_total': amount_untaxed + amount_tax,
-            })
-
-    def _convert_to_tax_base_line_dict(self):
-        """ Convert the current record to a dictionary in order to use the generic taxes computation method
-        defined on account.tax.
-
-        :return: A python dictionary.
-        """
-        self.ensure_one()
-        return self.env['account.tax']._convert_to_tax_base_line_dict(
-            self,
-            partner=self.order_id.partner_id,
-            currency=self.order_id.currency_id,
-            product=self.product_id,
-            taxes=self.taxes_id,
-            price_unit=self.price_unit,
-            quantity=self.product_qty,
-            price_subtotal=self.price_subtotal,
-        )
-
-    def _compute_tax_id(self):
-        for line in self:
-            line = line.with_company(line.company_id)
-            fpos = line.order_id.fiscal_position_id or line.order_id.fiscal_position_id._get_fiscal_position(line.order_id.partner_id)
-            # filter taxes by company
-            taxes = line.product_id.supplier_taxes_id.filtered(lambda r: r.company_id == line.env.company)
-            line.taxes_id = fpos.map_tax(taxes)
-
-    @api.depends('invoice_lines.move_id.state', 'invoice_lines.quantity', 'qty_received', 'product_uom_qty', 'order_id.state')
-    def _compute_qty_integrated(self):
-        for line in self:
-            # compute qty_integrated
-            qty = 0.0
-            for inv_line in line._get_invoice_lines():
-                if inv_line.move_id.state not in ['cancel'] or inv_line.move_id.payment_state == 'invoicing_legacy':
-                    if inv_line.move_id.move_type == 'in_invoice':
-                        qty += inv_line.product_uom_id._compute_quantity(inv_line.quantity, line.product_uom)
-                    elif inv_line.move_id.move_type == 'in_refund':
-                        qty -= inv_line.product_uom_id._compute_quantity(inv_line.quantity, line.product_uom)
-            line.qty_integrated = qty
-
-            # compute qty_to_invoice
-            if line.order_id.state in ['purchase', 'done']:
-                if line.product_id.purchase_method == 'purchase':
-                    line.qty_to_invoice = line.product_qty - line.qty_integrated
-                else:
-                    line.qty_to_invoice = line.qty_received - line.qty_integrated
-            else:
-                line.qty_to_invoice = 0
-
-    def _get_invoice_lines(self):
-        self.ensure_one()
-        if self._context.get('accrual_entry_date'):
-            return self.invoice_lines.filtered(
-                lambda l: l.move_id.invoice_date and l.move_id.invoice_date <= self._context['accrual_entry_date']
-            )
-        else:
-            return self.invoice_lines
-
-    @api.depends('product_id')
-    def _compute_qty_received_method(self):
-        for line in self:
-            if line.product_id and line.product_id.type in ['consu', 'service']:
-                line.qty_received_method = 'manual'
-            else:
-                line.qty_received_method = False
-
-    @api.depends('qty_received_method', 'qty_received_manual')
-    def _compute_qty_received(self):
-        for line in self:
-            if line.qty_received_method == 'manual':
-                line.qty_received = line.qty_received_manual or 0.0
-            else:
-                line.qty_received = 0.0
-
-    @api.onchange('qty_received')
-    def _inverse_qty_received(self):
-        """ When writing on qty_received, if the value should be modify manually (`qty_received_method` = 'manual' only),
-            then we put the value in `qty_received_manual`. Otherwise, `qty_received_manual` should be False since the
-            received qty is automatically compute by other mecanisms.
-        """
-        for line in self:
-            if line.qty_received_method == 'manual':
-                line.qty_received_manual = line.qty_received
-            else:
-                line.qty_received_manual = 0.0
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for values in vals_list:
-            if values.get('display_type', self.default_get(['display_type'])['display_type']):
-                values.update(product_id=False, price_unit=0, product_uom_qty=0, product_uom=False, date_planned=False)
-            else:
-                values.update(self._prepare_add_missing_fields(values))
-
-        lines = super().create(vals_list)
-        for line in lines:
-            if line.product_id and line.order_id.state == 'purchase':
-                msg = _("Extra line with %s ") % (line.product_id.display_name,)
-                line.order_id.message_post(body=msg)
-        return lines
-
-    def write(self, values):
-        if 'display_type' in values and self.filtered(lambda line: line.display_type != values.get('display_type')):
-            raise UserError(_("You cannot change the type of a purchase order line. Instead you should delete the current line and create a new line of the proper type."))
-
-        if 'product_qty' in values:
-            precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
-            for line in self:
-                if (
-                    line.order_id.state == "purchase"
-                    and float_compare(line.product_qty, values["product_qty"], precision_digits=precision) != 0
-                ):
-                    line.order_id.message_post_with_view('purchase.track_po_line_template',
-                                                         values={'line': line, 'product_qty': values['product_qty']},
-                                                         subtype_id=self.env.ref('mail.mt_note').id)
-
-        if 'qty_received' in values:
-            for line in self:
-                line._track_qty_received(values['qty_received'])
-        return super(IntegrationOrderLine, self).write(values)
-
-    @api.ondelete(at_uninstall=False)
-    def _unlink_except_purchase_or_done(self):
-        for line in self:
-            if line.order_id.state in ['purchase', 'done']:
-                state_description = {state_desc[0]: state_desc[1] for state_desc in self._fields['state']._description_selection(self.env)}
-                raise UserError(_('Cannot delete a purchase order line which is in state \'%s\'.') % (state_description.get(line.state),))
-
-    @api.model
-    def _get_date_planned(self, seller, po=False):
-        """Return the datetime value to use as Schedule Date (``date_planned``) for
-           PO Lines that correspond to the given product.seller_ids,
-           when ordered at `date_order_str`.
-
-           :param Model seller: used to fetch the delivery delay (if no seller
-                                is provided, the delay is 0)
-           :param Model po: purchase.order, necessary only if the PO line is
-                            not yet attached to a PO.
-           :rtype: datetime
-           :return: desired Schedule Date for the PO line
-        """
-        date_order = po.date_order if po else self.order_id.date_order
-        if date_order:
-            return date_order + relativedelta(days=seller.delay if seller else 0)
-        else:
-            return datetime.today() + relativedelta(days=seller.delay if seller else 0)
-
-    @api.depends('product_id', 'order_id.partner_id')
-    def _compute_analytic_distribution(self):
-        for line in self:
-            if not line.display_type:
-                distribution = self.env['account.analytic.distribution.model']._get_distribution({
-                    "product_id": line.product_id.id,
-                    "product_categ_id": line.product_id.categ_id.id,
-                    "partner_id": line.order_id.partner_id.id,
-                    "partner_category_id": line.order_id.partner_id.category_id.ids,
-                    "company_id": line.company_id.id,
-                })
-                line.analytic_distribution = distribution or line.analytic_distribution
-
-    @api.onchange('product_id')
-    def onchange_product_id(self):
-        if not self.product_id:
-            return
-
-        # Reset date, price and quantity since _onchange_quantity will provide default values
-        self.price_unit = self.product_qty = 0.0
-
-        self._product_id_change()
-
-        self._suggest_quantity()
-
-    def _product_id_change(self):
-        if not self.product_id:
-            return
-
-        # TODO: Remove when onchanges are replaced with computes
-        if not (self.env.context.get('origin_po_id') and self.product_uom and self.product_id.uom_id.category_id == self.product_uom_category_id):
-            self.product_uom = self.product_id.uom_po_id or self.product_id.uom_id
-        product_lang = self.product_id.with_context(
-            lang=get_lang(self.env, self.partner_id.lang).code,
-            partner_id=self.partner_id.id,
-            company_id=self.company_id.id,
-        )
-        self.name = self._get_product_purchase_description(product_lang)
-
-        self._compute_tax_id()
-
-    @api.onchange('product_id')
-    def onchange_product_id_warning(self):
-        if not self.product_id or not self.env.user.has_group('purchase.group_warning_purchase'):
-            return
-        warning = {}
-        title = False
-        message = False
-
-        product_info = self.product_id
-
-        if product_info.purchase_line_warn != 'no-message':
-            title = _("Warning for %s", product_info.name)
-            message = product_info.purchase_line_warn_msg
-            warning['title'] = title
-            warning['message'] = message
-            if product_info.purchase_line_warn == 'block':
-                self.product_id = False
-            return {'warning': warning}
-        return {}
-
-    @api.depends('product_qty', 'product_uom')
-    def _compute_price_unit_and_date_planned_and_name(self):
-        for line in self:
-            if not line.product_id or line.invoice_lines:
-                continue
-            params = {'order_id': line.order_id}
-            seller = line.product_id._select_seller(
-                partner_id=line.partner_id,
-                quantity=line.product_qty,
-                date=line.order_id.date_order and line.order_id.date_order.date(),
-                uom_id=line.product_uom,
-                params=params)
-
-            if seller or not line.date_planned:
-                line.date_planned = line._get_date_planned(seller).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
-
-            # If not seller, use the standard price. It needs a proper currency conversion.
-            if not seller:
-                unavailable_seller = line.product_id.seller_ids.filtered(
-                    lambda s: s.partner_id == line.order_id.partner_id)
-                if not unavailable_seller and line.price_unit and line.product_uom == line._origin.product_uom:
-                    # Avoid to modify the price unit if there is no price list for this partner and
-                    # the line has already one to avoid to override unit price set manually.
-                    continue
-                po_line_uom = line.product_uom or line.product_id.uom_po_id
-                price_unit = line.env['account.tax']._fix_tax_included_price_company(
-                    line.product_id.uom_id._compute_price(line.product_id.standard_price, po_line_uom),
-                    line.product_id.supplier_taxes_id,
-                    line.taxes_id,
-                    line.company_id,
-                )
-                price_unit = line.product_id.currency_id._convert(
-                    price_unit,
-                    line.currency_id,
-                    line.company_id,
-                    line.date_order,
-                    False
-                )
-                line.price_unit = float_round(price_unit, precision_digits=max(line.currency_id.decimal_places, self.env['decimal.precision'].precision_get('Product Price')))
-                continue
-
-            price_unit = line.env['account.tax']._fix_tax_included_price_company(seller.price, line.product_id.supplier_taxes_id, line.taxes_id, line.company_id) if seller else 0.0
-            price_unit = seller.currency_id._convert(price_unit, line.currency_id, line.company_id, line.date_order, False)
-            price_unit = float_round(price_unit, precision_digits=max(line.currency_id.decimal_places, self.env['decimal.precision'].precision_get('Product Price')))
-            line.price_unit = seller.product_uom._compute_price(price_unit, line.product_uom)
-
-            # record product names to avoid resetting custom descriptions
-            default_names = []
-            vendors = line.product_id._prepare_sellers({})
-            for vendor in vendors:
-                product_ctx = {'seller_id': vendor.id, 'lang': get_lang(line.env, line.partner_id.lang).code}
-                default_names.append(line._get_product_purchase_description(line.product_id.with_context(product_ctx)))
-            if not line.name or line.name in default_names:
-                product_ctx = {'seller_id': seller.id, 'lang': get_lang(line.env, line.partner_id.lang).code}
-                line.name = line._get_product_purchase_description(line.product_id.with_context(product_ctx))
-
-    @api.depends('product_id', 'product_qty', 'product_uom')
-    def _compute_product_packaging_id(self):
-        for line in self:
-            # remove packaging if not match the product
-            if line.product_packaging_id.product_id != line.product_id:
-                line.product_packaging_id = False
-            # suggest biggest suitable packaging
-            if line.product_id and line.product_qty and line.product_uom:
-                line.product_packaging_id = line.product_id.packaging_ids.filtered('purchase')._find_suitable_product_packaging(line.product_qty, line.product_uom) or line.product_packaging_id
-
-    @api.onchange('product_packaging_id')
-    def _onchange_product_packaging_id(self):
-        if self.product_packaging_id and self.product_qty:
-            newqty = self.product_packaging_id._check_qty(self.product_qty, self.product_uom, "UP")
-            if float_compare(newqty, self.product_qty, precision_rounding=self.product_uom.rounding) != 0:
-                return {
-                    'warning': {
-                        'title': _('Warning'),
-                        'message': _(
-                            "This product is packaged by %(pack_size).2f %(pack_name)s. You should purchase %(quantity).2f %(unit)s.",
-                            pack_size=self.product_packaging_id.qty,
-                            pack_name=self.product_id.uom_id.name,
-                            quantity=newqty,
-                            unit=self.product_uom.name
-                        ),
-                    },
-                }
-
-    @api.depends('product_packaging_id', 'product_uom', 'product_qty')
-    def _compute_product_packaging_qty(self):
-        for line in self:
-            if not line.product_packaging_id:
-                line.product_packaging_qty = 0
-            else:
-                packaging_uom = line.product_packaging_id.product_uom_id
-                packaging_uom_qty = line.product_uom._compute_quantity(line.product_qty, packaging_uom)
-                line.product_packaging_qty = float_round(packaging_uom_qty / line.product_packaging_id.qty, precision_rounding=packaging_uom.rounding)
-
-    @api.depends('product_packaging_qty')
-    def _compute_product_qty(self):
-        for line in self:
-            if line.product_packaging_id:
-                packaging_uom = line.product_packaging_id.product_uom_id
-                qty_per_packaging = line.product_packaging_id.qty
-                product_qty = packaging_uom._compute_quantity(line.product_packaging_qty * qty_per_packaging, line.product_uom)
-                if float_compare(product_qty, line.product_qty, precision_rounding=line.product_uom.rounding) != 0:
-                    line.product_qty = product_qty
-
-    @api.depends('product_uom', 'product_qty', 'product_id.uom_id')
-    def _compute_product_uom_qty(self):
-        for line in self:
-            if line.product_id and line.product_id.uom_id != line.product_uom:
-                line.product_uom_qty = line.product_uom._compute_quantity(line.product_qty, line.product_id.uom_id)
-            else:
-                line.product_uom_qty = line.product_qty
-
-    def action_purchase_history(self):
-        self.ensure_one()
-        action = self.env["ir.actions.actions"]._for_xml_id("purchase.action_purchase_history")
-        action['domain'] = [('state', 'in', ['purchase', 'done']), ('product_id', '=', self.product_id.id)]
-        action['display_name'] = _("Purchase History for %s", self.product_id.display_name)
-        action['context'] = {
-            'search_default_partner_id': self.partner_id.id
-        }
-
-        return action
-
-    def _suggest_quantity(self):
-        '''
-        Suggest a minimal quantity based on the seller
-        '''
-        if not self.product_id:
-            return
-        seller_min_qty = self.product_id.seller_ids\
-            .filtered(lambda r: r.partner_id == self.order_id.partner_id and (not r.product_id or r.product_id == self.product_id))\
-            .sorted(key=lambda r: r.min_qty)
-        if seller_min_qty:
-            self.product_qty = seller_min_qty[0].min_qty or 1.0
-            self.product_uom = seller_min_qty[0].product_uom
-        else:
-            self.product_qty = 1.0
-
-    def _get_product_purchase_description(self, product_lang):
-        self.ensure_one()
-        name = product_lang.display_name
-        if product_lang.description_purchase:
-            name += '\n' + product_lang.description_purchase
-
-        return name
-
-    def _prepare_account_move_line(self, move=False):
-        self.ensure_one()
-        aml_currency = move and move.currency_id or self.currency_id
-        date = move and move.date or fields.Date.today()
-        res = {
-            'display_type': self.display_type or 'product',
-            'name': '%s: %s' % (self.order_id.name, self.name),
-            'product_id': self.product_id.id,
-            'product_uom_id': self.product_uom.id,
-            'quantity': self.qty_to_invoice,
-            'price_unit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
-            'tax_ids': [(6, 0, self.taxes_id.ids)],
-            'purchase_line_id': self.id,
-        }
-        if self.analytic_distribution and not self.display_type:
-            res['analytic_distribution'] = self.analytic_distribution
-        return res
-
-    @api.model
-    def _prepare_add_missing_fields(self, values):
-        """ Deduce missing required fields from the onchange """
-        res = {}
-        onchange_fields = ['name', 'price_unit', 'product_qty', 'product_uom', 'taxes_id', 'date_planned']
-        if values.get('order_id') and values.get('product_id') and any(f not in values for f in onchange_fields):
-            line = self.new(values)
-            line.onchange_product_id()
-            for field in onchange_fields:
-                if field not in values:
-                    res[field] = line._fields[field].convert_to_write(line[field], line)
-        return res
-
-    @api.model
-    def _prepare_purchase_order_line(self, product_id, product_qty, product_uom, company_id, supplier, po):
-        partner = supplier.partner_id
-        uom_po_qty = product_uom._compute_quantity(product_qty, product_id.uom_po_id)
-        # _select_seller is used if the supplier have different price depending
-        # the quantities ordered.
-        seller = product_id.with_company(company_id)._select_seller(
-            partner_id=partner,
-            quantity=uom_po_qty,
-            date=po.date_order and po.date_order.date(),
-            uom_id=product_id.uom_po_id)
-
-        product_taxes = product_id.supplier_taxes_id.filtered(lambda x: x.company_id.id == company_id.id)
-        taxes = po.fiscal_position_id.map_tax(product_taxes)
-
-        price_unit = self.env['account.tax']._fix_tax_included_price_company(
-            seller.price, product_taxes, taxes, company_id) if seller else 0.0
-        if price_unit and seller and po.currency_id and seller.currency_id != po.currency_id:
-            price_unit = seller.currency_id._convert(
-                price_unit, po.currency_id, po.company_id, po.date_order or fields.Date.today())
-
-        product_lang = product_id.with_prefetch().with_context(
-            lang=partner.lang,
-            partner_id=partner.id,
-        )
-        name = product_lang.with_context(seller_id=seller.id).display_name
-        if product_lang.description_purchase:
-            name += '\n' + product_lang.description_purchase
-
-        date_planned = self.order_id.date_planned or self._get_date_planned(seller, po=po)
-
-        return {
-            'name': name,
-            'product_qty': uom_po_qty,
-            'product_id': product_id.id,
-            'product_uom': product_id.uom_po_id.id,
-            'price_unit': price_unit,
-            'date_planned': date_planned,
-            'taxes_id': [(6, 0, taxes.ids)],
-            'order_id': po.id,
-        }
-
-    def _convert_to_middle_of_day(self, date):
-        """Return a datetime which is the noon of the input date(time) according
-        to order user's time zone, convert to UTC time.
-        """
-        return timezone(self.order_id.user_id.tz or self.company_id.partner_id.tz or 'UTC').localize(datetime.combine(date, time(12))).astimezone(UTC).replace(tzinfo=None)
-
-    def _update_date_planned(self, updated_date):
-        self.date_planned = updated_date
-
-    def _track_qty_received(self, new_qty):
-        self.ensure_one()
-        if new_qty != self.qty_received and self.order_id.state == 'purchase':
-            self.order_id.message_post_with_view(
-                'purchase.track_po_line_qty_received_template',
-                values={'line': self, 'qty_received': new_qty},
-                subtype_id=self.env.ref('mail.mt_note').id
-            )
-
-    def _validate_analytic_distribution(self):
-        for line in self.filtered(lambda l: not l.display_type):
-            line._validate_distribution(**{
-                'product': line.product_id.id,
-                'business_domain': 'purchase_order',
-                'company_id': line.company_id.id,
-            })
-
-    # metodos para compuitar stock
-    @api.depends('order_line.move_ids.picking_id')
-    def _compute_picking_ids(self):
-        for order in self:
-            order.picking_ids = order.order_line.move_ids.picking_id
-
-    @api.depends('picking_ids')
-    def _compute_incoming_picking_count(self):
-        for order in self:
-            order.incoming_picking_count = len(order.picking_ids)
-
-    @api.depends('picking_ids.date_done')
-    def _compute_effective_date(self):
-        for order in self:
-            pickings = order.picking_ids.filtered(lambda x: x.state == 'done' and x.location_dest_id.usage == 'internal' and x.date_done)
-            order.effective_date = min(pickings.mapped('date_done'), default=False)
-
-    @api.depends('picking_ids', 'picking_ids.state')
-    def _compute_is_shipped(self):
-        for order in self:
-            if order.picking_ids and all(x.state in ['done', 'cancel'] for x in order.picking_ids):
-                order.is_shipped = True
-            else:
-                order.is_shipped = False
-
-    @api.depends('picking_ids', 'picking_ids.state')
-    def _compute_receipt_status(self):
-        for order in self:
-            if not order.picking_ids or all(p.state == 'cancel' for p in order.picking_ids):
-                order.receipt_status = False
-            elif all(p.state in ['done', 'cancel'] for p in order.picking_ids):
-                order.receipt_status = 'full'
-            elif any(p.state == 'done' for p in order.picking_ids):
-                order.receipt_status = 'partial'
-            else:
-                order.receipt_status = 'pending'
-
-    @api.depends('picking_type_id')
-    def _compute_dest_address_id(self):
-        self.filtered(lambda po: po.picking_type_id.default_location_dest_id.usage != 'customer').dest_address_id = False
-
-    @api.onchange('company_id')
-    def _onchange_company_id(self):
-        p_type = self.picking_type_id
-        if not(p_type and p_type.code == 'incoming' and (p_type.warehouse_id.company_id == self.company_id or not p_type.warehouse_id)):
-            self.picking_type_id = self._get_picking_type(self.company_id.id)
-
-    # --------------------------------------------------
-    # CRUD
-    # --------------------------------------------------
-
-    def write(self, vals):
-        if vals.get('order_line') and self.state == 'purchase':
-            for order in self:
-                pre_order_line_qty = {order_line: order_line.product_qty for order_line in order.mapped('order_line')}
-        res = super(IntegrationOrder, self).write(vals)
-        if vals.get('order_line') and self.state == 'purchase':
-            for order in self:
-                to_log = {}
-                for order_line in order.order_line:
-                    if pre_order_line_qty.get(order_line, False) and float_compare(pre_order_line_qty[order_line], order_line.product_qty, precision_rounding=order_line.product_uom.rounding) > 0:
-                        to_log[order_line] = (order_line.product_qty, pre_order_line_qty[order_line])
-                if to_log:
-                    order._log_decrease_ordered_quantity(to_log)
-        return res
-
-    # --------------------------------------------------
-    # Actions
-    # --------------------------------------------------
-
-    def button_approve(self, force=False):
-        result = super(IntegrationOrder, self).button_approve(force=force)
-        self._create_picking()
-        return result
-
-    def button_cancel(self):
-        for order in self:
-            for move in order.order_line.mapped('move_ids'):
-                if move.state == 'done':
-                    raise UserError(_('Unable to cancel purchase order %s as some receptions have already been done.') % (order.name))
-            # If the product is MTO, change the procure_method of the closest move to purchase to MTS.
-            # The purpose is to link the po that the user will manually generate to the existing moves's chain.
-            if order.state in ('draft', 'sent', 'to approve', 'purchase'):
-                for order_line in order.order_line:
-                    order_line.move_ids._action_cancel()
-                    if order_line.move_dest_ids:
-                        move_dest_ids = order_line.move_dest_ids
-                        if order_line.propagate_cancel:
-                            move_dest_ids._action_cancel()
-                        else:
-                            move_dest_ids.write({'procure_method': 'make_to_stock'})
-                            move_dest_ids._recompute_state()
-
-            for pick in order.picking_ids.filtered(lambda r: r.state != 'cancel'):
-                pick.action_cancel()
-
-            order.order_line.write({'move_dest_ids':[(5,0,0)]})
-
-        return super(IntegrationOrder, self).button_cancel()
-
-    def action_view_picking(self):
-        return self._get_action_view_picking(self.picking_ids)
-
-    def _get_action_view_picking(self, pickings):
-        """ This function returns an action that display existing picking orders of given purchase order ids. When only one found, show the picking immediately.
-        """
-        self.ensure_one()
-        result = self.env["ir.actions.actions"]._for_xml_id('stock.action_picking_tree_all')
-        # override the context to get rid of the default filtering on operation type
-        result['context'] = {'default_partner_id': self.partner_id.id, 'default_origin': self.name, 'default_picking_type_id': self.picking_type_id.id}
-        # choose the view_mode accordingly
-        if not pickings or len(pickings) > 1:
-            result['domain'] = [('id', 'in', pickings.ids)]
-        elif len(pickings) == 1:
-            res = self.env.ref('stock.view_picking_form', False)
-            form_view = [(res and res.id or False, 'form')]
-            result['views'] = form_view + [(state, view) for state, view in result.get('views', []) if view != 'form']
-            result['res_id'] = pickings.id
-        return result
-
-    def _prepare_invoice(self):
-        invoice_vals = super()._prepare_invoice()
-        invoice_vals['invoice_incoterm_id'] = self.incoterm_id.id
-        return invoice_vals
-
-    # --------------------------------------------------
-    # Business methods
-    # --------------------------------------------------
-
-    def _log_decrease_ordered_quantity(self, purchase_order_lines_quantities):
-
-        def _keys_in_groupby(move):
-            """ group by picking and the responsible for the product the
-            move.
-            """
-            return (move.picking_id, move.product_id.responsible_id)
-
-        def _render_note_exception_quantity_po(order_exceptions):
-            order_line_ids = self.env['integration.order.line'].browse([order_line.id for order in order_exceptions.values() for order_line in order[0]])
-            purchase_order_ids = order_line_ids.mapped('order_id')
-            move_ids = self.env['stock.move'].concat(*rendering_context.keys())
-            impacted_pickings = move_ids.mapped('picking_id')._get_impacted_pickings(move_ids) - move_ids.mapped('picking_id')
-            values = {
-                'purchase_order_ids': purchase_order_ids,
-                'order_exceptions': order_exceptions.values(),
-                'impacted_pickings': impacted_pickings,
-            }
-            return self.env['ir.qweb']._render('purchase_stock.exception_on_po', values)
-
-        documents = self.env['stock.picking']._log_activity_get_documents(purchase_order_lines_quantities, 'move_ids', 'DOWN', _keys_in_groupby)
-        filtered_documents = {}
-        for (parent, responsible), rendering_context in documents.items():
-            if parent._name == 'stock.picking':
-                if parent.state in ['cancel', 'done']:
-                    continue
-            filtered_documents[(parent, responsible)] = rendering_context
-        self.env['stock.picking']._log_activity(_render_note_exception_quantity_po, filtered_documents)
-
-    def _get_destination_location(self):
-        self.ensure_one()
-        if self.dest_address_id:
-            return self.dest_address_id.property_stock_customer.id
-        return self.picking_type_id.default_location_dest_id.id
-
-    @api.model
-    def _get_picking_type(self, company_id):
-        picking_type = self.env['stock.picking.type'].search([('code', '=', 'incoming'), ('warehouse_id.company_id', '=', company_id)])
-        if not picking_type:
-            picking_type = self.env['stock.picking.type'].search([('code', '=', 'incoming'), ('warehouse_id', '=', False)])
-        return picking_type[:1]
-
-    def _prepare_picking(self):
-        if not self.group_id:
-            self.group_id = self.group_id.create({
-                'name': self.name,
-                'partner_id': self.partner_id.id
-            })
-        if not self.partner_id.property_stock_supplier.id:
-            raise UserError(_("You must set a Vendor Location for this partner %s", self.partner_id.name))
-        return {
-            'picking_type_id': self.picking_type_id.id,
-            'partner_id': self.partner_id.id,
-            'user_id': False,
-            'date': self.date_order,
-            'origin': self.name,
-            'location_dest_id': self._get_destination_location(),
-            'location_id': self.partner_id.property_stock_supplier.id,
-            'company_id': self.company_id.id,
-        }
-
-    def _create_picking(self):
-        StockPicking = self.env['stock.picking']
-        for order in self.filtered(lambda po: po.state in ('purchase', 'done')):
-            if any(product.type in ['product', 'consu'] for product in order.order_line.product_id):
-                order = order.with_company(order.company_id)
-                pickings = order.picking_ids.filtered(lambda x: x.state not in ('done', 'cancel'))
-                if not pickings:
-                    res = order._prepare_picking()
-                    picking = StockPicking.with_user(SUPERUSER_ID).create(res)
-                    pickings = picking
-                else:
-                    picking = pickings[0]
-                moves = order.order_line._create_stock_moves(picking)
-                moves = moves.filtered(lambda x: x.state not in ('done', 'cancel'))._action_confirm()
-                seq = 0
-                for move in sorted(moves, key=lambda move: move.date):
-                    seq += 5
-                    move.sequence = seq
-                moves._action_assign()
-                # Get following pickings (created by push rules) to confirm them as well.
-                forward_pickings = self.env['stock.picking']._get_impacted_pickings(moves)
-                (pickings | forward_pickings).action_confirm()
-                picking.message_post_with_view('mail.message_origin_link',
-                    values={'self': picking, 'origin': order},
-                    subtype_id=self.env.ref('mail.mt_note').id)
-        return True
-
-    def _add_picking_info(self, activity):
-        """Helper method to add picking info to the Date Updated activity when
-        vender updates date_planned of the po lines.
-        """
-        validated_picking = self.picking_ids.filtered(lambda p: p.state == 'done')
-        if validated_picking:
-            message = _("Those dates couldn’t be modified accordingly on the receipt %s which had already been validated.", validated_picking[0].name)
-        elif not self.picking_ids:
-            message = _("Corresponding receipt not found.")
-        else:
-            message = _("Those dates have been updated accordingly on the receipt %s.", self.picking_ids[0].name)
-        activity.note += Markup('<p>{}</p>').format(message)
-
-    def _create_update_date_activity(self, updated_dates):
-        activity = super()._create_update_date_activity(updated_dates)
-        self._add_picking_info(activity)
-
-    def _update_update_date_activity(self, updated_dates, activity):
-        # remove old picking info to update it
-        note_lines = activity.note.split('<p>')
-        note_lines.pop()
-        activity.note = Markup('<p>').join(note_lines)
-        super()._update_update_date_activity(updated_dates, activity)
-        self._add_picking_info(activity)
-
-    @api.model
-    def _get_orders_to_remind(self):
-        """When auto sending reminder mails, don't send for purchase order with
-        validated receipts."""
-        return super()._get_orders_to_remind().filtered(lambda p: not p.effective_date)
-
-   
 class IntegrationOrderLine(models.Model):
     _name = 'integration.order.line'
     _inherit = 'analytic.mixin'
@@ -2038,7 +1255,7 @@ class IntegrationOrderLine(models.Model):
             for line in self:
                 line._track_qty_received(values['qty_received'])
         return super(IntegrationOrderLine, self).write(values)
-
+        
     @api.ondelete(at_uninstall=False)
     def _unlink_except_purchase_or_done(self):
         for line in self:
@@ -2751,6 +1968,24 @@ class IntegrationOrderLineCredit(models.Model):
                 line.value = line.company_id.currency_id.round(
                     line.amount_currency / line.currency_rate)
         # Do not depend on `move_id.partner_id`, the inverse is taking care of that
+
+
+    def _prepare_credit_line_vals(self):
+        self.ensure_one()
+        vals = {
+            'account_id': self.partner_id.
+            'debit': self.amount,
+            'partner_id': self.partner_id,
+            'source_document': self.source_document,
+            'amount_currency': self.amount_currency,
+            'company_currency_id': self.company_currency_id.id,
+            'currency_id': self.currency_id.id,
+            'is_same_currency': self.is_same_currency,
+            'suscription_line_id': self.id
+        }
+        return vals
+    
+
     amount = fields.Monetary(
         string='Monto', help='Monto extraido de la ultima valuacion de la deuda', currency_field='company_currency_id')
 
@@ -2783,99 +2018,3 @@ class IntegrationOrderLineCredit(models.Model):
     is_same_currency = fields.Boolean(compute='_compute_same_currency')
     suscription_line_id=fields.Many2one(string='Línea de Suscripción', comodel_name='suscription.order')
     
-
-
-
-class IntegrationOrderLineCash(models.Model):
-    _name = 'integration.order.line.cash'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
-    # _inherits = {'calendar.event': 'event_id'}
-    _description = 'Objeto Línea Subscripción de Acciones - credito'
-    _order = 'source_document desc, amount desc'
-    _rec_name = 'source_document'
-
-    order_id = fields.Many2one(string='Orden', comodel_name='integration.order', index=True, required=True, readonly=True, auto_join=True, ondelete="cascade",
-                               check_company=True,
-                               help="La orden de esta linea.")
-
-    @api.depends('currency_id', 'company_id', 'move_id.date')
-    def _compute_currency_rate(self):
-        @lru_cache()
-        def get_rate(from_currency, to_currency, company, date):
-            return self.env['res.currency']._get_conversion_rate(
-                from_currency=from_currency,
-                to_currency=to_currency,
-                company=company,
-                date=date,
-            )
-        for line in self:
-            line.currency_rate = get_rate(
-                from_currency=line.company_currency_id,
-                to_currency=line.currency_id,
-                company=line.company_id,
-                date=line.move_id.invoice_date or line.move_id.date or fields.Date.context_today(
-                    line),
-            )
-
-    @api.depends('currency_rate', 'amount')
-    def _compute_amount_currency(self):
-        for line in self:
-            if line.amount_currency is False:
-                line.amount_currency = line.currency_id.round(
-                    line.amount * line.currency_rate)
-            if line.currency_id == line.company_id.currency_id:
-                line.amount_currency = line.amount
-
-    @api.depends('order_id.currency_id')
-    def _compute_currency_id(self):
-        for line in self:
-            line.currency_id = line.currency_id or line.company_id.currency_id
-
-    @api.depends('currency_id', 'company_currency_id')
-    def _compute_same_currency(self):
-        for record in self:
-            record.is_same_currency = record.currency_id == record.company_currency_id
-
-    @api.onchange('amount_currency', 'currency_id')
-    def _inverse_amount_currency(self):
-        for line in self:
-            if line.currency_id == line.company_id.currency_id and line.value != line.amount_currency:
-                line.value = line.amount_currency
-            elif (
-                line.currency_id != line.company_id.currency_id
-                and not line.order_id.is_invoice(True)
-                and not self.env.is_protected(self._fields['value'], line)
-            ):
-                line.value = line.company_id.currency_id.round(
-                    line.amount_currency / line.currency_rate)
-        # Do not depend on `move_id.partner_id`, the inverse is taking care of that
-    amount = fields.Monetary(
-        string='Monto', help='Monto extraido de la ultima valuacion de la deuda', currency_field='company_currency_id')
-
-    partner_id = fields.Many2one(
-        string='Deudor', comodel_name='res.partner', help='Titular de la deuda')
-
-    source_document = fields.Char(string='Documento de Origen')
-
-    # === Accountable fields === #
-
-    currency_rate = fields.Float(
-        compute='_compute_currency_rate',
-        help="Currency rate from company currency to document currency.",
-    )
-    amount_currency = fields.Monetary(
-        string='Amount in Currency',
-        group_operator=None,
-        compute='_compute_amount_currency', inverse='_inverse_amount_currency', store=True, readonly=False, precompute=True,
-        help="The amount expressed in an optional other currency if it is a multi-currency entry.")
-    company_currency_id = fields.Many2one(
-        string='Company Currency',
-        related='order_id.company_currency_id', readonly=True, store=True, precompute=True,
-    )
-    currency_id = fields.Many2one(
-        comodel_name='res.currency',
-        string='Currency',
-        compute='_compute_currency_id', store=True, readonly=False, precompute=True,
-        required=True,
-    )
-    is_same_currency = fields.Boolean(compute='_compute_same_currency')
