@@ -7,6 +7,7 @@ from functools import lru_cache
 import hashlib
 from itertools import groupby
 import re
+from time import time
 from dateutil import relativedelta
 from pytz import timezone, UTC
 from markupsafe import escape, Markup
@@ -682,6 +683,8 @@ class IntegrationOrder(models.Model):
 
         # 1) Prepare invoice vals and clean-up the section lines
         invoice_vals_list = []
+        credits_vals_list = []
+
         sequence = 10
         for order in self:
             if order.invoice_status != 'to integrate':
@@ -707,7 +710,15 @@ class IntegrationOrder(models.Model):
                     line_vals.update({'sequence': sequence})
                     invoice_vals['invoice_line_ids'].append((0, 0, line_vals))
                     sequence += 1
+            # adding credit_lines
+            for credit_line in order.credit_lines:
+                line_vals=credit_line._prepare_credit_line_vals()
+                invoice_vals['line_ids'].append((0, 0, line_vals))
+
+
             invoice_vals_list.append(invoice_vals)
+
+            
 
         if not invoice_vals_list:
             raise UserError(_('There is no invoiceable line. If a product has a control policy based on received quantity, please make sure that a quantity has been received.'))
@@ -724,6 +735,7 @@ class IntegrationOrder(models.Model):
                     ref_invoice_vals = invoice_vals
                 else:
                     ref_invoice_vals['invoice_line_ids'] += invoice_vals['invoice_line_ids']
+                    ref_invoice_vals['line_ids']+= invoice_vals['line_ids']
                 origins.add(invoice_vals['invoice_origin'])
                 payment_refs.add(invoice_vals['payment_reference'])
                 refs.add(invoice_vals['ref'])
@@ -745,7 +757,7 @@ class IntegrationOrder(models.Model):
         # We do this after the moves have been created since we need taxes, etc. to know if the total
         # is actually negative or not
         moves.filtered(lambda m: m.currency_id.round(m.amount_total) < 0).action_switch_invoice_into_refund_credit_note()
-
+        
         return self.action_view_invoice(moves)
 
     def _prepare_invoice(self):
@@ -981,7 +993,7 @@ class IntegrationOrder(models.Model):
                 and self.amount_total < self.env.company.currency_id._convert(
                     self.company_id.po_double_validation_amount, self.currency_id, self.company_id,
                     self.date_order or fields.Date.today()))
-            or self.user_has_groups('purchase.group_purchase_manager'))
+            or self.user_has_groups('higher_authority.group_integration_manager'))
 
     def _confirm_reception_mail(self):
         for order in self:
@@ -993,7 +1005,7 @@ class IntegrationOrder(models.Model):
         # create or update the activity
         activity = self.env['mail.activity'].search([
             ('summary', '=', _('Date Updated')),
-            ('res_model_id', '=', 'purchase.order'),
+            ('res_model_id', '=', 'integration.order'),
             ('res_id', '=', self.id),
             ('user_id', '=', self.user_id.id)], limit=1)
         if activity:
@@ -1169,10 +1181,8 @@ class IntegrationOrderLine(models.Model):
             qty = 0.0
             for inv_line in line._get_invoice_lines():
                 if inv_line.move_id.state not in ['cancel'] or inv_line.move_id.payment_state == 'invoicing_legacy':
-                    if inv_line.move_id.move_type == 'in_invoice':
+                    if inv_line.move_id.move_type == 'integration':
                         qty += inv_line.product_uom_id._compute_quantity(inv_line.quantity, line.product_uom)
-                    elif inv_line.move_id.move_type == 'in_refund':
-                        qty -= inv_line.product_uom_id._compute_quantity(inv_line.quantity, line.product_uom)
             line.qty_integrated = qty
 
             # compute qty_to_invoice
@@ -1455,9 +1465,9 @@ class IntegrationOrderLine(models.Model):
             else:
                 line.product_uom_qty = line.product_qty
 
-    def action_purchase_history(self):
+    def action_integration_history(self):
         self.ensure_one()
-        action = self.env["ir.actions.actions"]._for_xml_id("purchase.action_purchase_history")
+        action = self.env["ir.actions.actions"]._for_xml_id("purchase.action_integration_history")
         action['domain'] = [('state', 'in', ['purchase', 'done']), ('product_id', '=', self.product_id.id)]
         action['display_name'] = _("Purchase History for %s", self.product_id.display_name)
         action['context'] = {
@@ -1973,7 +1983,7 @@ class IntegrationOrderLineCredit(models.Model):
     def _prepare_credit_line_vals(self):
         self.ensure_one()
         vals = {
-            'account_id': self.partner_id.
+            'account_id': self.partner_id.property_account_receivable_id,
             'debit': self.amount,
             'partner_id': self.partner_id,
             'source_document': self.source_document,

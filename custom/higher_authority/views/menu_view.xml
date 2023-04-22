@@ -20,15 +20,6 @@
                 sequence="1" />
 
         </menuitem>
-        
-        <menuitem id="account_shareholding_first_level_menu"
-            name="Contabilidad"
-            parent="shareholding_root_menu">
-
-            <menuitem id="menu_action_move_subscription_type" action="action_move_subscription_type" sequence="1"/>
-            <menuitem id="menu_action_move_integration_type" action="action_move_integration_type" sequence="2"/>
-
-        </menuitem>
 
         <menuitem id="adding_shareholding_first_level_menu"
             name="Incorporaciones"

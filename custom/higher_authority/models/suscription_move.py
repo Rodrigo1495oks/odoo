@@ -2238,7 +2238,43 @@ class SuscriptionMove(models.Model):
                 if 'tax_totals' in vals:
                     move.tax_totals = vals['tax_totals']
         return moves
+    @api.model_create_multi
+    def create(self, vals_list):
+        # OVERRIDE
+        write_off_line_vals_list = []
 
+        for vals in vals_list:
+            # Hack to add a custom write-off line.
+            write_off_line_vals_list.append(
+                vals.pop('write_off_line_vals', None))
+
+            # Force the move_type to avoid inconsistency with residual 'default_move_type' inside the context.
+            vals['move_type'] = 'suscription'
+
+        suscriptions = super(SuscriptionMove, self) \
+            .create(vals_list) \
+
+        for i, suscription in enumerate(suscriptions):
+            write_off_line_vals = write_off_line_vals_list[i]
+
+            # Write payment_id on the journal entry plus the fields being stored in both models but having the same
+            # name, e.g. partner_bank_id. The ORM is currently not able to perform such synchronization and make things
+            # more difficult by creating related fields on the fly to handle the _inherits.
+            # Then, when partner_bank_id is in vals, the key is consumed by account.payment but is never written on
+            # account.move.
+            to_write = {'payment_id': pay.id}
+            for k, v in vals_list[i].items():
+                if k in self._fields and self._fields[k].store and k in pay.move_id._fields and pay.move_id._fields[
+                    k].store:
+                    to_write[k] = v
+
+            if 'line_ids' not in vals_list[i]:
+                to_write['line_ids'] = [(0, 0, line_vals) for line_vals in pay._prepare_move_line_default_vals(
+                    write_off_line_vals=write_off_line_vals)]
+
+            pay.move_id.write(to_write)
+
+        return suscriptions
     def write(self, vals):
         if not vals:
             return True

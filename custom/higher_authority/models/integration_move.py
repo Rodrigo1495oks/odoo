@@ -94,7 +94,7 @@ class IntegrationMove(models.Model):
         tracking=True,
         change_default=True,
         index=True,
-        default="entry",
+        default="integration",
     )
     shareholder_id = fields.Many2one(
         'account.shareholder',

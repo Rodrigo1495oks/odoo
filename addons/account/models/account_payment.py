@@ -506,7 +506,7 @@ class AccountPayment(models.Model):
                                               or pay.journal_id.company_id.account_journal_payment_debit_account_id)
             elif pay.payment_type == 'outbound':
                 pay.outstanding_account_id = (pay.payment_method_line_id.payment_account_id
-                                              or pay.journal_id.company_id.account_journal_payment_credit_account_id)
+                                               or pay.journal_id.company_id.account_journal_payment_credit_account_id)
             else:
                 pay.outstanding_account_id = False
 

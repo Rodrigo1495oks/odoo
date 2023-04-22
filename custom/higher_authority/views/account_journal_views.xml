@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_account_journal_form" model="ir.ui.view">
+            <field name="name">res.partner.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_account_journal_form" />
+            <field name="arch" type="xml">
+                <!-- find field description and add the field
+                    new_field after it -->
+                <xpath expr="//field[@name='default_account_id']" position="before">
+                    <label for="default_account_id" string="Default Receivable Account"
+                        attrs="{'invisible': [('type', '!=', 'suscription')]}"
+                        groups="account.group_account_readonly" />
+                    <label for="default_account_id" string="Default Receivable Account"
+                        attrs="{'invisible': [('type', '!=', 'integration')]}"
+                        groups="account.group_account_readonly" />
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

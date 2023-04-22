@@ -510,7 +510,7 @@
                 </field>
             </field>
         </record>
-
+        <!-- PONER KANBAN A AL INTEGRATION.MOVE -->
         <record id="view_account_move_kanban" model="ir.ui.view">
             <field name="name">account.move.kanban</field>
             <field name="model">account.move</field>
