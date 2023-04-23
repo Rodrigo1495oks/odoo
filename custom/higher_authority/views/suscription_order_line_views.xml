@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- suscription order line-->
+        <record id="suscription_order_line_tree" model="ir.ui.view">
+            <field name="name">suscription.order.line.tree</field>
+            <field name="model">suscription.order.line</field>
+            <field name="arch" type="xml">
+                <tree string="Suscription Order Lines" create="false">
+                    <field name="order_id" />
+                    <field name="move_name" />
+                    <field name="partner_id" string="Shareholder" />
+                    <field name="product_id" />
+                    <field name="price_unit" widget="monetary" />
+                    <field name="product_qty" />
+                    <field name="product_uom" groups="uom.group_uom" />
+                    <field name="price_subtotal" widget="monetary" />
+                    <field name="currency_id" invisible="1" />
+                    <!-- <field name="date_planned" widget="date" /> -->
+                </tree>
+            </field>
+        </record>
+        <record id="suscription_order_line_form" model="ir.ui.view">
+            <field name="name">suscription.order.line.form</field>
+            <field name="model">suscription.order.line</field>
+            <field name="arch" type="xml">
+                <form string="Suscription Order Line">
+                    <header>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="short_name" />
+                            </div>
+                            <h1 class="mb32">
+                                <field name="short_name" class="mb16" />
+                            </h1>
+
+                        </div>
+                        <group>
+                            <group id="header_left_group">
+                                <field name='company_id' />
+                                <!-- <div class="o_td_label">
+                                    <label for='name' string='Nombre Completo'
+                                        style="font-weight:bold;" />
+                                </div> -->
+                                <field name="move_name" />
+                                <field name="parent_state" widget='selection' readonly='1'
+                                    invisible='1' />
+                                <field name='date' widget='date' readonly='1' invisible='1' />
+                                <field name='ref' readonly='1' invisible='1' />
+                                <field name='partner_id' readonly='1' invisible='1' />
+                                <field name='shareholder_id' readonly='1' invisible='1' />
+                            </group>
+                            <group id="header_right_group">
+                                <field name="product_id" />
+                                <field name="product_uom_id" />
+
+                                <field name="product_uom_category_id" />
+                                <field name="quantity" options='{"type": "number"}' />
+                                <field name="price_unit" options='{"type": "number"}' />
+                                <field name="price_subtotal" options='{"type": "number"}' />
+                                <field name="price_total" options='{"type": "number"}' />
+                                <field name="discount" />
+                                <field name="asset_profile_id" widget="selection_badge" />
+                                <field name="asset_id" widget="selection_badge" />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <!-- Search view -->
+
+        <record id="suscription_order_line_view_search" model="ir.ui.view">
+            <field name="name">suscription.order.line.search</field>
+            <field name="model">suscription.order.line</field>
+            <field name="arch" type="xml">
+                <search string="Líneas de Orden">
+                    <field name="short_name" string="Nombre Corto" />
+                    <field name="move_name" string="Número" />
+                    <field name="parent_state" string="Estado General" />
+                    <field name="date" string="Fecha" />
+                    <field name="ref" string="Referencia" />
+                    <field name="partner_id" string="Partner" />
+                    <field name="shareholder_id" string="Accionista" />
+
+                    <separator />
+                    <filter name="price_total" string="Precio Total"
+                        domain="[('price_total','>=','100000')]"
+                        help="Mostrar valores por encima de $100.000" />
+
+                    <filter string="Pendientes" name="state"
+                        domain="[('parent_state', '!=', 'approved')]" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Fecha" name="date"
+                            context="{'group_by':'date'}" />
+                        <filter string="Producto" name="product_id"
+                            context="{'group_by':'product_id'}" />
+                        <filter string="Activo Fijo" name="asset_profile_id"
+                            context="{'group_by':'asset_profile_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="suscription_order_line_tree_action" model="ir.actions.act_window">
+            <field name="name">Suscription Orders Line</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">suscription.order.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="suscription_order_line_tree" />
+            <field name="domain">[()]</field>
+            <field name="search_view_id" ref="suscription_order_line_view_search" />
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No suscription order found. Let's create one!
+                </p>
+                <p>
+                    Once you ordered your products to your shareholer, confirm your request for
+                    quotation and it will turn into a integration order.
+                </p>
+            </field>
+        </record>
+
+        <!-- suscriptionOrderLineCredit-->
+        <record id="suscription_order_line_credit_tree" model="ir.ui.view">
+            <field name="name">suscription.order.line.credit.tree</field>
+            <field name="model">suscription.order.line.credit</field>
+            <field name="arch" type="xml">
+                <tree string="Suscription Order Lines" create="false">
+                    <field name="order_id" invisible='1' />
+                    <field name="amount" widget="monetary" />
+                    <field name="partner_id" string="Shareholder" />
+                    <field name="source_document" />
+                    <!-- <field name="product_qty" /> -->
+                    <field name="product_uom" groups="uom.group_uom" />
+                    <field name="amount_currency" widget="monetary" />
+                    <field name="currency_id" invisible="1" />
+                    <!-- <field name="date_planned" widget="date" /> -->
+                </tree>
+            </field>
+        </record>
+                <record id="suscription_order_line_credit_form" model="ir.ui.view">
+            <field name="name">suscription.order.line.credit.form</field>
+            <field name="model">suscription.order.line.credit</field>
+            <field name="arch" type="xml">
+                <form string="Suscription Order Line Credit">
+                    <header>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="source_document" />
+                            </div>
+                            <h1 class="mb32">
+                                <field name="source_document" class="mb16" />
+                            </h1>
+                        </div>
+                        <separator></separator>
+                        <group>
+                            <group id="header_left_group">
+                                <field name='currency_id' />
+                                <field name="amount" widget='monetary'/>
+                                <field name="partner_id"  readonly='1'
+                                    invisible='0' />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <!-- Search view -->
+
+        <record id="suscription_order_line_credit_view_search" model="ir.ui.view">
+            <field name="name">suscription.order.line.credit.search</field>
+            <field name="model">suscription.order.line.credit</field>
+            <field name="arch" type="xml">
+                <search string="Lineas de credito de suscripciones">
+                    <field name="source_document" string="Documento de origen" />
+                    <field name="currency_id" string="Moneda" />
+                    <field name="partner_id" string="Partner" />
+                    <field name="date" string="Fecha" />
+                    <separator />
+                    <filter name="amount" string="Precio Total"
+                        domain="[('price_total','>=','100000')]"
+                        help="Mostrar valores por encima de $100.000" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Moneda" name="currency_id"
+                            context="{'group_by':'currency_id'}" />
+                        <filter string="Fecha" name="date"
+                            context="{'group_by':'date'}" />
+                        <filter string="Fecha" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="suscription_order_line_credit_tree_action" model="ir.actions.act_window">
+            <field name="name">Suscription Orders Line</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">suscription.order.line.credit</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="suscription_order_line_tree" />
+            <field name="domain">[()]</field>
+            <field name="search_view_id" ref="suscription_order_line_view_search" />
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No suscription order found. Let's create one!
+                </p>
+                <p>
+                    Once you ordered your products to your shareholer, confirm your request for
+                    quotation and it will turn into a integration order.
+                </p>
+            </field>
+        </record>
+
+        <!-- suscriptionOrderLineCash-->
+        <record id="suscription_order_line_cash_tree" model="ir.ui.view">
+            <field name="name">suscription.order.line.cash.tree</field>
+            <field name="model">suscription.order.line.cash</field>
+            <field name="arch" type="xml">
+                <tree string="Suscription Order Cash Lines" create="false">
+                    <field name="order_id" invisible='1' />
+                    <field name="amount" widget="monetary" />
+                    <field name="partner_id" string="Shareholder" />
+                    <field name="source_document" />
+                    <!-- <field name="product_qty" /> -->
+                    <field name="product_uom" groups="uom.group_uom" />
+                    <field name="amount_currency" widget="monetary" />
+                    <field name="currency_id" invisible="1" />
+                    <!-- <field name="date_planned" widget="date" /> -->
+                </tree>
+            </field>
+        </record>
+                <record id="suscription_order_line_cash_form" model="ir.ui.view">
+            <field name="name">suscription.order.line.cash.form</field>
+            <field name="model">suscription.order.line.cash</field>
+            <field name="arch" type="xml">
+                <form string="Suscription Order Line Cash">
+                    <header>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="source_document" />
+                            </div>
+                            <h1 class="mb32">
+                                <field name="source_document" class="mb16" />
+                            </h1>
+                        </div>
+                        <separator></separator>
+                        <group>
+                            <group id="header_left_group">
+                                <field name='currency_id' />
+                                <field name="amount" widget='monetary'/>
+                                <field name="partner_id"  readonly='1'
+                                    invisible='0' />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <!-- Search view -->
+
+        <record id="suscription_order_line_cash_view_search" model="ir.ui.view">
+            <field name="name">suscription.order.line.cash.search</field>
+            <field name="model">suscription.order.line.cash</field>
+            <field name="arch" type="xml">
+                <search string="Lineas de credito de suscripciones">
+                    <field name="source_document" string="Documento de origen" />
+                    <field name="currency_id" string="Moneda" />
+                    <field name="partner_id" string="Partner" />
+                    <field name="date" string="Fecha" />
+                    <separator />
+                    <filter name="amount" string="Precio Total"
+                        domain="[('price_total','>=','100000')]"
+                        help="Mostrar valores por encima de $100.000" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Moneda" name="currency_id"
+                            context="{'group_by':'currency_id'}" />
+                        <filter string="Fecha" name="date"
+                            context="{'group_by':'date'}" />
+                        <filter string="Fecha" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="suscription_order_line_cash_tree_action" model="ir.actions.act_window">
+            <field name="name">Suscription Orders Line</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">suscription.order.line.cash</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="suscription_order_line_tree" />
+            <field name="domain">[()]</field>
+            <field name="search_view_id" ref="suscription_order_line_view_search" />
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No suscription order found. Let's create one!
+                </p>
+                <p>
+                    Once you ordered your products to your shareholer, confirm your request for
+                    quotation and it will turn into a integration order.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

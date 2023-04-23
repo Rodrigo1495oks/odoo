@@ -16,7 +16,6 @@ from odoo.exceptions import ValidationError
 
 class AccountShare(models.Model):
     _name = 'account.share'
-    # _inherits = {'account.asset', 'ref_name'}
     _description = 'Objeto Accion'
     _order = 'short_name desc'
     _rec_name = 'short_name'

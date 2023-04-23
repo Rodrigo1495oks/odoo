@@ -227,14 +227,14 @@ class SuscriptionOrder(models.Model):
             ['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)])[:1]
 
         suscription_vals = {
-            'ref': self.partner_ref or '', 
+            'ref': self.partner_ref or '',
             'move_type': move_type,
             'narration': self.notes,
             'currency_id': self.currency_id.id,
             'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
             'shareholder_id': self.shareholder_id.id,
             'fiscal_position_id': (self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
-            'payment_reference': self.partner_ref or '',  
+            'payment_reference': self.partner_ref or '',
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': self.name,
             'invoice_payment_term_id': self.payment_term_id.id,
@@ -414,7 +414,7 @@ class SuscriptionOrder(models.Model):
             'credit_lines': []
         }
         return res
-    
+
      # low level methods
     @api.model
     def create(self, vals):
@@ -423,15 +423,15 @@ class SuscriptionOrder(models.Model):
                 'suscription.order') or 'New'
         res = super(SuscriptionOrder, self.create(vals))
         return res
-    
+
     @api.ondelete(at_uninstall=False)
     def _unlink_if_cancelled(self):
         for order in self:
             if not order.state == 'cancel':
-                raise UserError(_('In order to delete a purchase order, you must cancel it first.'))
+                raise UserError(
+                    _('In order to delete a purchase order, you must cancel it first.'))
     # restricciones
-   
-        
+
     @api.constrains('amount_total')
     def _check_amount_total(self):
         precision = self.env['decimal.precision'].precision_get(
@@ -519,8 +519,8 @@ class suscriptionOrderLine(models.Model):
     )
     move_name = fields.Char(
         string='Number',
-        related='order_id.name', store=True,
-        index='btree',
+        related='order_id.name', store=True, readonly=True,
+        index='btree'
     )
     parent_state = fields.Selection(related='order_id.state', store=True)
     date = fields.Date(
@@ -531,7 +531,7 @@ class suscriptionOrderLine(models.Model):
     ref = fields.Char(
         related='order_id.short_name', store=True,
         copy=False,
-        index='trigram',
+        index='trigram', readonly=True
     )
 
     partner_id = fields.Many2one(
@@ -722,7 +722,8 @@ class suscriptionOrderLineCredit(models.Model):
         string='Deudor', comodel_name='res.partner', help='Titular de la deuda')
 
     source_document = fields.Char(string='Documento de Origen')
-
+    date = fields.Date(string='Fecha de vencimiento',
+                       default=fields.Datetime.now)
     # === Accountable fields === #
 
     currency_rate = fields.Float(
@@ -745,8 +746,6 @@ class suscriptionOrderLineCredit(models.Model):
         required=True,
     )
     is_same_currency = fields.Boolean(compute='_compute_same_currency')
-
-
 
 
 class suscriptionOrderLineCash(models.Model):

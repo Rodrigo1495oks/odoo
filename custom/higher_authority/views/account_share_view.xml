@@ -13,167 +13,78 @@
 
         <!-- vistas -->
 
-        <record id="estate_property_view_tree" model="ir.ui.view">
-            <field name="name">estate.property.tree</field>
-            <field name="model">estate.property</field>
+        <record id="account_share_view_tree" model="ir.ui.view">
+            <field name="name">acount.share.tree</field>
+            <field name="model">acount.share</field>
             <field name="arch" type="xml">
-                <tree string="Property" decoration-success="state=='offer' or state=='accept'"
-                    decoration-bf='state=="accept"' decoration-muted="state=='sold'">
-                    <field name="priority" widget="priority" class="mr-3" />
-                    <field name="name" />
-                    <field name='post_code' />
-                    <field name="bedrooms" />
-                    <field name="user_id" widget="many2one_avatar_user " />
-                    <field name="living_area" />
-                    <field name="expected_price" />
-                    <field name="selling_price" />
-                    <field name="date_availability" />
+                <tree string="Share" decoration-success="state=='subscribed' or state=='portfolio'"
+                    decoration-bf='state=="new"' decoration-muted="state=='canceled'">
+                    <field name="short_name" />
+                    <field name="date_of_issue" widget='date' />
+                    <field name="date_of_integration" widget='date' />
+                    <field name="share_type" />
+                    <field name="votes_num" options="{'type':'number'}" />
+                    <field name="price" />
                     <field name="state" optional="show" widget="badge"
-                        decoration-success="state == 'accept' or state == 'offer'"
+                        decoration-success="state == 'subscribed' or state == 'portfolio'"
                         decoration-warning="state == 'canceled'"
-                        decoration-info="state == 'draft' or state == 'new' or state=='sold'" />
+                        decoration-info="state == 'draft' or state == 'new' or state=='negotiation'" />
+                    <field name="shareholder" widget="many2one_avatar_user " />
                 </tree>
             </field>
         </record>
 
         <!-- formulario -->
-        <record id="estate_property_view_form" model="ir.ui.view">
-            <field name="name">estate.property.form</field>
-            <field name="model">estate.property</field>
+        <record id="account_share_view_form" model="ir.ui.view">
+            <field name="name">account.share.form</field>
+            <field name="model">account.share</field>
             <field name="arch" type="xml">
-                <form string="Estate Property">
+                <form string="Account Share">
                     <header>
-                        <button name="action_set_sold" string="Vender" type="object"
-                            class="oe_highlight"
-                            attrs="{'invisible': [('state', '=', 'sold')]}" />
-                        <button name="action_set_canceled" string="Cancelar" type="object"
-                            class="oe_highlight"
-                            attrs="{'invisible': [('state', '=', 'canceled')]}" />
-                        <button name="action_confirm" string="Confirmar Alta" type="object"
-                            class="oe_highlight"
-                            attrs="{'invisible': [('state', '!=', 'draft')]}" />
-                        <button name="action_draft" string="Cambiar a borrador" type="object"
-                            class="oe_highlight"
-                            attrs="{'invisible': [('state', '=', 'draft')]}" />
-                        <button name="action_offer" string="Cerrar Ofertas" type="object"
-                            class="oe_highlight"
-                            attrs="{'invisible': [('state', '!=', 'new')]}" />
-                        <field name="state" widget="statusbar"
-                            statusbar_visible="draft,new,offer,accept,sold,canceled" />
                     </header>
                     <sheet>
-                        <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
-                            attrs="{'invisible': [('active', '=', True)]}" />
                         <div class="oe_title">
                             <div class="oe_edit_only">
-                                <label for="name" />
+                                <label for="short_name" />
                             </div>
                             <h1 class="mb32">
-                                <field name="name" class="mb16" />
-                                <field name="priority" widget="priority" class="mr-3" />
+                                <field name="short_name" class="mb16" />
                             </h1>
 
                         </div>
                         <group>
-                            <group id="header_left_group">
-                                <field name='short_name' />
-                                <div class="o_td_label">
-                                    <label for='name' string='Nombre Completo'
-                                        style="font-weight:bold;" />
-                                </div>
-                                <field name="type"
+                            <group id="header_left_group" string='Fechas'>
+                                <field name="share_type"
                                     options="{'no_create': True, 'no_open': True, 'no_quick_create': True}" />
-                                <field name="tags_ids" widget="many2many_tags"
-                                    options="{'color_field': 'color'}" />
-                                <field name="name" widget='char' />
-                                <field name='building' />
-                                <!-- <field name='active' widget='boolean' /> -->
-                                <!-- <field name="active" widget="boolean_button"
-                                    options='{"terminology": "active"}' /> -->
-                                <field name="active" widget='boolean_favorite' />
+                                <field name="date_of_issue" widget='date' />
+                                <field name="date_of_integration" widget='date' />
+                                <field name="date_of_cancellation" widget='date' />
+                                <field name="date_of_redemption" widget='date' />
+                                <field name='votes_num' options="{'type':'number'}" />
                             </group>
-                            <group id="header_right_group">
-                                <field name="availability" widget='boolean_toggle' />
-                                <field name="destination" />
-                                <field name="post_code" options='{"type": "number"}' />
-                                <field name="date_reserve"
-                                    options='{"datepicker": {"daysOfWeekDisabled": [0, 6]}}' />
-                                <field name="date_availability" optional='True' />
-                                <field name="estate_price"
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                                <field name="building_price"
-                                    attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('building', '=', False)]}" />
-                                <field name="total_value" />
-                                <field name="selling_price"
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                                <field name="best_price"
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                                <field name="expected_price"
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            <group id="header_right_group" string='Campos Solo Lectura'>
+                                <field name="shareholder"
+                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
+                                    readonly='1' />
+                                <field name="company_id"
+                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
+                                    readonly='1' />
+                                <field name="share_issuance"
+                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
+                                    readonly='1' />
+                                <field name="suscription_order"
+                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
+                                    readonly='1' />
+                            </group>
+                            <!-- campos monetarios -->
+                            <group string='Campos monetarios' id='header_right_group'>
+                                <field name="nominal_value" widget="monetary" />
+                                <field name="price" widget="monetary" />
+                                <field name="issue_premium" widget="monetary" />
+                                <field name="issue_discount" widget="monetary" />
+                                <field name="issue_discount" widget="monetary" />
                             </group>
                         </group>
-
-                        <notebook>
-                            <page id="property_tab" string="Descripción">
-                                <group id="header_left_group">
-                                    <group string="Descripción Básica">
-                                        <field name="destination" />
-                                        <field name="description" />
-                                        <field name="sell_margin"
-                                            options="{'type':'number', 'step': 0.1}"
-                                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                                    </group>
-                                    <group string="Divisiones">
-                                        <field name="offices" options='{"type": "number"}' />
-                                        <field name="bedrooms" options='{"type": "number"}' />
-                                        <field name="floors" options='{"type": "number"}' />
-                                        <field name="garage" />
-                                    </group>
-                                    <group string="Area">
-                                        <field name="garden" />
-                                        <field name="garden_area" options='{"type": "number"}'
-                                            attrs="{'invisible': [('garden', '=', False)]}" />
-                                        <field name="garden_orientation" widget="label_selection"
-                                            attrs="{'invisible': [('garden', '=', False)]}" />
-                                        <field name="living_area"
-                                            string="Area del Living (Metros Cuadrados) - " />
-
-                                        <field name="estate_area" options='{"type": "number"}' />
-                                        <field name="total_area" options='{"type": "number"}' />
-                                        <field name="facades"
-                                            options='{"type": "number", "step": 2}' />
-                                    </group>
-                                </group>
-                            </page>
-                            <page id="property_info" string="Otra Información">
-                                <group id="header_left_group">
-                                    <field name="user_id" />
-                                    <field name="buyer" />
-                                </group>
-                            </page>
-                            <page id="property_offers" string="Ofertas Recibidas">
-                                <group id="header_left_group">
-                                    <field name="offers_id"
-                                        attrs="{'readonly': ['&amp;', ('state', '!=', 'draft'), ('state','!=','new')]}" />
-                                </group>
-                            </page>
-                            <page id="test_fields" string="Campos de prueba :->">
-                                <group id="header_left_group">
-                                    <field name="boolean_toggle" widget='boolean_toggle' />
-                                    <field name="percentage_pie" string="Replied"
-                                        widget="percentpie" />
-                                    <field name="money_earned" widget="progressbar"
-                                        options="{'current_value': 'money_earned', 'max_value': 'expected_price', 'editable': True, 'edit_max_value':True, 'title':'Titulo'}" />
-                                    <field name="toggle_button" widget="toggle_button"
-                                        options='{"active": "Reported in last payslips", "inactive": "To Report in Payslip"}'
-                                    />
-                                    <field name="selection_a" widget="radio"
-                                        options="{'horizontal':true}" />
-                                    <field name="selection_b"
-                                        widget="selection_badge" />
-                                </group>
-                            </page>
-                        </notebook>
                     </sheet>
                 </form>
             </field>
@@ -181,36 +92,33 @@
 
         <!-- Search view -->
 
-        <record id="estate_property_view_search" model="ir.ui.view">
-            <field name="name">estate.property.search</field>
-            <field name="model">estate.property</field>
+        <record id="account_share_view_search" model="ir.ui.view">
+            <field name="name">account.share.search</field>
+            <field name="model">account.share</field>
             <field name="arch" type="xml">
-                <search string="Propiedades">
-                    <field name="name" string="Propiedad" />
+                <search string="Acciones">
                     <field name="short_name" string="Nombre Corto" />
-                    <field name="post_code" string="Código Postal" />
-                    <field name="expected_price" string="Precio Esperado" />
-                    <field name="bedrooms" string="Habitaciones" />
-                    <field name="living_area" string="Area del Living (Metros Cuadrados) - " />
-                    <field name="availability" string="Disponibilidad" />
-                    <field name="facades" string="Fachadas" />
+                    <field name="state" string="Estado" />
+                    <field name="date_of_issue" string="Fecha de Emisión" />
+                    <field name="date_of_integration" string="Fecha de Integración" />
+                    <field name="date_of_cancellation" string="Fecha de Cancelación - " />
+                    <field name="date_of_redemption" string="Fecha de Rescate - " />
+                    <field name="share_type" string="Tipo de Acción" />
+                    <field name="shareholder" string="Accionista" />
 
                     <separator />
-                    <filter name="living_area" string="Living Area"
-                        domain="[('living_area','>=','230')]"
-                        help="Mostrar valores por encima de 230mts cuadrados" />
-                    <filter name="availability" string="Disponibilidad"
-                        domain="[('availability','=','True')]"
-                        help="Mostrar propiedades disponibles" />
                     <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
                     <filter string="Active" name="active" domain="[('active', '=', True)]" />
-                    <filter string="Propiedades Disponibles" name="available_properties" />
                     <separator />
 
                     <group expand="1" string="Group By">
-                        <filter string="Orientación" name="orientation"
-                            context="{'group_by':'garden_orientation'}" />
-                        <filter string="Estado" name="state" context="{'group_by':'state'}" />
+                        <filter string="Estado" name="state"
+                            context="{'group_by':'state'}" />
+                        <filter string="Estado" name="state" context="{'group_by':'date_of_issue'}" />
+                        <filter string="Suscripción" name="suscription_order"
+                            context="{'group_by':'suscription_order'}" />
+                        <filter string="Emisión de Acciones" name="share_issuance"
+                            context="{'group_by':'share_issuance'}" />
                     </group>
                 </search>
             </field>

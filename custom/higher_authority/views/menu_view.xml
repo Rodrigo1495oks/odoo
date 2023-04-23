@@ -20,13 +20,21 @@
                 sequence="1" />
 
         </menuitem>
-
+<!-- Incorporaciones -->
         <menuitem id="adding_shareholding_first_level_menu"
             name="Incorporaciones"
             parent="shareholding_root_menu">
 
-            <menuitem id="menu_action_subscription" action="subscription_order_action" sequence="1"/>
-            <menuitem id="menu_action_integration" action="integration_order_action" sequence="2"/>
+            <menuitem id="menu_action_subscription" name='Pedidos de Suscripción' action="subscription_order_action" sequence="1"/>
+            <menuitem id="menu_action_integration" name='Pedidos de Integración' action="integration_rfq" sequence="2"/>
+        </menuitem>
+
+        <!-- Acciones -->
+        <menuitem id="shares_first_level_menu"
+            name="Acciones"
+            parent="shareholding_root_menu">
+
+            <menuitem id="menu_action_shares" name='Acciones' action="account_share_action" sequence="1"/>
 
         </menuitem>
     </data>
