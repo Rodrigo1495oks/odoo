@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- vistas -->
+
+        <record id="irrevocable_contribution_view_tree" model="ir.ui.view">
+            <field name="name">irrevocable.contribution.tree</field>
+            <field name="model">irrevocable.contribution</field>
+            <field name="arch" type="xml">
+                <tree string="Aporte Irrevocable" decoration-success="state=='confirm'"
+                    decoration-info="state=='approved'"
+                    decoration-bf='state=="accept"' decoration-muted="state=='cancel'">
+                    <field name="priority" widget="priority" class="mr-3" />
+                    <field name="short_name" />
+                    <field name='date' />
+                    <field name="shareholder_id" widget='many2one_avatar' />
+                    <field name="user_id" widget="many2one_avatar_user " />
+                    <field name="amount" />
+                    <field name="is_meeting" />
+                    <field name="is_integrated" />
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state == 'approved' or state == 'confirm'"
+                        decoration-warning="state == 'cancel'"
+                        decoration-info="state == 'draft' or state == 'new'" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- formulario -->
+        <record id="irrevocable_contribution_view_form" model="ir.ui.view">
+            <field name="name">irrevocable.contribution.form</field>
+            <field name="model">irrevocable.contribution</field>
+            <field name="arch" type="xml">
+                <form string="Aporte Irrevocable">
+                    <header>
+                        <button name="action_approve" string="Aprobar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'new')]}" />
+                        <button name="action_cancel" string="Cancelar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|',('state', '!=', 'new'), ('state','!=','confirm')]}" />
+                        <button name="action_confirm" string="Confirmar Contr." type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}" />
+                        <button name="action_draft" string="Cambiar a borrador" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|',('state', '=', 'draft'),('state','!=','new')]}" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,new,approved,cancel" />
+                    </header>
+                    <sheet>
+                        <widget name="web_ribbon" title="Cancelado" bg_color="bg-danger"
+                            attrs="{'invisible': [('state', '=', 'cancel')]}" />
+                        <widget name="web_ribbon" title="Aprobado" bg_color="bg-danger"
+                            attrs="{'invisible': [('state', '=', 'approved')]}" />
+                        <widget name="web_ribbon" title="Confirmado" bg_color="bg-danger"
+                            attrs="{'invisible': [('state', '=', 'confirm')]}" />
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="short_name" />
+                            </div>
+                            <h1 class="mb32">
+                                <field name="short_name" class="mb16" />
+                            </h1>
+
+                        </div>
+                        <group>
+                            <group id="header_left_group">
+                                <field name="shareholder_id"
+                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="name" widget='char' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name='date_due' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name='integration_date' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name='amount' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name='user_id' widget='many2one_avatar_user' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name='origin' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                                <!-- <field name='active' widget='boolean' /> -->
+                                <!-- <field name="active" widget="boolean_button"
+                                    options='{"terminology": "active"}' /> -->
+                            </group>
+                            <group id="header_right_group">
+                                <field name="is_meeting" widget='boolean_toggle' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="is_integrated" widget='boolean_toggle' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="fiscal_position_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                                <field name="share_issuance"
+                                    attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('is_meeting', '=', False)]}" />
+                                <field name="total_value" />
+                                <field name="selling_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="best_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="expected_price"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page id="property_tab" string="Descripción">
+                                <group id="header_left_group">
+                                    <field name='notes' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="irrevocable_contribution_view_search" model="ir.ui.view">
+            <field name="name">irrevocable.contribution.search</field>
+            <field name="model">irrevocable.contribution</field>
+            <field name="arch" type="xml">
+                <search string="Aporte Irrevocable">
+                    <field name="name" string="Aporte" />
+                    <field name="short_name" string="Referencia" />
+                    <field name="state" string="Estado" />
+                    <field name="amount" string="Efectivo" />
+                    <field name="origin" string="Documento" />
+                    <field name="name" string="Nombre - " />
+                    <field name="date" string="Fecha de documento" />
+                    <field name="integration_date" string="Fecha de Integración" />
+                    <separator />
+                    <filter string="Tratado" name="is_meeting" domain="[('is_meeting', '=', False)]" help='Mostrar los registros que se han tratado en reunion' />
+                    <filter string="Integrado" name="is_integrated" domain="[('is_integrated', '=', True)]" help='Mostrar registros que se han integrado'/>
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Estado" name="state"
+                            context="{'group_by':'state'}" />
+                        <filter string="Posicion Fiscal" name="fiscal_position_id" context="{'group_by':'fiscal_position_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Estate Property Kanban View  -->
+        <record model="ir.ui.view" id="view_estate_property_kanban">
+            <field name="name">estate.property.kanban</field>
+            <field name="model">estate.property</field>
+            <field name="arch" type="xml">
+                <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
+                <kanban>
+                    <field name="short_name" />
+                    <field name="name" />
+                    <field name="user_id" readonly="1" />
+                    <field name="state" />
+                    <field name="date" />
+                    <field name="shareholder_id" />
+                    <field name="priority" widget="priority" class="mr-3" />
+                    <field name="date_due"
+                        attrs="{'invisible': [('state', '!=', 'approved'), ('state', '!=', 'cancel')]}" />
+                    <field name="share_issuance" attrs="{'invisible': [('state', '!=', 'draft')]}" />
+
+                    <progressbar field="state"
+                        colors='{"confirm": "success", "today": "approved", "overdue": "cancel"}' />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top mb16">
+                                    <field name="priority" widget="priority" />
+                                    <div class="o_kanban_record_headings ml-1">
+                                        <strong class="o_kanban_record_title">
+                                            <span>
+                                                <t t-esc="record.user_id.value" />
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <strong>
+                                        <field name="amount" widget="monetary" />
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span>
+                                            <t t-esc="record.name.value" />
+                                            <t
+                                                t-esc="record.date.value and record.date_due.value.split(' ')[0] or False" />
+                                        </span>
+                                        <field name="activity_ids" widget="kanban_activity" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection"
+                                            options="{'classes': {'draft': 'default', 'new': 'default', 'confirm': 'success', 'approved': 'warning'}}" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <p t-if="record.state.raw_value == 'approved'">
+                                        <strong>
+                                            <field name="date_due" />
+                                        </strong>
+                                    </p>
+                                    <p t-elif="record.state.raw_value == 'confirm'">
+                                        <strong>
+                                            <field name="is_integrated" />
+                                        </strong>
+                                    </p>
+                                    <p t-else="">
+                                        <strong>
+                                            <field name="is_meeting" />
+                                        </strong>
+                                    </p>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="fiscal_position_id"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="user_id" widget="many2one_avatar_user" />
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+    </data>
+</odoo>

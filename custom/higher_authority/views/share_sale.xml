@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <!-- Accion para crear la propiedad -->
+        <record id="share_sale_order_action" model="ir.actions.act_window">
+            <field name="name">Crear Orden de Rescate de Acciones</field>
+            <field name="res_model">share.sale</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="share_sale_order_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+        <!-- vistas -->
+
+        <record id="share_sale_order_view_tree" model="ir.ui.view">
+            <field name="name">share.sale.tree</field>
+            <field name="model">share.sale</field>
+            <field name="arch" type="xml">
+                <tree string="Reducción" decoration-success="state=='confirm' "
+                    decoration-bf='state=="new"' decoration-muted="state=='cancel'">
+                    <field name="short_name" />
+                    <field name='shareholder_id' />
+                    <field name="user_id" widget="many2one_avatar_user " />
+                    <field name="name" />
+                    <field name="activity_ids" widget="list_activity" optional="show" />
+                    <field name="date" />
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state =='confirm'"
+                        decoration-warning="state == 'cancel'"
+                        decoration-info="state == 'draft' or state == 'new'" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- formulario -->
+        <record id="redemption_order_view_form" model="ir.ui.view">
+            <field name="name">share.sale.form</field>
+            <field name="model">share.sale</field>
+            <field name="arch" type="xml">
+                <form string="Orden de Venta acciones">
+                    <header>
+                        <button name="button_set_new" string="Confirmar Alta" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}" />
+                        <button name="action_set_canceled" string="Cancelar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'canceled')]}" />
+                        <button name="button_confirm" string="Confirmar Alta" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'new')]}" />
+                        <button name="action_draft" string="Cambiar a borrador" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'draft')]}" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,new,approved,confirm,cancel" />
+                    </header>
+                    <sheet>
+                        <!-- <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('active', '=', True)]}" /> -->
+                        <div class="oe_title">
+                            <span class="o_form_label"
+                                attrs="{'invisible': [('state','in',('draft'))]}">Share Sale Order </span>
+                            <h1 class="d-flex mb32">
+
+                                <field name="short_name" readonly="1" />
+                            </h1>
+                        </div>
+                        
+                        <field name='user_id'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+
+                        <group>
+                            <group id="header_left_group">
+                                <field name="share_sales_ids" />
+                            </group>
+                            <group id="header_right_group">
+                                <field name='name' />
+                                <field name='date' />
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page id="int_lines1" string="Acciones">
+                                <group>
+                                    <group>
+                                        <field name='shares' />
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                        <group name='notes' id='notes' string='Notas'>
+                            <field colspan='2' name='notes' nolabel='1' placeholder='Notas... ' />
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" />
+                        <field name="activity_ids" />
+                        <field name="message_ids" />
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="share_sale_order_view_search" model="ir.ui.view">
+            <field name="name">share.sale.search</field>
+            <field name="model">share.sale</field>
+            <field name="arch" type="xml">
+                <search string="Venta de Acciones">
+                    <field name="name" string="Nombre" />
+                    <field name="short_name" string="Número" />
+                    <field name="date" string="Fecha " />
+                    <field name="state" string="Estado" />
+
+                    <filter name="state" string="Pendiente"
+                        domain="[('state','=','new')]"
+                        help="Mostrar Ordenes Pendientes" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Fecha de Rescate" name="date"
+                            context="{'group_by':'date'}" />
+                        <filter string="Estado" name="state" context="{'group_by':'state'}" />
+                        <filter string="Accionista" name="shareholder_id"
+                            context="{'group_by':'shareholder_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Estate Property Kanban View  -->
+        <record model="ir.ui.view" id="view_share_sale_order_kanban">
+            <field name="name">share.sale.kanban</field>
+            <field name="model">share.sale</field>
+            <field name="arch" type="xml">
+                <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
+                <kanban>
+                    <field name="short_name" />
+                    <field name="shareholder_id" readonly="1" />
+                    <field name="state" />
+
+                    <progressbar field="state"
+                        colors='{"confirm": "success", "today": "new", "overdue": "cancel"}' />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span>
+                                            <t t-esc="record.short_name.value" />
+                                            <t
+                                                t-esc="record.date.value and record.date.value.split(' ')[0] or False" />
+                                        </span>
+                                        <field name="activity_ids" widget="kanban_activity" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection"
+                                            options="{'classes': {'draft': 'default', 'new': 'default', 'approved': 'success', 'confirm': 'warning'}}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+    </data>
+</odoo>

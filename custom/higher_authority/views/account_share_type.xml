@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Accion para crear la accion -->
+        <record id="account_sharetype_action" model="ir.actions.act_window">
+            <field name="name">Crear Tipo deAcción</field>
+            <field name="res_model">acount.share.type</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <!-- vistas -->
+        <record id="account_share_type_view_tree" model="ir.ui.view">
+            <field name="name">acount.share.type.tree</field>
+            <field name="model">acount.share.type</field>
+            <field name="arch" type="xml">
+                <tree string="Share Type">
+                    <field name="short_name" />
+                    <field name="active" />
+                    <field name="number_of_votes" options="{'type':'number'}" />
+                    <field name='share_ids' />
+                    <field name='journal_id' />
+                    <field name='account_share_id' />
+                    <field name='account_asset_id' />
+                </tree>
+            </field>
+        </record>
+        <!-- formulario -->
+        <record id="account_share_type_view_form" model="ir.ui.view">
+            <field name="name">account.share.type.form</field>
+            <field name="model">account.share.type</field>
+            <field name="arch" type="xml">
+                <form string="Account Share Type">
+                    <header>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="short_name" />
+                            </div>
+                            <h1 class="mb32">
+                                <field name="short_name" class="mb16" />
+                            </h1>
+
+                        </div>
+                        <group>
+                            <group id="header_left_group" string='Datos Básicos'>
+                                <field name="active" />
+                                <field name="number_of_votes" options="{'type':'number'}" />
+                                <field name='share_ids' />
+                            </group>
+                            <group id="header_right_group" string='Contabilidad'>
+                                <field name='journal_id' />
+                                <field name='account_share_id' />
+                                <field name='account_asset_id' />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="account_share_type_view_search" model="ir.ui.view">
+            <field name="name">account.share.type.search</field>
+            <field name="model">account.share.type</field>
+            <field name="arch" type="xml">
+                <search string="Tipos de Acciones">
+                    <field name="short_name" string="Nombre Corto" />
+
+                    <separator />
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
+                    <filter string="Active" name="active" domain="[('active', '=', True)]" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Diario" name="journal_id"
+                            context="{'group_by':'journal_id'}" />
+                        <filter string="Cuenta de Capital" name="account_share_id" context="{'group_by':'account_share_id'}" />
+                        <filter string="Suscripción" name="suscription_order"
+                            context="{'group_by':'suscription_order'}" />
+                        <filter string="Cuenta Otros Créditos" name="account_asset_id"
+                            context="{'group_by':'account_asset_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

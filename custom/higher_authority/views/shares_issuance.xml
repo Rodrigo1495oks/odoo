@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Accion para crear la emisíon -->
+        <record id="share_issuance_action" model="ir.actions.act_window">
+            <field name="name">Crear Orden de Emisión</field>
+            <field name="res_model">share.issuance</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="share_issuance_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+        <!-- vistas -->
+        <record id="share_issuance_view_tree" model="ir.ui.view">
+            <field name="name">share.issuance.tree</field>
+            <field name="model">share.issuance</field>
+            <field name="arch" type="xml">
+                <tree string="Emisión" decoration-success="state=='offer' or state=='accept'"
+                    decoration-bf='state=="accept"' decoration-muted="state=='sold'">
+                    <field name="priority" widget="priority" class="mr-3" />
+                    <field name="short_name" />
+                    <field name='makeup_date' widget='date' />
+                    <field name='date_of_issue' widget='date' />
+                    <field name="share_type" />
+                    <field name="shareholder" widget="many2one_avatar " />
+                    <field name="activity_ids" widget="list_activity" optional="show" />
+                    <field name="votes_num" options='{"type": "number"}' />
+                    <field name="shares_qty" options='{"type": "number"}' />
+                    <field name="price" options='{"type": "number", "step": 0.1}' />
+
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state == 'approved' or state == 'suscribed'"
+                        decoration-warning="state == 'draft'"
+                        decoration-info="state == 'posted' or state == 'new'"
+                        decoration-muted="state=='cancel'" />
+                </tree>
+            </field>
+        </record>
+        <!-- formulario -->
+        <record id="share_issuance_view_form" model="ir.ui.view">
+            <field name="name">share.issuance.form</field>
+            <field name="model">share.issuance</field>
+            <field name="arch" type="xml">
+                <form string="Orden de Emisión de Acciones">
+                    <header>
+                        <button name="action_approve" string="Aprobar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                        <button name="action_set_canceled" string="Cancelar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'cancel')]}" />
+                        <button name="action_confirm" string="Confirmar Alta" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}" />
+                        <button name="action_draft" string="Cambiar a borrador" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'draft')]}" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,new,approved,confirm,posted,cancel" />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <span class="o_form_label"
+                                attrs="{'invisible': [('state','in',('draft'))]}">Emisión de
+                                Acciones </span>
+                            <h1 class="d-flex mb32">
+                                <field name="short_name" readonly="1" />
+                            </h1>
+                        </div>
+                        <field name='name'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                        <field name='makeup_date'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                        <field name='date_of_issue'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                        <field name='share_type'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                        <field name='shareholder'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}"
+                            widget="many2one_avatar " />
+                        <group>
+                            <group id="header_left_group">
+                                <field name="priority" widget="priority" class="mr-3" />
+                                <field name='short_name' />
+                                <field name="votes_num" options='{"type": "number"}' />
+                                <field name="shares_qty" options='{"type": "number"}' />
+                                <field name="price"
+                                    widget='monetary' />
+                                <field name="nominal_value"
+                                    widget='monetary' />
+                                <field
+                                    name="issue_premium"
+                                    widget='monetary' />
+                                <field
+                                    name="issue_discount"
+                                    widget='monetary' />
+                                <!-- <field name="tags_ids" widget="many2many_tags"
+                                    options="{'color_field': 'color'}" /> -->
+                                <field name="shares" />
+                                <field name="pending" widget='boolean_toggle' />
+                                <field name="company_id" />
+                            </group>
+                            <group id="header_right_group">
+                                <field name="company_id" />
+                                <field name='suscription_order' />
+                                <field name='share_cost' />
+                                <field name='topic' />
+                                <field name='irrevocable_contribution' />
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page id="shares" string="Acciones">
+                                <group>
+                                    <group>
+                                        <field name="shares" />
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" />
+                        <field name="activity_ids" />
+                        <field name="message_ids" />
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="share_issuance_view_search" model="ir.ui.view">
+            <field name="name">share.issuance.search</field>
+            <field name="model">share.issuance</field>
+            <field name="arch" type="xml">
+                <search string="Emisiones">
+                    <field name="short_name" string="Nombre" />
+                    <field name="makeup_date" string="Fecha de Confección" />
+                    <field name="date_of_issue" string="Fecha de Emisión" />
+
+                    <separator />
+                    <filter name="shares_qty" string="Cantidad de acciones emitidas"
+                        domain="[('shares_qty','>=','100')]"
+                        help="Mostrar valores por encima de 10 millones" />
+                    <filter name="nominal_value" string="Valor Nominal"
+                        domain="[('nominal_value','>=','10000')]"
+                        help="Mostrar valores mayores" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Compañía" name="company_id"
+                            context="{'group_by':'company_id'}" />
+                        <filter string="Estado" name="state" context="{'group_by':'state'}" />
+                        <filter string="Accionista" name="shareholder"
+                            context="{'group_by':'shareholder_id'}" />
+                        <filter string="Tipo de Acción" name="share_type"
+                            context="{'group_by':'share_type'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Estate Property Kanban View  -->
+        <record model="ir.ui.view" id="view_share_issuance_kanban">
+            <field name="name">share.issuance.kanban</field>
+            <field name="model">share.issuance</field>
+            <field name="arch" type="xml">
+                <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
+                <kanban>
+                    <field name="short_name" />
+                    <field name="shareholder" readonly="1" />
+                    <field name="state" />
+                    <field name="date_of_issue" />
+                    <field name="shares_qty"/>
+                    <field name="price" />
+                    <field name="nominal_value" />
+
+                    <progressbar field="state"
+                        colors='{"approved": "success", "today": "suscribed", "overdue": "cancel"}' />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top mb16">
+                                    <field name="short_name" />
+                                    <div class="o_kanban_record_headings ml-1">
+                                        <strong class="o_kanban_record_title">
+                                            <span>
+                                                <t t-esc="record.shareholder.value" />
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <strong>
+                                        <field name="price" widget="monetary" />
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span>
+                                            <t t-esc="record.short_name.value" />
+                                            <t
+                                                t-esc="record.date_of_issue.value and record.date_of_issue.value.split(' ')[0] or False" />
+                                        </span>
+                                        <!-- <field name="activity_ids" widget="kanban_activity" /> -->
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection"
+                                            options="{'classes': {'draft': 'default', 'new': 'default', 'approved': 'success', 'confirm': 'warning'}}" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <p t-if="record.state.raw_value == 'approved'">
+                                        <strong>
+                                            <field name="price" widget="monetary" />
+                                        </strong>
+                                    </p>
+                                    <p t-elif="record.state.raw_value == 'confirm'">
+                                        <strong>
+                                            <field name="nominal_value" widget="monetary" />
+                                        </strong>
+                                    </p>
+
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="shares_qty" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="suscription_order" />
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+    </data>
+</odoo>
