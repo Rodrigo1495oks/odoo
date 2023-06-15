@@ -4,7 +4,7 @@
 from odoo import fields, models
 
 
-class Company(models.Model):
+class ResCompany(models.Model):
     _name = "res.company"
     _inherit = 'res.company'
 
@@ -80,7 +80,7 @@ class Company(models.Model):
 
     account_shareholders_for_redemption_of_shares = fields.Many2one('account.account', company_dependent=True,
                                                                     string="Accionistas por rescates de acciones",
-                                                                    domain="[('internal_type', '=', 'equity_redemption_of_shares'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                                                    domain="[('internal_type', '=', 'liability_payable_redemption_shares'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                                     help="Esta cuenta será usada para las para registrar los pagos de aportes, a pesar que sea establecida una cuenta por defecto diferente",
                                                                     required=True, config_parameter='higher_authority.account_shareholders_for_redemption_of_shares')
     account_share_redemption_discount = fields.Many2one('account.account', company_dependent=True,
@@ -92,11 +92,6 @@ class Company(models.Model):
     percentage_redemption = fields.Float(string='Porcentaje de rescate', help='Porcentaje fijado por la Gerencia para el pago en efectivo por cancelación de acciones',
                                          config_parameter='higher_authority.percentage_redemption')
 
-    account_payable_redemption = fields.Many2one('account.account', company_dependent=True,
-                                                 string="Accionistas - Rescate de Acciones",
-                                                 domain="[('internal_type', '=', 'liability_payable_redemption_shares'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
-                                                 help="Esta cuenta será usada para las para registrar las deuda con los accionsitas, a quienes debe reintegrarseles el valor de mercado de las acciones vendidas",
-                                                 required=True, config_parameter='higher_authority.account_payable_redemption')
 
     # """Campos usados para la emision y gestion de los bonos"""
 

@@ -46,9 +46,15 @@ class SuscriptionOrder(models.Model):
     @api.depends('product_id', 'cash_id')
     def _compute_qty_to_subscribe(self):
         for order in self:
-            for line in order.suscription_lines:
+            for line in order.credit_lines:
                 order.qty_to_subscribe += line.amount_currency \
-                    if line.amount_currency and line.amount_currency > 0 else line.price_total
+                    if line.amount_currency and line.amount_currency > 0 else 0
+            for line in order.cash_lines:
+                order.qty_to_subscribe += line.amount_currency \
+                    if line.amount_currency and line.amount_currency > 0 else 0
+            for line in order.product_lines:
+                order.qty_to_subscribe += line.price_total \
+                    if line.price_total and line.price_total > 0 else 0
 
     @api.depends('shares')
     def _compute_amount_total(self):
@@ -72,7 +78,7 @@ class SuscriptionOrder(models.Model):
             order.qty_pending = order.qty_integrated-order.amount_total
 
     number = fields.Char(string='Referencia', default='New',
-                         required=True, copy=False)
+                         required=True, copy=False, readonly=True)
     name = fields.Char(string='Nombre', required=True, tracking=True)
     suscription_date = fields.Date(string='Fecha de Subscripción')
     integration_date_due = fields.Date(
@@ -142,8 +148,8 @@ class SuscriptionOrder(models.Model):
     product_lines = fields.One2many(string='Líneas de Activos', comodel_name='suscription.order.line', inverse_name='order_id', copy=False, readonly=True,
                                     states={'draft': [('readonly', False)]}, help='Sólo Productos Físicos no servicios')
 
-    shareholder_id = fields.Many2one(
-        string='Accionista', comodel_name='account.shareholder')
+    partner_id = fields.Many2one(
+        string='Accionista', comodel_name='res.partner')
 
     share_issuance = fields.One2many(
         string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance', inverse_name='suscription_order')
@@ -159,6 +165,7 @@ class SuscriptionOrder(models.Model):
                                    help='Asiento contable Relacionado', readonly=True, domain=[('move_type', '=', 'suscription')])
     user_id = fields.Many2one('res.users', string='Empleado',
                               index=True, tracking=True, default=lambda self: self.env.user)
+    notes=fields.Html(string='Notas')
     # ACTIONS METHODS
 
     def action_create_suscription(self):
@@ -182,38 +189,51 @@ class SuscriptionOrder(models.Model):
 
             debit_line = {
                 'display_type': 'line_note',
-                'suscription_line_id': self.id,
-                'account_id': self.shareholder_id.property_account_shareholding_id.id,
-                'debit': self.qty_to_subscribe,
+                'account_id': (self.partner_id.property_account_subscription_id.id) or (self.env['ir.config_parameter'].get_param(
+                'higher_authority.property_account_subscription_id').id),
+                'debit': self.qty_to_subscribe or 0,
             }
-            credit_line = {
+            discount_line = {
                 'display_type': 'line_note',
-                'suscription_line_id': self.id,
-                'account_id': self.shareholder_id.property_account_suscription_id.id,
-                'credit': self.qty_to_subscribe,
+                'account_id': (self.partner_id.property_account_issue_discount_id.id) or (self.env['ir.config_parameter'].get_param(
+                'higher_authority.property_account_issue_discount_id').id),
+                'debit': (self.share_issuance.issue_discount)*(self.share_issuance.shares_qty) or 0,
             }
-            suscription_vals['line_ids'].append(
-                (0, 0, debit_line))
-            suscription_vals['line_ids'].append(
-                (0, 0, credit_line))
+            premium_line = {
+                'display_type': 'line_note',
+                'account_id': (self.partner_id.property_account_issue_premium_id.id) or (self.env['ir.config_parameter'].get_param(
+                'higher_authority.property_account_issue_discount_id').id),
+                'credit': (self.share_issuance.issue_premium)*(self.share_issuance.shares_qty) or 0,
+            }
+            capital_line = {
+                'display_type': 'line_note',
+                'account_id': (self.partner_id.property_account_shareholding_id.id) or (self.env['ir.config_parameter'].get_param(
+                'higher_authority.property_account_shareholding_id').id),
+                'credit': (self.share_issuance.nominal_value)*(self.share_issuance.shares_qty) or 0,
+            }
+
+            suscription_vals['line_ids'].append((0, 0, debit_line))
+            suscription_vals['line_ids'].append((0, 0, discount_line))
+            suscription_vals['line_ids'].append((0, 0, premium_line))
+            suscription_vals['line_ids'].append((0, 0, capital_line))
 
             suscription_vals_list.append(suscription_vals)
 
         # 3) Create invoices.
-        IntMoves = self.env['suscription.move']
-        SuscriptionMove = self.env['suscription.move'].with_context(
+        SusMoves = self.env['account.move']
+        AccountMove = self.env['account.move'].with_context(
             default_move_type='suscription')
         for vals in suscription_vals_list:
-            IntMoves |= SuscriptionMove.with_company(
+            SusMoves |= AccountMove.with_company(
                 vals['company_id']).create(vals)
 
         # 4) Some moves might actually be refunds: convert them if the total amount is negative
         # We do this after the moves have been created since we need taxes, etc. to know if the total
         # is actually negative or not
-        IntMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
+        SusMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
                           < 0).action_switch_invoice_into_refund_credit_note()
 
-        return self.action_view_suscription(IntMoves)
+        return self.action_view_suscription(SusMoves)
 
     def _prepare_suscription(self):
         """Prepare the dict of values to create the new invoice for a purchase order.
@@ -222,8 +242,8 @@ class SuscriptionOrder(models.Model):
         move_type = self._context.get('default_move_type', 'suscription')
 
         partner_invoice = self.env['res.partner'].browse(
-            self.shareholder_id.partner_id.address_get(['invoice'])['invoice'])
-        partner_bank_id = self.shareholder_id.partner_id.commercial_partner_id.bank_ids.filtered_domain(
+            self.partner_id.partner_id.address_get(['invoice'])['invoice'])
+        partner_bank_id = self.partner_id.partner_id.commercial_partner_id.bank_ids.filtered_domain(
             ['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)])[:1]
 
         suscription_vals = {
@@ -232,7 +252,7 @@ class SuscriptionOrder(models.Model):
             'narration': self.notes,
             'currency_id': self.currency_id.id,
             'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
-            'shareholder_id': self.shareholder_id.id,
+            'partner_id': self.partner_id.id,
             'fiscal_position_id': (self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
             'payment_reference': self.partner_ref or '',
             'partner_bank_id': partner_bank_id.id,
@@ -257,7 +277,7 @@ class SuscriptionOrder(models.Model):
             integrations = self.integration_orders
 
         result = self.env['ir.actions.act_window']._for_xml_id(
-            'higher_authority.action_move_integration_type')
+            'higher_authority.action_move_in_integration_type')
         # choose the view_mode accordingly
         if len(integrations) > 1:
             result['domain'] = [('id', 'in', integrations.ids)]
@@ -348,7 +368,7 @@ class SuscriptionOrder(models.Model):
             'issue_premium': self.issue_premium,
             'issue_discount': self.issue_discount,
             'company_id': self.company_id,
-            'shareholder': self.shareholder_id.id,
+            'partner_id': self.partner_id.id,
         }
         self.env['shares.issuance'].create(vals)
         return True
@@ -403,14 +423,15 @@ class SuscriptionOrder(models.Model):
             'issue_discount': self.issue_discount,
             'cash_subscription': self._compute_total_cash(),
             'subscription_order': self.id,
-            'shareholder_id': self.shareholder_id.id,
+            'partner_id': self.partner_id.id,
             'origin': self.number,
             'date_order': fields.Datetime.now(),
-            'partner_id': self.shareholder_id.partner_id,
+            'partner_id': self.partner_id.partner_id,
             'state': 'draft',
             'order_line': [],
             'date_planned': self.integration_date_due,
             'payment_term_id': self.payment_term_id,
+            'share_issuance': self.share_issuance,
             'credit_lines': []
         }
         return res
@@ -418,9 +439,9 @@ class SuscriptionOrder(models.Model):
      # low level methods
     @api.model
     def create(self, vals):
-        if vals.get('name', 'New') == 'New':
-            vals['reference'] = self.env['ir.sequence'].next_by_code(
-                'suscription.order') or 'New'
+        if vals.get('number', _('New')) == _('New'):
+            vals['number'] = self.env['ir.sequence'].next_by_code(
+                'suscription.order') or _('New')
         res = super(SuscriptionOrder, self.create(vals))
         return res
 
@@ -484,7 +505,7 @@ class suscriptionOrderLine(models.Model):
 
     def _compute_partner_id(self):
         for line in self:
-            line.partner_id = line.shareholder_id.line.partner_id.commercial_partner_id
+            line.partner_id = line.partner_id.line.partner_id.commercial_partner_id
 
     @api.depends('type')
     def _compute_quantity(self):
@@ -540,8 +561,8 @@ class suscriptionOrderLine(models.Model):
         compute='_compute_partner_id', store=True, readonly=False, precompute=True,
         ondelete='restrict',
     )
-    shareholder_id = fields.Many2one(
-        string='Accionista', comodel_name='account.shareholder')
+    partner_id = fields.Many2one(
+        string='Accionista', comodel_name='res.partner')
 
     # ==============================================================================================
     #                                          FOR account_move_line
@@ -620,7 +641,7 @@ class suscriptionOrderLine(models.Model):
             'date': fields.Datetime.now(),
             'ref': self.ref,
             'partner_id': self.partner_id,
-            'shareholder_id': self.shareholder_id.id,
+            'partner_id': self.partner_id.id,
             'suscription_order_line': self.id,
             'product_id': self.product_id.id,
             'product_uom_id': self.product_uom_id.id,

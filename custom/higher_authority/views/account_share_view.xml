@@ -48,7 +48,7 @@
                                 <label for="short_name" />
                             </div>
                             <h1 class="mb32">
-                                <field name="short_name" class="mb16" />
+                                <field name="short_name" class="mb16" invisible='1'/>
                             </h1>
 
                         </div>

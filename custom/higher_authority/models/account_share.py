@@ -20,35 +20,16 @@ class AccountShare(models.Model):
     _order = 'short_name desc'
     _rec_name = 'short_name'
 
-    @api.depends('nominal_value', 'price')
-    # busca en el modelo relacionado e l campo precio total
-    def _compute_price(self):
-        # calcula la prima o el desuento de emision en caso de corresponder
-        # presupuesto/pedido de compra
-        currency = self.currency_id or self.shareholder.property_sharehold_currency_id or self.env.company.currency_id
-        for share in self:
-            nom_price = share.nominal_value
-            price = share.price
-            if nom_price > price:
-                share.update({  # actualizo loscampos de este modelo
-                    'issue_discount': currency.round(nom_price-price),
-                    'issue_premium': 0
-                })
-            if nom_price < price:
-                share.update({  # actualizo loscampos de este modelo
-                    'issue_discount': 0,
-                    'issue_premium': currency.round(price-nom_price)
-                })
-
-    name = fields.Char(string='Nombre')
-    short_name = fields.Char(string='Referencia', required=True, index=True)
+    name = fields.Char(string='Nombre', required=True, tracking=True)
+    short_name = fields.Char(string='Referencia', default='New',
+                             required=True, copy=False, readonly=True)
     active = fields.Boolean(string='Activo', default=True)
 
     state = fields.Selection(string='Estado', selection=[
         ('draft', 'Borrador'),
         ('new', 'Nuevo'),
-        ('subscribed', 'Suscripto'),
-        # ('integrated', 'Integrado'),
+        ('suscribed', 'Suscripto'),
+        ('integrated', 'Integrado'),
         ('portfolio', 'En Cartera'),
         ('negotiation', 'En Negociación'),
         ('canceled', 'Cancelado')
@@ -67,8 +48,8 @@ class AccountShare(models.Model):
 
     votes_num = fields.Integer(string='Número de Votos',
                                related='share_type.number_of_votes', store=True)
-    shareholder = fields.Many2one(
-        string='Accionista', comodel_name='account.shareholder', store=True, index=True)
+    partner_id = fields.Many2one(
+        string='Accionista', comodel_name='res.partner', store=True, index=True)
 
     # valores y cotizacion
 
@@ -76,7 +57,7 @@ class AccountShare(models.Model):
         string='Valor de Emisión', required=True, copy=True)
     price = fields.Float(string='Valor pactado en la suscripción',
                          help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True, compute='_compute_price')
-
+    # share_adjustment=fields.Float(string='Ajsute Valor Nominal', help='Valor que es registrado en la cuenta "Ajuste al capital"', readonly=True, copy=True, compute='_compute_price')
     issue_premium = fields.Float(
         string='Prima de emision', help='Cotizacion sobre la par', compute='_compute_price')
 
@@ -88,10 +69,17 @@ class AccountShare(models.Model):
 
     share_issuance = fields.Many2one(
         string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance')
-
+    capital_reduction = fields.Many2one(
+        string='Reducción de Capital', readonly=True, index=True, store=True, comodel_name='capital.reduction')
     suscription_order = fields.Many2one(
         string='Orden de Subscripción', comodel_name='suscription.order', index=True)
+    capital_reduction = fields.Many2one(string='Reducción', comodel_name='capital.reduction',
+                                        help='Campo técnico usado para registrar las reducciones de capital que se llevaron a cabo con esta acción')
+    portfolio_shares = fields.Many2one(
+        string='Acciones en cartera', comodel_name='portfolio.shares', store=True, index=True, readonly=True)
 
+    share_sale = fields.Many2one(
+        string='Venta de Acciones', comodel_name='share.sale', store=True, index=True, readonly=True, help='Campo técnico usado para registrar las ventas de acciones que se llevaron a cabo con esta acción')
     # def action_integrate(self):
     #     for share in self:
     #         if share.state == 'new' or share.state == 'subscribed':
@@ -112,4 +100,40 @@ class AccountShare(models.Model):
 
     def share_cancel(self):
         for share in self:
-            share.state='canceled'
+            if share.state in ['suscribed', 'integrated', 'portfolio', 'negotiation']:
+                share.state = 'canceled'
+                share.date_of_cancellation = fields.Date.today()
+            else:
+                raise UserError('No puede cancelarse esta acción')
+
+    def action_portfolio(self):
+        for share in self:
+            if share.state in ['suscribed', 'integrated']:
+                share.state = 'portfolio'
+                share.date_of_redemption = fields.Date.today()
+            else:
+                raise UserError('Acción no válida para esta accion')
+    def share_integrate_redemption(self):
+        for share in self:
+            if share.state in ['negotiation']:
+                share.state = 'integrated'
+                share.date_of_integration = fields.Datetime.now()
+            else:
+                raise UserError(
+                    'La accion ya ha sido emitida o aun no esta \n autorizado para ello')
+    def share_negotiation(self):
+        for share in self:
+            if share.state in ['portfolio']:
+                share.state = 'negotiation'
+            else:
+                raise UserError(
+                    'La accion ya ha sido emitida o aun no esta \n autorizado para ello')
+    # low level methods
+
+    @api.model
+    def create(self, vals):
+        if vals.get('short_name', _('New')) == _('New'):
+            vals['short_name'] = self.env['ir.sequence'].next_by_code(
+                'account.share') or _('New')
+        res = super(AccountShare, self.create(vals))
+        return res

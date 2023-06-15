@@ -61,13 +61,13 @@ class PortfolioShares(models.Model):
     redemption_count = fields.Integer(
         compute="_compute_invoice", string='Reducciones', copy=False, default=0, store=True)
     shares = fields.One2many(string='Acciones a Cancelar', help='Acciones creadas',
-                             comodel_name='account.share', inverse_name='portfolio_shares', index=True, domain=[('state', 'in', ('integrated'), ('shareholder_id', '=', 'shareholder_id'))], compute='_compute_shares_to_portfolio')
+                             comodel_name='account.share', inverse_name='portfolio_shares', index=True, domain=[('state', 'in', ('integrated'), ('partner_id', '=', 'partner_id'))], compute='_compute_shares_to_portfolio')
     topic = fields.Many2one(
         string='Tópico', comodel_name='assembly.meeting.topic', readonly=True)
     user_id = fields.Many2one('res.users', string='Empleado',
                               index=True, tracking=True, default=lambda self: self.env.user)
-    shareholder_id = fields.Many2one(
-        string='Accionista', comodel_name='account.shareholder', required=True)
+    partner_id = fields.Many2one(
+        string='Accionista', comodel_name='res.partner', required=True)
     notes = fields.Html(string='Descripción')
 
     def button_set_new(self):
@@ -192,7 +192,7 @@ class PortfolioShares(models.Model):
                         'display_type': 'line_note',
                         'account_id': (account_payable_redemption).id,
                         'credit': (sum(total_integrated+total_issue_premium)-total_issue_discount) or 0,
-                        'partner_id': self.shareholder_id.partner_id.id
+                        'partner_id': self.partner_id.partner_id.id
                     }
 
                     redemption_vals['line_ids'].append(
@@ -337,12 +337,12 @@ class PortfolioShares(models.Model):
         for order in self:
             order.redemption_count = len(order.redemption_ids)
 
-    @api.depends('shareholder_id')
+    @api.depends('partner_id')
     def _compute_shares_to_portfolio(self):
         """Obtiene todas las acciones que se encuentran en estado integrated y que aún no tengan ninguna orden de rescate de acciones en cartera, filtrados por el accionista"""
 
         shares = self.env['account.share'].search([
-            ('shareholder_id', 'in', self.shareholder_id), ('state', 'in', ('integrated'))
+            ('partner_id', 'in', self.partner_id), ('state', 'in', ('integrated'))
         ])
         for order in self:
             order.shares = shares.filtered(

@@ -192,7 +192,7 @@ class AccountPayment(models.Model):
                 writeoff_lines += line
 
         return liquidity_lines, counterpart_lines, writeoff_lines
-
+    
     def _get_valid_liquidity_accounts(self):
         return (
             self.journal_id.default_account_id,
@@ -420,7 +420,7 @@ class AccountPayment(models.Model):
             else:
                 pay.available_partner_bank_ids = pay.partner_id.bank_ids \
                     .filtered(lambda x: x.company_id.id in (False, pay.company_id.id))._origin
-
+        
     @api.depends('available_partner_bank_ids', 'journal_id')
     def _compute_partner_bank_id(self):
         ''' The default partner_bank_id will be the first available on the partner. '''
@@ -465,9 +465,11 @@ class AccountPayment(models.Model):
         """
         Get all journals having at least one payment method for inbound/outbound depending on the payment_type.
         """
+        
         journals = self.env['account.journal'].search([
             ('company_id', 'in', self.company_id.ids), ('type', 'in', ('bank', 'cash'))
         ])
+        
         for pay in self:
             if pay.payment_type == 'inbound':
                 pay.available_journal_ids = journals.filtered(
@@ -584,7 +586,7 @@ class AccountPayment(models.Model):
         self.env['account.move'].flush_model()
         self.env['account.move.line'].flush_model()
         self.env['account.partial.reconcile'].flush_model()
-
+        
         self._cr.execute('''
             SELECT
                 payment.id,
@@ -618,8 +620,9 @@ class AccountPayment(models.Model):
             pay = self.browse(res['id'])
             if res['move_type'] in self.env['account.move'].get_sale_types(True):
                 pay.reconciled_invoice_ids += self.env['account.move'].browse(
-                    res.get('invoice_ids', []))
+                    res.get('invoice_ids', [])) # le paso un conjunto de ids, todas las facturas de contrapartida del pago iterado
                 pay.reconciled_invoices_count = len(res.get('invoice_ids', []))
+                # cuento esas facturas
             else:
                 pay.reconciled_bill_ids += self.env['account.move'].browse(
                     res.get('invoice_ids', []))
@@ -692,7 +695,7 @@ class AccountPayment(models.Model):
     # -------------------------------------------------------------------------
     # LOW-LEVEL METHODS
     # -------------------------------------------------------------------------
-
+    
     def new(self, values=None, origin=None, ref=None):
         payment = super(AccountPayment, self.with_context(
             is_payment=True)).new(values, origin, ref)
@@ -731,7 +734,7 @@ class AccountPayment(models.Model):
                 if k in self._fields and self._fields[k].store and k in pay.move_id._fields and pay.move_id._fields[
                     k].store:
                     to_write[k] = v
-
+            
             if 'line_ids' not in vals_list[i]:
                 to_write['line_ids'] = [(0, 0, line_vals) for line_vals in pay._prepare_move_line_default_vals(
                     write_off_line_vals=write_off_line_vals)]
@@ -796,7 +799,7 @@ class AccountPayment(models.Model):
                         "include one and only one outstanding payments/receipts account.",
                         move.display_name,
                     ))
-
+                
                 if len(counterpart_lines) != 1:
                     raise UserError(_(
                         "Journal Entry %s is not valid. In order to proceed, the journal items must "
@@ -869,7 +872,7 @@ class AccountPayment(models.Model):
 
             # Make sure to preserve the write-off amount.
             # This allows to create a new payment with custom 'line_ids'.
-
+            self.mapped
             write_off_line_vals = []
             if liquidity_lines and counterpart_lines and writeoff_lines:
                 write_off_line_vals.append({
@@ -1071,7 +1074,7 @@ class AccountPayment(models.Model):
         }
         return action
 
-
+        
 # For optimization purpose, creating the reverse relation of m2o in _inherits saves
 # a lot of SQL queries
 

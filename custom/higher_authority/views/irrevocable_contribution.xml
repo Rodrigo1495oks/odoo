@@ -49,6 +49,15 @@
                             statusbar_visible="draft,new,approved,cancel" />
                     </header>
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object" name="action_view_contribution"
+                                class="oe_stat_button"
+                                icon="fa-pencil-square-o"
+                                attrs="{'invisible':['|', ('offer_count', '=', 0), ('active', '=', 'False')]}">
+                                <field name="invoice_count" widget="statinfo" string="Asientos" />
+                                <field name='invoice_ids' invisible="1" />
+                            </button>
+                        </div>
                         <widget name="web_ribbon" title="Cancelado" bg_color="bg-danger"
                             attrs="{'invisible': [('state', '=', 'cancel')]}" />
                         <widget name="web_ribbon" title="Aprobado" bg_color="bg-danger"
@@ -67,22 +76,32 @@
                         <group>
                             <group id="header_left_group">
                                 <field name="shareholder_id"
-                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="name" widget='char' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name='date_due' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name='integration_date' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name='amount' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name='user_id' widget='many2one_avatar_user' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name='origin' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="name" widget='char'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='date_due'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='integration_date'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='amount'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='user_id' widget='many2one_avatar_user'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='origin'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
 
                                 <!-- <field name='active' widget='boolean' /> -->
                                 <!-- <field name="active" widget="boolean_button"
                                     options='{"terminology": "active"}' /> -->
                             </group>
                             <group id="header_right_group">
-                                <field name="is_meeting" widget='boolean_toggle' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="is_integrated" widget='boolean_toggle' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="fiscal_position_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="is_meeting" widget='boolean_toggle'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="is_integrated" widget='boolean_toggle'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="fiscal_position_id"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
 
                                 <field name="share_issuance"
                                     attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('is_meeting', '=', False)]}" />
@@ -98,8 +117,9 @@
 
                         <notebook>
                             <page id="property_tab" string="Descripción">
-                                <group id="header_left_group">
-                                    <field name='notes' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <group name='notes' id='notes' string='Notas'>
+                                    <field colspan='2' name='notes' nolabel='1'
+                                        placeholder='Notas... ' />
                                 </group>
                             </page>
                         </notebook>
@@ -124,14 +144,18 @@
                     <field name="date" string="Fecha de documento" />
                     <field name="integration_date" string="Fecha de Integración" />
                     <separator />
-                    <filter string="Tratado" name="is_meeting" domain="[('is_meeting', '=', False)]" help='Mostrar los registros que se han tratado en reunion' />
-                    <filter string="Integrado" name="is_integrated" domain="[('is_integrated', '=', True)]" help='Mostrar registros que se han integrado'/>
+                    <filter string="Tratado" name="is_meeting" domain="[('is_meeting', '=', False)]"
+                        help='Mostrar los registros que se han tratado en reunion' />
+                    <filter string="Integrado" name="is_integrated"
+                        domain="[('is_integrated', '=', True)]"
+                        help='Mostrar registros que se han integrado' />
                     <separator />
 
                     <group expand="1" string="Group By">
                         <filter string="Estado" name="state"
                             context="{'group_by':'state'}" />
-                        <filter string="Posicion Fiscal" name="fiscal_position_id" context="{'group_by':'fiscal_position_id'}" />
+                        <filter string="Posicion Fiscal" name="fiscal_position_id"
+                            context="{'group_by':'fiscal_position_id'}" />
                     </group>
                 </search>
             </field>
@@ -206,7 +230,7 @@
                                 </div>
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
-                                        <field name="fiscal_position_id"/>
+                                        <field name="fiscal_position_id" />
                                     </div>
                                     <div class="oe_kanban_bottom_right">
                                         <field name="user_id" widget="many2one_avatar_user" />

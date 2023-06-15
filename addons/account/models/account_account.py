@@ -403,6 +403,7 @@ class AccountAccount(models.Model):
         If there is no parent (e.g. the account code is lower than any other existing account code),
         the account type will be set to 'asset_current'.
         """
+
         accounts_to_process = self.filtered(lambda r: r.code and not r.account_type)
         all_accounts = self.search_read(
             domain=[('company_id', 'in', accounts_to_process.company_id.ids)],

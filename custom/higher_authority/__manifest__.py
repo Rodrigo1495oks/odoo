@@ -8,7 +8,7 @@
     'license': 'LGPL-3',
     'category': 'Shareholding Account/Accounting',
     'depends': [
-        'base', 'account_asset_management', 'account'
+        'base', 'account_asset_management', 'account', 'purchase', 'account_fiscal_year'
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -17,6 +17,7 @@
         'views/account_shareholder.xml',
         'views/res_partner.xml',
         'views/menu_view.xml',
+        'views/res_config_settings_views.xml',
         # 'views/res_users_view.xml',
         # 'data/estate.property.type.csv',
         # 'report/estate_report_templates.xml',

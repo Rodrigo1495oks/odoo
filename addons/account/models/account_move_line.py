@@ -2073,7 +2073,7 @@ class AccountMoveLine(models.Model):
         # Create the move.
         exchange_move = self.env['account.move'].with_context(skip_invoice_sync=True).create(move_vals)
         exchange_move._post(soft=False)
-
+        self.reconcile
         # Reconcile lines to the newly created exchange difference journal entry by creating more partials.
         for source_line, sequence in exchange_diff_vals['to_reconcile']:
             exchange_diff_line = exchange_move.line_ids[sequence]

@@ -164,8 +164,8 @@ class IntegrationOrder(models.Model):
 
     # shares=fields.One2many(string='Acciones a emitir', help='Acciones creadas', comodel_name='account.share', inverse_name='subscription_order', index=True)
 
-    shareholder_id=fields.Many2one(string='Accionista', comodel_name='account.shareholder')
-    
+    share_issuance = fields.One2many(
+        string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance', inverse_name='integration_order')
 
     # Campos de orden de compra
     name = fields.Char('Order Reference', required=True, index='trigram', copy=False, default='New')
@@ -182,7 +182,7 @@ class IntegrationOrder(models.Model):
     date_order = fields.Datetime('Order Deadline', required=True, states=READONLY_STATES, index=True, copy=False, default=fields.Datetime.now,
         help="Depicts the date within which the Quotation should be confirmed and converted into a purchase order.")
     date_approve = fields.Datetime('Confirmation Date', readonly=1, index=True, copy=False)
-    partner_id = fields.Many2one('res.partner', string='Vendor', required=True, states=READONLY_STATES, change_default=True, tracking=True, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", help="You can find a vendor by its Name, TIN, Email or Internal Reference.", related='shareholder_id.partner_id.id')
+    partner_id = fields.Many2one('res.partner', string='Shareholder', required=True, states=READONLY_STATES, change_default=True, tracking=True, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", help="You can find a vendor by its Name, TIN, Email or Internal Reference.", related='partner_id.partner_id.id')
     dest_address_id = fields.Many2one('res.partner', domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", string='Dropship Address', states=READONLY_STATES,
         help="Put an address if you want to deliver directly from the vendor to the customer. "
              "Otherwise, keep empty to deliver to your own company.")
@@ -596,7 +596,7 @@ class IntegrationOrder(models.Model):
     def button_approve(self, force=False):
         self = self.filtered(lambda order: order._approval_allowed())
         self.write({'state': 'purchase', 'date_approve': fields.Datetime.now()})
-        self.filtered(lambda p: p.company_id.po_lock == 'lock').write({'state': 'done'})
+        self.filtered(lambda p: p.company_id.io_lock == 'lock').write({'state': 'done'})
         return {}
 
     def button_draft(self):
@@ -675,7 +675,63 @@ class IntegrationOrder(models.Model):
                 }
                 # supplier info should be added regardless of the user access rights
                 line.product_id.sudo().write(vals)
+    def create_integration(self):
+        """Create the integration associated to the IC.
+        """
+        precision = self.env['decimal.precision'].precision_get(
+            'Product Unit of Measure')
 
+        # 1) Prepare suscription vals and clean-up the section lines
+        integration_vals_list = []
+        for order in self:
+            if order.state != 'approved':
+                continue
+        
+            order = order.with_company(order.company_id)
+            # Invoice values.
+            integration_vals = order._prepare_integration()
+            # Invoice line values (asset ad product) (keep only necessary sections).
+
+            debit_line = {
+                'display_type': 'line_note',
+                'account_id': (self.partner_id.property_account_shareholding_id.id) or (self.env['ir.config_parameter'].get_param(
+                'higher_authority.property_account_shareholding_id').id),
+                'debit': self.share_issuance.nominal_value or 0,
+            }
+            capital_line = {
+                'display_type': 'line_note',
+                'account_id': (self.partner_id.property_account_integration_id.id) or (self.env['ir.config_parameter'].get_param(
+                'higher_authority.property_account_integration_id').id),
+                'credit': self.share_issuance.nominal_value or 0,
+            }
+            
+            integration_vals['line_ids'].append(
+                (0, 0, debit_line))
+            integration_vals['line_ids'].append(
+                (0, 0, capital_line))
+
+            integration_vals_list.append(integration_vals)
+
+        # 2 bis)  cambiar el estado de las acciones a 'integrado'
+            order.share_issuance.action_integrate()
+
+        # 3) Create invoices.
+        SusMoves = self.env['account.move']
+        AccountMove = self.env['account.move'].with_context(
+            default_move_type='integration')
+        for vals in integration_vals_list:
+            SusMoves |= AccountMove.with_company(
+                vals['company_id']).create(vals)
+
+        # 4) Some moves might actually be refunds: convert them if the total amount is negative
+        # We do this after the moves have been created since we need taxes, etc. to know if the total
+        # is actually negative or not
+        SusMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
+                          < 0).action_switch_invoice_into_refund_credit_note()
+
+        return self.action_view_integration(SusMoves)
+        
+    
     def action_create_invoice(self):
         """Create the integration associated to the IO.
         """
@@ -683,7 +739,6 @@ class IntegrationOrder(models.Model):
 
         # 1) Prepare invoice vals and clean-up the section lines
         invoice_vals_list = []
-        credits_vals_list = []
 
         sequence = 10
         for order in self:
@@ -717,9 +772,6 @@ class IntegrationOrder(models.Model):
 
 
             invoice_vals_list.append(invoice_vals)
-
-            
-
         if not invoice_vals_list:
             raise UserError(_('There is no invoiceable line. If a product has a control policy based on received quantity, please make sure that a quantity has been received.'))
 
@@ -757,7 +809,8 @@ class IntegrationOrder(models.Model):
         # We do this after the moves have been created since we need taxes, etc. to know if the total
         # is actually negative or not
         moves.filtered(lambda m: m.currency_id.round(m.amount_total) < 0).action_switch_invoice_into_refund_credit_note()
-        
+        # 5) Creamos el asiento de integracion
+        self.create_integration()
         return self.action_view_invoice(moves)
 
     def _prepare_invoice(self):
@@ -788,6 +841,36 @@ class IntegrationOrder(models.Model):
         return invoice_vals
 
     def action_view_invoice(self, invoices=False):
+        """This function returns an action that display existing vendor bills of
+        given purchase order ids. When only one found, show the vendor bill
+        immediately.
+        """
+        if not invoices:
+            # Invoice_ids may be filtered depending on the user. To ensure we get all
+            # invoices related to the purchase order, we read them in sudo to fill the
+            # cache.
+            self.invalidate_model(['invoice_ids'])
+            self.sudo()._read(['invoice_ids'])
+            invoices = self.invoice_ids
+
+        result = self.env['ir.actions.act_window']._for_xml_id('higher_authority.action_move_integration_type')
+        # choose the view_mode accordingly
+        if len(invoices) > 1:
+            result['domain'] = [('id', 'in', invoices.ids)]
+        elif len(invoices) == 1:
+            res = self.env.ref('higher_authority.view_integration_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + [(state, view) for state, view in result['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            result['res_id'] = invoices.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+
+        return result
+    
+    def action_view_integration(self, invoices=False):
         """This function returns an action that display existing vendor bills of
         given purchase order ids. When only one found, show the vendor bill
         immediately.
@@ -988,10 +1071,10 @@ class IntegrationOrder(models.Model):
         """Returns whether the order qualifies to be approved by the current user"""
         self.ensure_one()
         return (
-            self.company_id.po_double_validation == 'one_step'
-            or (self.company_id.po_double_validation == 'two_step'
+            self.company_id.io_double_validation == 'one_step'
+            or (self.company_id.io_double_validation == 'two_step'
                 and self.amount_total < self.env.company.currency_id._convert(
-                    self.company_id.po_double_validation_amount, self.currency_id, self.company_id,
+                    self.company_id.io_double_validation_amount, self.currency_id, self.company_id,
                     self.date_order or fields.Date.today()))
             or self.user_has_groups('higher_authority.group_integration_manager'))
 

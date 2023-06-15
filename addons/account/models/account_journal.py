@@ -499,20 +499,22 @@ class AccountJournal(models.Model):
         self.mapped('alias_id').sudo().unlink()
         ret = super(AccountJournal, self).unlink()
         bank_accounts.unlink()
+        
         return ret
-
+    
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
         default = dict(default or {})
 
         # Find a unique code for the copied journal
+        
         read_codes = self.env['account.journal'].with_context(active_test=False).search_read([('company_id', '=', self.company_id.id)], ['code'])
         all_journal_codes = {code_data['code'] for code_data in read_codes}
 
         copy_code = self.code
         code_prefix = re.sub(r'\d+', '', self.code).strip()
         counter = 1
-        while counter <= len(all_journal_codes) and  copy_code in all_journal_codes:
+        while counter <= len(all_journal_codes) and copy_code in all_journal_codes:
             counter_str = str(counter)
             copy_prefix = code_prefix[:self._fields['code'].size - len(counter_str)]
             copy_code = ("%s%s" % (copy_prefix, counter_str))
@@ -533,7 +535,7 @@ class AccountJournal(models.Model):
         for journal in self:
             company = journal.company_id
             if ('company_id' in vals and journal.company_id.id != vals['company_id']):
-                if self.env['account.move'].search([('journal_id', '=', journal.id)], limit=1):
+                if self.env['account.move'].search([('journal_id', '=', journal.id)],limit=1):
                     raise UserError(_('This journal already contains items, therefore you cannot modify its company.'))
                 company = self.env['res.company'].browse(vals['company_id'])
                 if journal.bank_account_id.company_id and journal.bank_account_id.company_id != company:
@@ -615,7 +617,7 @@ class AccountJournal(models.Model):
             has_liquidity_accounts = vals.get('default_account_id')
             has_profit_account = vals.get('profit_account_id')
             has_loss_account = vals.get('loss_account_id')
-
+        
             if journal_type == 'bank':
                 liquidity_account_prefix = company.bank_account_code_prefix or ''
             else:
@@ -785,7 +787,7 @@ class AccountJournal(models.Model):
 
         if not self.default_account_id:
             return 0.0, 0
-
+        
         domain = (domain or []) + [
             ('account_id', 'in', tuple(self.default_account_id.ids)),
             ('display_type', 'not in', ('line_section', 'line_note')),

@@ -61,13 +61,13 @@ class ShareSale(models.Model):
     share_sale_count = fields.Integer(
         compute="_compute_invoice", string='Venta de Acciones', copy=False, default=0, store=True)
     shares = fields.One2many(string='Acciones a Vender', help='Acciones creadas',
-                             comodel_name='account.share', inverse_name='share_sale', index=True, domain=[('state', 'in', ('portfolio'), ('shareholder_id', '=', 'shareholder_id'))])
+                             comodel_name='account.share', inverse_name='share_sale', index=True, domain=[('state', 'in', ('portfolio'), ('partner_id', '=', 'partner_id'))])
     topic = fields.Many2one(
         string='Tópico', comodel_name='assembly.meeting.topic', readonly=True)
-    user_id = fields.Many2one('res.users', string='Empleado',
+    user_id = fields.Many2one('res.users', string='Usuario',
                               index=True, tracking=True, default=lambda self: self.env.user)
-    shareholder_id = fields.Many2one(
-        string='Accionista', comodel_name='account.shareholder', required=True)
+    partner_id = fields.Many2one(
+        string='Accionista', comodel_name='res.partner', required=True)
 
     notes = fields.Html(string='Descripción')
 
@@ -180,7 +180,7 @@ class ShareSale(models.Model):
 
                     suscribed_line = {
                         'display_type': 'line_note',
-                        'account_id': self.shareholder_id.property_account_shareholding_id.id or (self.env['ir.config_parameter'].get_param(
+                        'account_id': self.partner_id.property_account_shareholding_id.id or (self.env['ir.config_parameter'].get_param(
                             'higher_authority.property_account_shareholding_id').id),
                         'credit': total_integrated or 0,
                     }
@@ -198,9 +198,9 @@ class ShareSale(models.Model):
                     }
                     receivable_line = {
                         'display_type': 'line_note',
-                        'account_id': self.shareholder_id.property_account_subscription_id.id or (property_account_subscription_id.id),
+                        'account_id': self.partner_id.property_account_subscription_id.id or (property_account_subscription_id.id),
                         'debit': (sum(total_integrated, total_issue_premium)-total_issue_discount) or 0,
-                        'partner_id': self.shareholder_id.partner_id.id
+                        'partner_id': self.partner_id.partner_id.id
                     }
                     share_sale_vals['line_ids'].append(
                         (0, 0, suscribed_line))
@@ -257,7 +257,7 @@ class ShareSale(models.Model):
             'fiscal_position_id': (self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
             'payment_reference': self.partner_ref or '',
             'partner_bank_id': partner_bank_id.id,
-            'partner_id': self.shareholder_id.partner_id.id,
+            'partner_id': self.partner_id.id,
             'invoice_origin': f"{self.short_name} - {self.date}",
             'line_ids': [],
             'company_id': self.company_id.id,

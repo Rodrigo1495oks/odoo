@@ -3504,7 +3504,7 @@ class AccountMove(models.Model):
             'target': 'new',
             'type': 'ir.actions.act_window',
         }
-
+        
     def action_invoice_print(self):
         """ Print the invoice and mark it as sent, so that we can see more
             easily the next step of the workflow

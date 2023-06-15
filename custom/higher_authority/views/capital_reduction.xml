@@ -99,6 +99,9 @@
                                 </group>
                             </page>
                         </notebook>
+                        <group name='notes' id='notes' string='Notas'>
+                            <field colspan='2' name='notes' nolabel='1' placeholder='Notas... ' />
+                        </group>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" />

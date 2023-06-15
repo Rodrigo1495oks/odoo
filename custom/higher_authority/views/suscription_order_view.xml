@@ -72,6 +72,7 @@
                                 <field name="priority" widget="priority" class="me-3" />
                                 <field name="number" readonly="1" />
                             </h1>
+                        </div>
                             <field name='qty_to_subscribe'
                                 attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             <field name='amount_total'
@@ -80,7 +81,6 @@
                                 attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             <field name='qty_pending'
                                 attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                        </div>
                         <group>
                             <group id="header_left_group">
                                 <field name="priority" widget="priority" class="mr-3" />
@@ -215,7 +215,7 @@
         </record>
 
         <!-- Estate Property Kanban View  -->
-        <record model="ir.ui.view" id="view_estate_property_kanban">
+        <record model="ir.ui.view" id="view_suscription_order_kanban">
             <field name="name">suscription.order.kanban</field>
             <field name="model">suscription.order</field>
             <field name="arch" type="xml">
