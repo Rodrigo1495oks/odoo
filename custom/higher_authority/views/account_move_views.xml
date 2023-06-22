@@ -4530,7 +4530,7 @@
                 </p>
             </field>
         </record>
-                <!-- Redemption MOVE -->
+        <!-- Redemption MOVE -->
         <!-- VIEW -->
         <record id="view_share_sale_form" model="ir.ui.view">
             <field name="name">account.share.sale.form</field>
@@ -5433,6 +5433,57 @@
                     your shareholders.
                 </p>
             </field>
+        </record>
+        <!-- STAT BUTTONS -->
+        <record id="view_move_form_inherit_high_auth" model="ir.ui.view">
+            <field name="name">account.move.inherit.high_auth</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form" />
+            <field name="arch" type="xml">
+                <!-- Auto-complete could be done from either a bill either a purchase order -->
+                <!-- <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='company_id']"
+                    position="after">
+                    <field name="integration_line_id" groups="high_authority.high_authority_group_user"
+                        invisible="1" />
+                    <field name="integration_order_id" groups="high_authority.high_authority_group_user"
+                        optional="hide" />
+                </xpath> -->
+                <xpath expr="//field[@name='line_ids']/tree/field[@name='company_id']"
+                    position="after">
+                    <field name="integration_line_id" groups="high_authority.high_authority_group_user"
+                        invisible="1" />
+                    <field name="integration_order_id" groups="high_authority.high_authority_group_user"
+                        optional="hide" />
+
+                    <field name="account_share_cost_line_id" groups="high_authority.high_authority_group_user"
+                        invisible="1" />
+                    <field name="account_share_cost_order_id" groups="high_authority.high_authority_group_user"
+                        optional="hide" />
+                </xpath>
+                <!-- smart button para las integraciones -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button"
+                        name="action_view_source_integration_orders"
+                        type="object"
+                        groups="high_authority.high_authority_group_user"
+                        icon="fa-pencil-square-o"
+                        attrs="{'invisible': ['|', ('integration_order_count', '=', 0), ('move_type', 'not in', ('integration'))]}">
+                        <field string="Integraciones" name="integration_order_count" widget="statinfo" />
+                    </button>
+                </xpath>
+                <!-- smart button para los costos de emision de acciones -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button"
+                        name="action_view_source_share_cost_orders"
+                        type="object"
+                        groups="high_authority.high_authority_group_user"
+                        icon="fa-pencil-square-o"
+                        attrs="{'invisible': ['|', ('account_share_cost_count', '=', 0), ('move_type', 'not in', ('in_invoice'))]}">
+                        <field string="Costos de Emisión" name="account_share_cost_count" widget="statinfo" />
+                    </button>
+                </xpath>
+            </field>
+
         </record>
     </data>
 </odoo>

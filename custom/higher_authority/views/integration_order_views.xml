@@ -1005,7 +1005,7 @@
             <field name="target">new</field>
         </record>
 
-        <record id="action_rfq_form" model="ir.actions.act_window">
+        <record id="action_IO_form" model="ir.actions.act_window">
             <field name="name">Requests for Quotation</field>
             <field name="res_model">integration.order</field>
             <field name="view_mode">form</field>

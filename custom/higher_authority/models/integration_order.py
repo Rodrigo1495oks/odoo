@@ -1166,12 +1166,12 @@ class IntegrationOrderLine(models.Model):
     price_total = fields.Monetary(compute='_compute_amount', string='Total', store=True)
     price_tax = fields.Float(compute='_compute_amount', string='Tax', store=True)
 
-    order_id = fields.Many2one('purchase.order', string='Order Reference', index=True, required=True, ondelete='cascade')
+    order_id = fields.Many2one('integration.order', string='Order Reference', index=True, required=True, ondelete='cascade')
 
     company_id = fields.Many2one('res.company', related='order_id.company_id', string='Company', store=True, readonly=True)
     state = fields.Selection(related='order_id.state', store=True)
 
-    invoice_lines = fields.One2many('account.move.line', 'purchase_line_id', string="Bill Lines", readonly=True, copy=False)
+    invoice_lines = fields.One2many('account.move.line', 'integration_line_id', string="Bill Lines", readonly=True, copy=False)
 
     # Replace by integrated Qty
     qty_integrated = fields.Float(compute='_compute_qty_integrated', string="Billed Qty", digits='Product Unit of Measure', store=True)

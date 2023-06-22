@@ -916,7 +916,7 @@
             <field name="target">new</field>
         </record>
 
-        <record id="action_rfq_form" model="ir.actions.act_window">
+        <record id="action_ASC_form" model="ir.actions.act_window">
             <field name="name">Requests for Share Cost</field>
             <field name="res_model">account.share.cost</field>
             <field name="view_mode">form</field>

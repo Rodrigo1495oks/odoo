@@ -75,10 +75,65 @@ class AccountMove(models.Model):
         ]
     )
 
-    integration_orders = fields.One2many(string='Orden de Integración', comodel_name='integration.order', inverse_name='suscription_order',
-                                         help='Campo técnico usado para relacionar la orden de suscripcion ocn la de integracion respectiva')
-
-    irrevocable_contribution = fields.One2many(
+    irrevocable_contribution_id = fields.Many2one(
         string='Aporte Irrevocable', comodel_name='irrevocable.contribution')
-    capital_reduction = fields.One2many(
+    
+    capital_reduction_id = fields.Many2one(
         string='Reducción de Capital', comodel_name='capital.reduction')
+    
+    # Integraciones
+    integration_id = fields.Many2one('integration.order', store=False, readonly=True,
+        states={'draft': [('readonly', False)]},
+        string='Integration Order',
+        help="Auto-complete from a past Integration order.")
+    
+    integration_order_count = fields.Integer(compute="_compute_origin_integration_count", string='Integration Order Count')
+
+    # Costos de emisión de acciones
+    account_share_cost_id = fields.Many2one('integration.order', store=False, readonly=True,
+        states={'draft': [('readonly', False)]},
+        string='Account Share Cost Order',
+        help="Auto-complete from a past Account Share Cost order.")
+    
+    account_share_cost_count = fields.Integer(compute="_compute_origin_sc_count", string='Account Share Cost Order Count')
+
+    @api.depends('line_ids.integration_line_id')
+    def _compute_origin_integration_count(self):
+        for move in self:
+            move.integration_order_count = len(move.line_ids.integration_line_id.order_id)
+    
+    @api.depends('line_ids.account_share_cost_line_id')
+    def _compute_origin_sc_count(self):
+        for move in self:
+            move.integration_order_count = len(move.line_ids.integration_line_id.order_id)
+
+
+    # ACTIONS
+
+    def action_view_source_share_cost_orders(self):
+        """Muestra los costos de emision asociados al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.account_share_cost_line_id.order_id
+        result = self.env['ir.actions.act_window']._for_xml_id('higher_authority.action_ASC_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [(self.env.ref('higher_authority.account_share_cost_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+    
+    def action_view_source_integration_orders(self):
+        """Muestra las integraciones asociadas al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.integration_line_id.order_id
+        result = self.env['ir.actions.act_window']._for_xml_id('higher_authority.action_IO_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [(self.env.ref('higher_authority.integration_order_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result

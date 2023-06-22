@@ -15,7 +15,7 @@ class AccountPayment(models.Model):
         ('shareholder', 'Shareholder')
     ], default='customer', tracking=True, required=True)
 
-    shareholder_id = fields.Many2one(
+    partner_id = fields.Many2one(
         string='Accionista', comodel_name='account.shareholder')
 
     @api.depends('journal_id', 'partner_id', 'partner_type', 'is_internal_transfer', 'destination_journal_id')
@@ -37,8 +37,8 @@ class AccountPayment(models.Model):
                     ], limit=1)
             elif pay.partner_type == 'shareholder':
                 # Receive money from invoice or send money to refund it.
-                if pay.shareholder_id:
-                    pay.destination_account_id = pay.shareholder_id.with_company(
+                if pay.partner_id:
+                    pay.destination_account_id = pay.partner_id.with_company(
                         pay.company_id).property_account_shareholder_receivable_id
                 else:
                     pay.destination_account_id = self.env['account.account'].search([
