@@ -109,10 +109,14 @@ class AccountShare(models.Model):
     def action_portfolio(self):
         for share in self:
             if share.state in ['suscribed', 'integrated']:
-                share.state = 'portfolio'
-                share.date_of_redemption = fields.Date.today()
+                share.update({
+                    'state': 'portfolio',
+                    'date_of_redemption': fields.Date.today(),
+                    'partner_id': False
+                })
             else:
                 raise UserError('Acción no válida para esta accion')
+
     def share_integrate_redemption(self):
         for share in self:
             if share.state in ['negotiation']:
@@ -121,6 +125,7 @@ class AccountShare(models.Model):
             else:
                 raise UserError(
                     'La accion ya ha sido emitida o aun no esta \n autorizado para ello')
+
     def share_negotiation(self):
         for share in self:
             if share.state in ['portfolio']:

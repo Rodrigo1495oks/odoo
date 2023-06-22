@@ -62,6 +62,8 @@ class PortfolioShares(models.Model):
         compute="_compute_invoice", string='Reducciones', copy=False, default=0, store=True)
     shares = fields.One2many(string='Acciones a Cancelar', help='Acciones creadas',
                              comodel_name='account.share', inverse_name='portfolio_shares', index=True, domain=[('state', 'in', ('integrated'), ('partner_id', '=', 'partner_id'))], compute='_compute_shares_to_portfolio')
+
+    total_to_redempt = fields.Monetary(string='Total a Rescatar', default=0.0)
     topic = fields.Many2one(
         string='Tópico', comodel_name='assembly.meeting.topic', readonly=True)
     user_id = fields.Many2one('res.users', string='Empleado',
@@ -69,6 +71,10 @@ class PortfolioShares(models.Model):
     partner_id = fields.Many2one(
         string='Accionista', comodel_name='res.partner', required=True)
     notes = fields.Html(string='Descripción')
+
+    # ------------------#
+    #       ACTIONS
+    # ------------------#
 
     def button_set_new(self):
         for red in self:
@@ -95,6 +101,7 @@ class PortfolioShares(models.Model):
         for red in self:
             if red.state == 'approved' and red.topic.state == 'approved':
                 red.create_redemption()
+
                 red.state = 'confirm'
             else:
                 raise UserError('Acción no valida - (AC)')
@@ -112,7 +119,9 @@ class PortfolioShares(models.Model):
             else:
                 raise UserError(
                     'Accion no permitida')
-
+        # ------------------#
+    #       HELPERS
+    # ------------------#
     def _prepare_topic_values(self):
         self.ensure_one()
         topic_values = {
@@ -132,15 +141,19 @@ class PortfolioShares(models.Model):
         # y cunto de reservas libres tengo
         # leer la cuenta para buscar el saldo
         period = self._return_last_fiscal_year()
-        result_account = self.env['ir.config_parameter'].get_param(
-            'higher_authority.financial_year_result_account')
-        account_payable_redemption = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_payable_redemption')
-
-        # leer el saldo y determianr su valor
+        result_account = self.company_id.financial_year_result_account or self.env['account.account'].search(
+            [('internal_type', '=', 'equity_unaffected')])[0]
+        property_account_integration_id = self.env['account.account'].browse(self.partner_id.property_account_integration_id) or self.company_id.property_account_integration_id or self.env['account.account'].search([
+            ('internal_type', '=', 'equity')])[0]
+        property_account_portfolio_shares = self.company_id.property_account_portfolio_shares or self.env['account.account'].search([
+            ('internal_type', '=', 'equity_portfolio_shares')])[0]
+        # leer el saldo y determianar su valor (hay ganancia?)
 
         balance = -(float(self.check_balance(result_account, period.date_to)))
-
+        # corroborar si no hay ordenes previas que ya hayan ocupado
+        # el liquido disponible (si las ordenes ya han sido confirmadas, ya han reducido el saldo de liquidez y ganancias del ejercicio)
+        total_previus_redempt = sum(redempt.total_to_redempt for redempt in self.search(
+            ['state', 'in', ('draft', 'new', 'approved')]))
         total_liquid = 0
         total_to_redempt = 0
 
@@ -149,12 +162,16 @@ class PortfolioShares(models.Model):
 
         if balance > 0.0:  # si hay ganancia al cierre del ejercicio
             # voy a iterar sobre todas las cuentas de efectivo
-            for account in self.env['account.account'].search():
-                if account.account_type == 'asset_cash':
-                    total_liquid += (float(self.check_balance(account,
-                                     fields.Date.today())))
+            for account in self.env['account.account'].search([('account_type' '=' 'asset_cash')]):
+                total_liquid += (float(self.check_balance(account,
+                                 fields.Date.context_today())))
             # corroborar si hay suficiente efectivo
             if total_liquid > 0.0 and total_liquid >= total_to_redempt:
+                max_to_redempt = total_liquid - total_previus_redempt
+                if total_to_redempt > max_to_redempt:
+                    raise ValidationError(
+                        'Elimine algunas acciones a rescatar dado que el saldo disponible no es suficiente')
+                # igual a la diferencia disponible (los rescates previos pendientes menos el total liquido)
                 # 1) Prepare suscription vals and clean-up the section lines
                 redemption_vals_list = []
                 for order in self:
@@ -171,42 +188,21 @@ class PortfolioShares(models.Model):
                     total_issue_premium = self._compute_total_issue_premium()
 
                     integrated_line = {
-                        'display_type': 'line_note',
-                        'account_id': (self.env['ir.config_parameter'].get_param(
-                            'higher_authority.property_account_integration_id').id),
-                        'debit': total_integrated or 0,
+                        'account_id': property_account_integration_id,
+                        'debit': total_integrated or 0.0,
                     }
-
                     capital_line = {
-                        'display_type': 'line_note',
-                        'account_id': (self.env['ir.config_parameter'].get_param(
-                            'higher_authority.property_account_portfolio_shares').id),
-                        'credit': (total_integrated) or 0,
+                        'account_id': property_account_portfolio_shares,
+                        'credit': (total_integrated) or 0.,
                     }
-                    result_debit_line = {
-                        'display_type': 'line_note',
-                        'account_id': (result_account).id,
-                        'debit': (sum(total_integrated+total_issue_premium)-total_issue_discount) or 0,
-                    }
-                    payable_line = {
-                        'display_type': 'line_note',
-                        'account_id': (account_payable_redemption).id,
-                        'credit': (sum(total_integrated+total_issue_premium)-total_issue_discount) or 0,
-                        'partner_id': self.partner_id.partner_id.id
-                    }
-
                     redemption_vals['line_ids'].append(
                         (0, 0, integrated_line))
                     redemption_vals['line_ids'].append(
                         (0, 0, capital_line))
-                    redemption_vals['line_ids'].append(
-                        (0, 0, result_debit_line))
-                    redemption_vals['line_ids'].append(
-                        (0, 0, payable_line))
 
                     redemption_vals_list.append(redemption_vals)
 
-                    # 2 bis)  cambiar el estado de las acciones a 'portfolio'
+                    # 2 bis)  cambiar el estado de las acciones a 'portfolio' y restalece el partner a False
                     for share in order.share:
                         share.action_portfolio()
 
@@ -215,8 +211,10 @@ class PortfolioShares(models.Model):
                     AccountMove = self.env['account.move'].with_context(
                         default_move_type='redemption')
                 for vals in redemption_vals_list:
-                    SusMoves |= AccountMove.with_company(
+                    newMove = AccountMove.with_company(
                         vals['company_id']).create(vals)
+                    SusMoves |= newMove
+                    self.redemption_ids |= newMove
 
                 # 4) Some moves might actually be refunds: convert them if the total amount     is         negative
                 # We do this after the moves have been created since we need taxes, etc. to     know           if the total
@@ -324,12 +322,12 @@ class PortfolioShares(models.Model):
         # selecciono el periodo mas reciente (ultimo ejercicio cerrado)
         for period in periods:
             if period.date <= self.date:
-                if period.date_to >= max:
+                if period.date_to > max:
                     max = period.date_to
                     p = period
-
         return p
-     # low level methods
+    
+
     #  COMPUTE METHODS
 
     @api.depends('redemption_ids')
@@ -348,6 +346,17 @@ class PortfolioShares(models.Model):
             order.shares = shares.filtered(
                 lambda share: not share.portfolio_shares)
 
+    @api.model('shares')
+    def _compute_total_to_redempt(self):
+        """Calcula el total a rescatar en base al valor nominal de las acciones
+            integradas.
+        """
+        total_to_redempt = 0.0
+        for share in self.shares:
+            total_to_redempt += share['nominal_value']
+        self.total_to_redempt = total_to_redempt
+
+    # low level methods
     @api.model
     def create(self, vals):
         if vals.get('short_name', _('New')) == _('New'):

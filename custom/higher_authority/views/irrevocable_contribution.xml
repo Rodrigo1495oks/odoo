@@ -13,7 +13,7 @@
                     <field name="priority" widget="priority" class="mr-3" />
                     <field name="short_name" />
                     <field name='date' />
-                    <field name="shareholder_id" widget='many2one_avatar' />
+                    <field name="partner_id" widget='many2one_avatar' />
                     <field name="user_id" widget="many2one_avatar_user " />
                     <field name="amount" />
                     <field name="is_meeting" />
@@ -75,7 +75,7 @@
                         </div>
                         <group>
                             <group id="header_left_group">
-                                <field name="shareholder_id"
+                                <field name="partner_id"
                                     options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
                                     attrs="{'readonly': [('state', '!=', 'draft')]}" />
                                 <field name="name" widget='char'
@@ -173,7 +173,7 @@
                     <field name="user_id" readonly="1" />
                     <field name="state" />
                     <field name="date" />
-                    <field name="shareholder_id" />
+                    <field name="partner_id" />
                     <field name="priority" widget="priority" class="mr-3" />
                     <field name="date_due"
                         attrs="{'invisible': [('state', '!=', 'approved'), ('state', '!=', 'cancel')]}" />

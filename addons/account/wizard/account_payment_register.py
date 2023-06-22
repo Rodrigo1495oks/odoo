@@ -227,7 +227,7 @@ class AccountPaymentRegister(models.TransientModel):
             'account_id': line.account_id.id,
             'currency_id': line.currency_id.id,
             'partner_bank_id': partner_bank_account.id,
-            'partner_type': 'shareholder' if move.move_type=='subscription' else 'customer' if line.account_type == 'asset_receivable' else 'supplier',
+            'partner_type': 'shareholder' if move.move_type in ['subscription','contribution','redemption','share_sale','reduction','certificate'] else 'customer' if line.account_type == 'asset_receivable' else 'supplier',
         }
 
     def _get_batches(self):
@@ -337,7 +337,6 @@ class AccountPaymentRegister(models.TransientModel):
             if len(batches) == 1:
                 # == Single batch to be mounted on the view ==
                 wizard.update(wizard_values_from_batch)
-
                 wizard.can_edit_wizard = True
                 wizard.can_group_payments = len(batch_result['lines']) != 1
             else:

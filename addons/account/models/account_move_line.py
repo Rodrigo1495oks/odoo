@@ -77,7 +77,7 @@ class AccountMoveLine(models.Model):
     account_id = fields.Many2one(
         comodel_name='account.account',
         string='Account',
-        compute='_compute_account_id', store=True, readonly=False, precompute=True,
+        compute='c', store=True, readonly=False, precompute=True,
         inverse='_inverse_account_id',
         index=True,
         auto_join=True,

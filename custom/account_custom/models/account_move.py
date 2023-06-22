@@ -64,44 +64,21 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     move_type = fields.Selection(
-        selection=[
-            ('entry', 'Journal Entry'),
-            ('suscription','Suscription'),
-            ('integration','Integration'),
-            ('contribution','Aporte Irrevocable'),
-            ('redemption','Rescate de Acciones'),
-            ('share_sale','Venta de Acciones'),
-            ('reduction','Reducción de Capital'),
-            ('certificate','Emision de Bonos'),
-            ('out_invoice', 'Customer Invoice'),
-            ('out_refund', 'Customer Credit Note'),
-            ('in_invoice', 'Vendor Bill'),
-            ('in_refund', 'Vendor Credit Note'),
-            ('out_receipt', 'Sales Receipt'),
-            ('in_receipt', 'Purchase Receipt'),
-    ],
-        string='Type',
-        required=True,
-        readonly=True,
-        tracking=True,
-        change_default=True,
-        index=True,
-        default="entry",
-        )
-
-    shareholder_id = fields.Many2one(
-        'account.shareholder',
-        string='Accionista',
-        readonly=True,
-        tracking=True,
-        states={'draft': [('readonly', False)]},
-        check_company=True,
-        change_default=True,
-        ondelete='restrict',
+        selection_add=[
+            ('suscription', 'Suscription'),
+            ('integration', 'Integration'),
+            ('contribution', 'Aporte Irrevocable'),
+            ('redemption', 'Rescate de Acciones'),
+            ('share_sale', 'Venta de Acciones'),
+            ('reduction', 'Reducción de Capital'),
+            ('certificate', 'Emision de Bonos'),
+        ]
     )
 
     integration_orders = fields.One2many(string='Orden de Integración', comodel_name='integration.order', inverse_name='suscription_order',
                                          help='Campo técnico usado para relacionar la orden de suscripcion ocn la de integracion respectiva')
 
-    irrevocable_contribution=fields.One2many(string='Aporte Irrevocable', comodel_name='irrevocable.contribution')
-    capital_reduction=fields.One2many(string='Reducción de Capital', comodel_name='capital.reduction')
+    irrevocable_contribution = fields.One2many(
+        string='Aporte Irrevocable', comodel_name='irrevocable.contribution')
+    capital_reduction = fields.One2many(
+        string='Reducción de Capital', comodel_name='capital.reduction')
