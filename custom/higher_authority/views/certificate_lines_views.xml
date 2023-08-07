@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Accion para crear la propiedad -->
+        <record id="certificate_action" model="ir.actions.act_window">
+            <field name="name">Crear Bono</field>
+            <field name="res_model">account.certificate.line</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account_certificate_line_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+        <!-- vistas -->
+
+        <record id="account_certificate_line_view_tree" model="ir.ui.view">
+            <field name="name">account.certificate.line.tree</field>
+            <field name="model">account.certificate.line</field>
+            <field name="arch" type="xml">
+                <tree string="Bono" decoration-success="state=='accrued'"
+                    decoration-bf='state=="new"' decoration-muted="state=='cancel'">
+                    <!-- <field name="priority" widget="priority" class="mr-3" /> -->
+                    <field name="name" />
+                    <field name='due_date' />
+                    <field name="number" />
+                    <field name="interes_total" />
+                    <field name="interest_fee" />
+                    <field name="implicit_interest" />
+                    <field name="amortized_cost" />
+                    <!-- botones -->
+                    <button name="button_set_new" string="Nuevo"
+                        type="object" icon="/higher_authority/static/src/img/icon-1.jpg" attrs="{'invisible': [('state', '=', 'new')]}"/>
+                    <button name="button_confirm" string="Devengar"
+                        type="object" icon="fa-times" attrs="{'invisible': [('state', '=', 'accrued')]}"/>
+                    <button name="action_draft" string="Borrador"
+                        type="object" icon="fa-times" attrs="{'invisible': [('state', '=', 'accrued')]}"/>
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state == 'accrued'"
+                        decoration-warning="state == 'cancel'"
+                        decoration-info="state == 'new'" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- formulario -->
+        <record id="account_certificate_line_view_form" model="ir.ui.view">
+            <field name="name">account.certificate.line.form</field>
+            <field name="model">account.certificate.line</field>
+            <field name="arch" type="xml">
+                <form string="Líneas de Bonos">
+                    <header>
+                        <button name="button_confirm" string="Devengar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'accrued')]}" />
+                        <button name="button_cancel" string="Cancelar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'cancel')]}" />
+                        <button name="action_draft" string="Cambiar a borrador" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'draft')]}" />
+                        <button name="button_set_new" string="Est. Nuevo" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'in',('cancel','new'))]}" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,new,accrued,cancel" />
+                    </header>
+                    <sheet>
+                        <div name="button_box" class="oe_button_box">
+                            <button name="action_view_certificate_line"
+                                class="oe_stat_button"
+                                icon="fa-bars"
+                                type="object"
+                                attrs="{'invisible': ['|', '|', ('move_type', '!=', 'certificate_line')"
+                                string="Bonos">
+                            </button>
+                            <button name="open_reconcile_view"
+                                class="oe_stat_button"
+                                icon="fa-bars"
+                                type="object"
+                                attrs="{'invisible': ['|', '|', ('move_type', '!=', 'entry'), ('id', '=', False), ('has_reconciled_entries', '=', False)]}"
+                                string="Reconciled Items">
+                            </button>
+                            <button name="open_created_caba_entries"
+                                class="oe_stat_button"
+                                icon="fa-usd"
+                                type="object"
+                                attrs="{'invisible': [('tax_cash_basis_created_move_ids', '=', [])]}"
+                                string="Cash Basis Entries">
+                            </button>
+                        </div>
+                        <widget name="web_ribbon" title="Amortizado" bg_color="bg-success"
+                            attrs="{'invisible': [('amortization', '=', True)]}" />
+                        <div class="oe_title">
+                            <span class="o_form_label"
+                                attrs="{'invisible': [('state','in',('draft'))]}">Bono</span>
+                            <h1 class="d-flex mb32">
+                                <field name="name" readonly="1" />
+                            </h1>
+                        </div>
+                        <field name='user_id'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                        <field name='company_id'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                        <field name='currency_id'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                        <field name='partner_id' />
+                        <field name='compound_subperiod' widget='label_selection'
+                            attrs="{'readonly': [('state', '!=', 'draft')]}"
+                            options="{
+    'classes': {'monthly': 'default', 'year': 'default', 'quarterly': 'danger','bimonthly':'danger'}" />
+                        <group>
+                            <group id="header_left_group">
+                                <!-- <field name="tags_ids" widget="many2many_tags"
+                                    options="{'color_field': 'color'}" /> -->
+                                <field name="TNA" />
+                                <field name="TIR" />
+                                <field name='qty' />
+                                <field name="interes_fee" widget="monetary"
+                                    options="{'currency_field': 'currency_id'}" />
+                                <field name="proportional_rate"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="serial" optional='True'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+
+                            </group>
+                            <group id="header_right_group">
+                                <field name="serial_total"
+                                    widget="monetary" options="{'currency_field': 'currency_id'}"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="qty"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="issue_value"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="refund_value"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name="fees_expenses"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='amortization' widget='boolean_toggle ' />
+                                <field name='expiration_date' />
+                                <field name='nominal_value' />
+                                <field name='final_value' />
+                                <field name='periodic_interest' />
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page id="cert_lines" string="Líneas de Flujo de Efectivo">
+                                <group>
+                                    <group>
+                                        <field name='cert_lines' />
+                                    </group>
+                                </group>
+                            </page>
+                            <!-- seguir aca -->
+                            <page id="notes" string="Notas">
+                                <group>
+                                    <group>
+                                        <field name='notes' />
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" />
+                        <field name="activity_ids" />
+                        <field name="message_ids" />
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="account_certificate_line_view_search" model="ir.ui.view">
+            <field name="name">account.certificate.line.search</field>
+            <field name="model">account.certificate.line</field>
+            <field name="arch" type="xml">
+                <search string="Bonos">
+                    <field name="name" string="Nombre" />
+                    <field name="company_id" string="Compañía" />
+                    <field name="suscription_date" string="Fecha de Subscripción" />
+                    <field name="currency_id" string="Moneda" />
+                    <field name="state" string="Estado" />
+                    <field name="compound_subperiod" string="Capitalización" />
+                    <field name="partner_id" string="Tenedor" />
+                    <field name="user_id" string="Operador/Usuario" />
+                    <separator />
+                    <filter name="nominal_value" string="Valor Nominal"
+                        domain="[('nominal_value','>=','1000000')]"
+                        help="Mostrar valores por encima de 1 millones" />
+                    <filter name="amortization" string="Pendiente"
+                        domain="[('pending','=','False')]"
+                        help="Mostrar Ordenes Pendientes" />
+                    <separator />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Fecha de Suscripcion" name="issue_date"
+                            context="{'group_by':'issue_date'}" />
+                        <filter string="Estado" name="state" context="{'group_by':'state'}" />
+                        <filter string="Accionista" name="partnerer_id"
+                            context="{'group_by':'partner_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Estate Property Kanban View  -->
+        <record model="ir.ui.view" id="view_account_certificate_line_kanban">
+            <field name="name">account.certificate.line.kanban</field>
+            <field name="model">account.certificate.line</field>
+            <field name="arch" type="xml">
+                <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
+                <kanban>
+                    <field name="number" />
+                    <field name="partner_id" readonly="1" />
+                    <field name="state" />
+                    <field name="expiration_date" />
+                    <field name="nominal_value" />
+
+                    <progressbar field="state"
+                        colors='{"approved": "success", "today": "confirm", "overdue": "canceled"}' />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top mb16">
+                                    <div class="o_kanban_record_headings ml-1">
+                                        <strong class="o_kanban_record_title">
+                                            <span>
+                                                <t t-esc="record.partner_id.value" />
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <strong>
+                                        <field name="final_value" widget="monetary" />
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span>
+                                            <t t-esc="record.name.value" />
+                                            <t
+                                                t-esc="record.expiration_date.value and record.expiration_date.value.split(' ')[0] or False" />
+                                        </span>
+                                        <!-- <field name="activity_ids" widget="kanban_activity" /> -->
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection"
+                                            options="{'classes': {'draft': 'default', 'new': 'default', 'approved': 'success', 'confirm': 'warning'}}" />
+                                        <!-- 
+    state = fields.Selection(string='Estado', selection=[
+        ('draft', 'Borrador'),
+        ('new', 'Nuevo'),
+        ('approved', 'Aprobado'),
+        ('confirm', 'Confirmado'),
+        ('cancel', 'Cancelado')
+    ], default='draft') 
+-->
+
+                                    </div>
+                                </div>
+                                <div>
+                                    <p t-if="record.state.raw_value == 'approved'">
+                                        <strong>
+                                            <field name="nominal_value" widget="monetary" />
+                                        </strong>
+                                    </p>
+                                    <p t-elif="record.state.raw_value == 'confirm'">
+                                        <strong>
+                                            <field name="nominal_value" widget="monetary" />
+                                        </strong>
+                                    </p>
+
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="qty" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="user_id" widget="many2one_avatar_user" />
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- accion para que muiestre el asiento -->
+        <record id="action_cert_line_form" model="ir.actions.act_window">
+            <field name="name">Líneas de Bonos</field>
+            <field name="res_model">account.certificate.line</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="integration.account_certificate_line_view_form" />
+            <field name="search_view_id" ref="account_certificate_line_view_search" />
+            <field name="target">main</field>
+        </record>
+    </data>
+</odoo>
