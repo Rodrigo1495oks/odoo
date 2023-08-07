@@ -92,6 +92,22 @@ class AccountMove(models.Model):
         states={'draft': [('readonly', False)]})
     suscription_count = fields.Integer(
         compute="_compute_origin_suscription_count", string='Integration Order Count')
+    # Integraciones
+    integration_id = fields.Many2one('integration.order', store=False, readonly=True,
+                                     states={'draft': [('readonly', False)]},
+                                     string='Integration Order',
+                                     help="Auto-complete from a past Integration order.")
+
+    integration_order_count = fields.Integer(
+        compute="_compute_origin_integration_count", string='Integration Order Count')
+    # Aportes Irrevocables
+    contribution_id = fields.Many2one('irrevocable.contribution', store=False, readonly=True,
+                                     states={'draft': [('readonly', False)]},
+                                     string='Contribution Order',
+                                     help="Auto-complete from a past Contribution Order.")
+
+    contribution_order_count = fields.Integer(
+        compute="_compute_origin_contribution_count", string='Contribution Order Count')
     # Campos para los bonos
 
     certificate_id = fields.Many2one(
@@ -108,20 +124,11 @@ class AccountMove(models.Model):
     
     certificate_line_count = fields.Integer(
         compute="_compute_origin_certificate_line_count", string='Integration Order Count')
-    irrevocable_contribution_id = fields.Many2one(
-        string='Aporte Irrevocable', comodel_name='irrevocable.contribution')
 
     capital_reduction_id = fields.Many2one(
         string='Reducción de Capital', comodel_name='capital.reduction')
 
-    # Integraciones
-    integration_id = fields.Many2one('integration.order', store=False, readonly=True,
-                                     states={'draft': [('readonly', False)]},
-                                     string='Integration Order',
-                                     help="Auto-complete from a past Integration order.")
-
-    integration_order_count = fields.Integer(
-        compute="_compute_origin_integration_count", string='Integration Order Count')
+    
 
     #   COMPUTE METHODS
     @api.depends('line_ids.suscription_line_id')
@@ -135,6 +142,11 @@ class AccountMove(models.Model):
         for move in self:
             move.integration_order_count = len(
                 move.line_ids.integration_line_id.order_id)
+    @api.depends('line_ids.suscription_line_id')
+    def _compute_origin_contribution_count(self):
+        for move in self:
+            move.contribution_order_count = len(
+                move.line_ids.contribution_order_id)
 
     @api.depends('line_ids.account_share_cost_line_id')
     def _compute_origin_sc_count(self):
@@ -155,7 +167,7 @@ class AccountMove(models.Model):
     def action_view_source_suscription_orders(self):
         """Muestra las suscripciones de accionistas asociadas al asiento"""
         self.ensure_one()
-        source_orders = self.line_ids.suscription_order_id.order_id
+        source_orders = self.line_ids.suscription_order_id
         result = self.env['ir.actions.act_window']._for_xml_id(
             'higher_authority.action_SO_form')
         if len(source_orders) > 1:
@@ -199,7 +211,22 @@ class AccountMove(models.Model):
         else:
             result = {'type': 'ir.actions.act_window_close'}
         return result
-
+    
+    def action_view_source_contribution_orders(self):
+        """Muestra las suscripciones de accionistas asociadas al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.contribution_order_id
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_SO_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [
+                (self.env.ref('higher_authority.suscription_order_view_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
     def action_view_source_certificates_orders(self):
         """Muestra los bonos emitidos, asociados al asiento"""
         self.ensure_one()

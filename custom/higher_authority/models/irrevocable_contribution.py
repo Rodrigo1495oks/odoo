@@ -286,6 +286,7 @@ class IrrevocableContribution(models.Model):
             'payment_reference': self.origin or '',
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': self.name,
+            'contribution_id': self.id,
             # 'invoice_payment_term_id': self.payment_term_id.id,
             'line_ids': [],
             'company_id': self.company_id.id,

@@ -192,24 +192,28 @@ class SuscriptionOrder(models.Model):
                 'account_id': (self.partner_id.property_account_subscription_id.id) or (self.env['ir.config_parameter'].get_param(
                 'higher_authority.property_account_subscription_id').id),
                 'debit': self.qty_to_subscribe or 0,
+                'suscription_order_id': self.id
             }
             discount_line = {
                 'display_type': 'line_note',
                 'account_id': (self.partner_id.property_account_issue_discount_id.id) or (self.env['ir.config_parameter'].get_param(
                 'higher_authority.property_account_issue_discount_id').id),
                 'debit': (self.share_issuance.issue_discount)*(self.share_issuance.shares_qty) or 0,
+                'suscription_order_id': self.id
             }
             premium_line = {
                 'display_type': 'line_note',
                 'account_id': (self.partner_id.property_account_issue_premium_id.id) or (self.env['ir.config_parameter'].get_param(
                 'higher_authority.property_account_issue_discount_id').id),
                 'credit': (self.share_issuance.issue_premium)*(self.share_issuance.shares_qty) or 0,
+                'suscription_order_id': self.id
             }
             capital_line = {
                 'display_type': 'line_note',
                 'account_id': (self.partner_id.property_account_shareholding_id.id) or (self.env['ir.config_parameter'].get_param(
                 'higher_authority.property_account_shareholding_id').id),
                 'credit': (self.share_issuance.nominal_value)*(self.share_issuance.shares_qty) or 0,
+                'suscription_order_id': self.id
             }
 
             suscription_vals['line_ids'].append((0, 0, debit_line))
@@ -258,6 +262,7 @@ class SuscriptionOrder(models.Model):
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': self.name,
             'invoice_payment_term_id': self.payment_term_id.id,
+            'suscription_id': self.id,
             'line_ids': [],
             'company_id': self.company_id.id,
         }

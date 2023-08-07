@@ -24,6 +24,8 @@ class AccountMoveLine(models.Model):
         'integration.order.line', 'Integration Order Line', ondelete='set null', index='btree_not_null')
     integration_order_id = fields.Many2one(
         'integration.order', 'Integration Order', related='integration_line_id.order_id', readonly=True)
+    contribution_order_id = fields.Many2one(
+        'irrevocable.contribution', 'Contribution Order', readonly=True)
     account_share_cost_line_id = fields.Many2one(
         'account.share.cost.line', 'Purchase Order Line', ondelete='set null', index='btree_not_null')
     account_share_cost_order_id = fields.Many2one(
