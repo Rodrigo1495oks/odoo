@@ -9,7 +9,7 @@ class PurchaseBillUnion(models.Model):
     _auto = False
     _description = 'Purchases & Bills Union'
     _order = "date desc, name desc"
-
+    # ESTO ES USADO PARA CONTRUIR UN REPORTE
     name = fields.Char(string='Reference', readonly=True)
     reference = fields.Char(string='Source', readonly=True)
     partner_id = fields.Many2one('res.partner', string='Vendor', readonly=True)
