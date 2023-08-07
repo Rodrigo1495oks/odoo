@@ -296,7 +296,6 @@
                         filter_domain="['|', '|', ('name', 'ilike', self), ('partner_ref', 'ilike', self), ('partner_id', 'child_of', self)]" />
                     <field name="partner_id" operator="child_of" />
                     <field name="user_id" />
-                    <field name="product_id" />
                     <field name="serial" />
                     <filter name="my_certs" string="My Certificates"
                         domain="[('user_id', '=', uid)]" />

@@ -76,6 +76,22 @@ class AccountMove(models.Model):
             ('certificate_refund', 'Líneas de Bonos')
         ]
     )
+     # Costos de emisión de acciones
+    account_share_cost_id = fields.Many2one('integration.order', store=False, readonly=True,
+                                            states={
+                                                'draft': [('readonly', False)]},
+                                            string='Account Share Cost Order',
+                                            help="Auto-complete from a past Account Share Cost order.")
+
+    account_share_cost_count = fields.Integer(
+        compute="_compute_origin_sc_count", string='Account Share Cost Order Count')
+    
+    # Suscripción de Acciones
+    suscription_id = fields.Many2one(
+        string='Suscripción', comodel_name='suscription.order', store=False, readonly=True,
+        states={'draft': [('readonly', False)]})
+    suscription_count = fields.Integer(
+        compute="_compute_origin_suscription_count", string='Integration Order Count')
     # Campos para los bonos
 
     certificate_id = fields.Many2one(
@@ -89,6 +105,7 @@ class AccountMove(models.Model):
         states={'draft': [('readonly', False)]})
     certificate_count = fields.Integer(
         compute="_compute_origin_certificate_count", string='Integration Order Count')
+    
     certificate_line_count = fields.Integer(
         compute="_compute_origin_certificate_line_count", string='Integration Order Count')
     irrevocable_contribution_id = fields.Many2one(
@@ -106,15 +123,12 @@ class AccountMove(models.Model):
     integration_order_count = fields.Integer(
         compute="_compute_origin_integration_count", string='Integration Order Count')
 
-    # Costos de emisión de acciones
-    account_share_cost_id = fields.Many2one('integration.order', store=False, readonly=True,
-                                            states={
-                                                'draft': [('readonly', False)]},
-                                            string='Account Share Cost Order',
-                                            help="Auto-complete from a past Account Share Cost order.")
-
-    account_share_cost_count = fields.Integer(
-        compute="_compute_origin_sc_count", string='Account Share Cost Order Count')
+    #   COMPUTE METHODS
+    @api.depends('line_ids.suscription_line_id')
+    def _compute_origin_suscription_count(self):
+        for move in self:
+            move.suscription_order_count = len(
+                move.line_ids.suscription_order_id)
 
     @api.depends('line_ids.integration_line_id')
     def _compute_origin_integration_count(self):
@@ -138,7 +152,22 @@ class AccountMove(models.Model):
             move.certificate_line_count = len(move.certificate_line_id)
 
     # ACTIONS
-
+    def action_view_source_suscription_orders(self):
+        """Muestra las suscripciones de accionistas asociadas al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.suscription_order_id.order_id
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_SO_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [
+                (self.env.ref('higher_authority.suscription_order_view_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+    
     def action_view_source_share_cost_orders(self):
         """Muestra los costos de emision asociados al asiento"""
         self.ensure_one()

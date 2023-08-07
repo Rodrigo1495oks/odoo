@@ -906,5 +906,34 @@
                 </p>
             </field>
         </record>
+        <!-- BUTTONS -->
+        <record id="view_move_form_inherit_certificate" model="ir.ui.view">
+            <field name="name">account.move.inherit.certificate</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <!-- Auto-complete could be done from either a bill either a purchase order -->
+                <field name="invoice_vendor_bill_id" position="after">
+                    <t groups="higher_authority.group_higher_authority_user">
+                        <field name="suscription_id" invisible="1"/>
+                    </t> <!-- Extraño lo que hace no lo entiendo-->
+                </field>
+                <!-- Add link to purchase_line_id to account.move.line -->
+                <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='company_id']" position="after">
+                    <!-- <field name="purchase_line_id" groups="purchase.group_purchase_user" invisible="1"/> -->
+                    <field name="suscription_id" groups="higher_authority.group_higher_authority_user" attrs="{'column_invisible': [('parent.move_type', '!=', 'in_invoice')]}" optional="hide"/>
+                </xpath>
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button"
+                            name="action_view_source_certificates_orders"
+                            type="object"
+                            groups="higher_authority.group_higher_authority_user"
+                            icon="fa-pencil-square-o"
+                            attrs="{'invisible': ['|', ('certificate_count', '=', 0), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]}">
+                        <field string="Certificates" name="certificate_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>

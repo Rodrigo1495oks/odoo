@@ -18,7 +18,7 @@
             <field name="name">portfolio.shares.tree</field>
             <field name="model">portfolio.shares</field>
             <field name="arch" type="xml">
-                <tree string="Reducción" decoration-success="state=='confirm' "
+                <tree string="Portfolio Shares" decoration-success="state=='confirm' "
                     decoration-bf='state=="new"' decoration-muted="state=='cancel'">
                     <field name="short_name" />
                     <field name='partner_id' />

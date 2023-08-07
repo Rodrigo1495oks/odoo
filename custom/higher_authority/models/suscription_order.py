@@ -161,7 +161,7 @@ class SuscriptionOrder(models.Model):
                                          help='Campo técnico usado para relacionar la orden de suscripcion ocn la de integracion respectiva')
 
     # asiento de subscripcion correspondiente
-    account_move = fields.Many2one(string='Asiento contable', comodel_name='account.move', index=True,
+    account_move = fields.Many2many(string='Asiento contable', comodel_name='account.move', index=True,
                                    help='Asiento contable Relacionado', readonly=True, domain=[('move_type', '=', 'suscription')])
     user_id = fields.Many2one('res.users', string='Empleado',
                               index=True, tracking=True, default=lambda self: self.env.user)
