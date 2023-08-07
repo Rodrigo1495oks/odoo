@@ -114,7 +114,7 @@
                                     context="{'res_partner_search_mode': 'supplier', 'show_vat': True}"
                                     placeholder="Name, TIN, Email, or Reference"
                                 />
-                                <field name="shareholder_id" widget="res_partner_many2one"
+                                <field name="partner_id" widget="res_partner_many2one"
                                     context="{'show_vat': True}"
                                     placeholder="Name, TIN, Email, or Reference"
                                 />

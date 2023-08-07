@@ -50,7 +50,7 @@
                                 <field name='date' widget='date' readonly='1' invisible='1' />
                                 <field name='ref' readonly='1' invisible='1' />
                                 <field name='partner_id' readonly='1' invisible='1' />
-                                <field name='shareholder_id' readonly='1' invisible='1' />
+                                <field name='partner_id' readonly='1' invisible='1' />
                             </group>
                             <group id="header_right_group">
                                 <field name="product_id" />
@@ -83,7 +83,7 @@
                     <field name="date" string="Fecha" />
                     <field name="ref" string="Referencia" />
                     <field name="partner_id" string="Partner" />
-                    <field name="shareholder_id" string="Accionista" />
+                    <field name="partner_id" string="Accionista" />
 
                     <separator />
                     <filter name="price_total" string="Precio Total"

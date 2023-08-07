@@ -57,3 +57,15 @@ class AccountPayment(models.Model):
                         ('account_type', '=', 'liability_payable'),
                         ('deprecated', '=', False),
                     ], limit=1)
+            elif pay.partner_type == 'investor':
+                # Send money to pay a bill or receive money to refund it.
+                if pay.partner_id:
+                    pay.destination_account_id = pay.partner_id.with_company(
+                        pay.company_id).account_cert_payable
+                    # dependiendo del plan se cuentas (ver RT que cuenta se utiliza para bonos, oblig. neg, ect ¿es la misma para todos los casos?).
+                else:
+                    pay.destination_account_id = self.env['account.account'].search([
+                        ('company_id', '=', pay.company_id.id),
+                        ('account_type', '=', 'liability_payable'),
+                        ('deprecated', '=', False),
+                    ], limit=1)

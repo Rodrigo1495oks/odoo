@@ -43,13 +43,18 @@ class ReductionOrder(models.Model):
     _rec_name = 'short_name'
 
     # metodos computados
-    @api.depends('reduction_type', 'loss_absortion')
+    @api.depends('reduction_type')
     def _compute_total(self):
         for red in self:
             if red.reduction_type == 'voluntary':
                 red.reduction_amount = self.manual_amount
             elif red.reduction_type == 'cancelation':
                 red.reduction_amount = self._compute_total_to_cancel()
+
+    @api.depends('reduction_ids')
+    def _compute_invoice(self):
+        for order in self:
+            order.certificate_count = len(order.reduction_ids)
 
     short_name = fields.Char(string='Referencia', default='New',
                              required=True, copy=False, readonly=True)
@@ -70,8 +75,12 @@ class ReductionOrder(models.Model):
         ('obligatory', 'Obligatoria'),
         ('cancelation', 'Cancelación de Acciones'),
     ], default='voluntary')
+    # SMART BUTTON
+
     reduction_ids = fields.Many2many(
-        'account.move', string='Reducciones', copy=False, store=True)
+        'account.move', string='Reducciones', copy=False, store=True, domain=[('move_type', '=', 'reduction')])
+    reduction_count = fields.Integer(
+        compute="_compute_invoice", string='Reducciones', copy=False, default=0, store=True)
     shares = fields.One2many(string='Acciones a Cancelar', help='Acciones creadas',
                              comodel_name='account.share', inverse_name='capital_reduction', index=True, domain="[('state','not in',('cancel','draft','new', 'negotiation', 'portfolio')), ('partner_id','=','partner_id')]")
 
@@ -89,7 +98,7 @@ class ReductionOrder(models.Model):
 
     reduction_count = fields.Integer(
         compute="_compute_invoice", string='Reducciones', copy=False, default=0, store=True)
-    user_id = fields.Many2one('res.users', string='Empleado',
+    user_id = fields.Many2one('res.users', string='Usuario',
                               index=True, tracking=True, default=lambda self: self.env.user)
     topic = fields.Many2one(
         string='Tópico', comodel_name='assembly.meeting.topic', readonly=True)
@@ -236,32 +245,25 @@ class ReductionOrder(models.Model):
         if total_to_cancel > max_to_red:
             raise UserError(f'El total a cancelar supera el monto máximo permitido: ${max_to_red}'.format(
                 max_to_red=max_to_red))
-        # e- comprobar el saldo del resultado del ejercicio
         # leer las cuentas para buscar el saldo
-        period = self._return_last_fiscal_year()
-        result_account = self.env['ir.config_parameter'].get_param(
-            'higher_authority.financial_year_result_account')
-        premium_issue_account = self.partner_id.property_account_issue_premium_id.id or self.env['ir.config_parameter'].get_param(
-            'higher_authority.property_account_issue_premium_id')
-        adjustment_account = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_capital_adjustment')
-        discount_issue_account = self.partner_id.property_account_issue_discount_id.id or self.env['ir.config_parameter'].get_param(
-            'higher_authority.property_account_issue_discount_id')
-        share_redemption_discount_account = self.env['ir.config_parameter'].get_param(
-            'higher_authority.property_account_issue_discount_id')
-        shareholders_for_redemption_of_shares_account = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_shareholders_for_redemption_of_shares')
+
+        property_account_shareholding_id=self.partner_id.property_account_shareholding_id.id or self.company_id.property_account_shareholding_id or self.env['account.account'].search([
+            ('internal_type', '=', 'equity')])[0]
+        property_account_integration_id=self.partner_id.property_account_integration_id.id or self.company_id.property_account_integration_id or self.env['account.account'].search([
+            ('internal_type', '=', 'equity')])[0]
+        
+        premium_issue_account = self.partner_id.property_account_issue_premium_id.id or self.company_id.property_account_issue_premium_id or self.env['account.account'].search([
+            ('internal_type', '=', 'equity_issue_premium')])[0]
+        account_capital_adjustment = self.partner_id.account_capital_adjustment or self.company_id.account_capital_adjustment or self.env['account.account'].search([
+            ('internal_type', '=', 'equity_adjustment')])[0]
+
+        property_account_issue_discount_id = self.partner_id.property_account_issue_discount_id or self.company_id.property_account_issue_discount_id or self.env['account.account'].search([
+            ('internal_type', '=', 'equity_issue_discount')])[0]
+        account_share_redemption_discount = self.partner_id.account_share_redemption_discount or self.company_id.account_share_redemption_discount or self.env['account.account'].search([
+            ('internal_type', '=', 'contribution')])[0]
+        account_shareholders_for_redemption_of_shares = self.partner_id.account_shareholders_for_redemption_of_shares or self.company_id.account_shareholders_for_redemption_of_shares or self.env['account.account'].search([
+            ('internal_type', '=', 'liability_payable_redemption_shares')])[0]
         # leer el saldo y determianr su valor
-        balance = float(self.check_balance(result_account, period.date_to))
-        balance = -(balance)
-        if balance < 0.0:
-            # hay pérdida, continuo la operacion, de lo contrario lanzo un error de usuario
-            # debo controlar que el monto a reducir no supere al monto maximo permitido
-            if total_to_cancel > abs(balance):
-                raise UserError(
-                    f'Debe reducir el monto de absorción a \n al menos $ {balance}')
-        else:
-            raise UserError("el ultimo ejercicio cerrado no arroja pérdidas")
 
         # ¿Qué procentaje del capital estoy reduciendo?
         # necesito saberlo para calcular el monto de las primas de emision, descuentos de emision y ajuste del capital a dar de baja
@@ -271,13 +273,12 @@ class ReductionOrder(models.Model):
         # total del ajuste al capital
 
         total_adjustment = float(self.check_balance(
-            adjustment_account, fields.Date.today()))*percentage_to_reduce
+            account_capital_adjustment, fields.Date.today()))*percentage_to_reduce
         total_issue_premium = float(self.check_balance(
             premium_issue_account, fields.Date.today()))*percentage_to_reduce
         total_issue_discount = float(self.check_balance(
-            discount_issue_account, fields.Date.today()))*percentage_to_reduce
-        total_shareholders_for_redemption_of_shares = (total_adjustment+total_issue_premium-total_issue_discount)*(self.env['ir.config_parameter'].get_param(
-            'higher_authority.percentage_redemption'))
+            property_account_issue_discount_id, fields.Date.today()))*percentage_to_reduce
+        total_shareholders_for_redemption_of_shares = (total_adjustment+total_issue_premium-total_issue_discount)*(self.company_id.percentage_redemption)
         total_share_redemption_discount = float(
             total_adjustment+total_issue_premium-total_issue_discount)-total_shareholders_for_redemption_of_shares
 
@@ -301,45 +302,36 @@ class ReductionOrder(models.Model):
             # Invoice line values (asset ad product) (keep only necessary sections).
 
             suscribed_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_shareholding_id.id or self.env['ir.config_parameter'].get_param(
-                    'higher_authority.property_account_shareholding_id'),
+                'account_id': property_account_shareholding_id,
                 'debit': total_suscribed or 0,
             }
             integrated_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_integration_id.id or self.env['ir.config_parameter'].get_param(
-                    'higher_authority.property_account_integration_id'),
+                'account_id': property_account_integration_id,
                 'debit': total_integrated or 0,
             }
             premium_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_issue_premium_id.id or premium_issue_account,
+                'account_id': premium_issue_account,
                 'debit': total_issue_premium or 0,
             }
             adjustment_line = {
-                'display_type': 'line_note',
-                'account_id': adjustment_account,
+                'account_id': account_capital_adjustment,
                 'debit': total_adjustment or 0,
             }
             discount_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_issue_discount_id.id or discount_issue_account,
+                'account_id': property_account_issue_discount_id,
                 'credit': total_issue_discount or 0,
             }
             redemption_of_shares_line = {
-                'display_type': 'line_note',
-                'account_id': shareholders_for_redemption_of_shares_account,
+
+                'account_id': account_shareholders_for_redemption_of_shares,
                 'credit': total_shareholders_for_redemption_of_shares or 0,
             }
             redemption_discount_line = {
-                'display_type': 'line_note',
-                'account_id': share_redemption_discount_account,
+                'account_id': account_share_redemption_discount,
                 'credit': total_share_redemption_discount or 0,
             }
 
-            reduction_vals['line_ids'].append((0, 0, debit_line))
-            reduction_vals['line_ids'].append((0, 0, credit_line))
+            reduction_vals['line_ids'].extend((0, 0, suscribed_line),(0, 0, integrated_line),(0, 0, suscribed_line),(0, 0, premium_line),(0, 0, adjustment_line),(0, 0, discount_line),(0, 0, redemption_of_shares_line),(0, 0, redemption_discount_line))
 
             reduction_vals_list.append(reduction_vals)
 
@@ -387,36 +379,38 @@ class ReductionOrder(models.Model):
             # 1- sumar los conceptos correspondientes (acceder al modelo de share y sumar su valor total [nominal + prima] y AI)
             # sumar también todas las reservas, determinar el monto total y ver si insume
             total_cap = self.get_capital_value()
-            total_reserve = self.get_reserve_value()
+            total_reserve = self.get_reserve_value() # falta hacer esta
             # 2- Determinar el resultado del ejercicio (31/12 del ejercicio cerrado)
-            # selecconamos el periodo fiscal mas reciente
+            # seleccionamos el periodo fiscal mas reciente
 
             period = self._return_last_fiscal_year()
 
             # leer la cuenta para buscar el saldo
-            result_account = self.env['ir.config_parameter'].get_param(
-                'higher_authority.financial_year_result_account')
+            result_account = self.company_id.financial_year_result_account or self.env['account.account'].search([
+            ('internal_type', '=', 'equity_unaffected')])[0]
 
             # leer el saldo y determianr su valor
             balance = float(self.check_balance(result_account, period.date_to))
             balance = -(balance)
             # - si es pérdida: se procede al calculo
-            if balance < 0.0:  # si es perdida
-                # (sumatoria de las reservas y el 50% del capital):
-                if balance >=
-
-                #   - comprobar si insume el 50% del capital + todas las reservas
-                # - si el resultado es positivo: se lanza raise UserError('')
-
+            # (sumatoria de las reservas y el 50% del capital):
+            #   - comprobar si insume el 50% del capital + todas las reservas
+            # - si el resultado es positivo: se lanza raise UserError('')
+            if any([balance >= 0.0, not abs(balance)>=abs(total_cap/2+total_reserve)]):  # si es perdida
+                return {
+                        'warning': {
+                            'title': 'Operación no válida',
+                            'message': 'No existen pérdidas'}
+                    }
+            
             debit_line = {
-                'display_type': 'line_note',
                 'account_id': self.capital_reduction_group.counterpart_account.id,
                 'debit': self.manual_amount or 0,
             }
+            
             credit_line = {
-                'display_type': 'line_note',
-                'account_id': self.capital_reduction_group.profit_lost_account.id,
-                'credit': self.manual_amount or 0,
+                'account_id': result_account,
+                'credit': abs(balance) or 0,
             }
 
             reduction_vals['line_ids'].append((0, 0, debit_line))
@@ -589,16 +583,16 @@ class ReductionOrder(models.Model):
 
     def _compute_total_suscribed(self):
         self.ensure_one()
-        total_suscribed = 0
+        total_suscribed = 0.0
         if len(self.shares) > 0:
             for share in self.shares:
-                total_suscribed += share.nominal_value if share.state == 'suscribed' else 0
+                total_suscribed += share.nominal_value if share.state == 'suscribed' else 0.0
         return total_suscribed
 
     def _compute_total_integrated(self):
         self.ensure_one()
-        total_integrated = 0
+        total_integrated = 0.0
         if len(self.shares) > 0:
             for share in self.shares:
-                total_integrated += share.nominal_value if share.state == 'integrated' else 0
+                total_integrated += share.nominal_value if share.state == 'integrated' else 0.0
         return total_integrated

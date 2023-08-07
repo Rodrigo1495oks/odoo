@@ -98,3 +98,8 @@ class Partner(models.Model):
                                            domain="[('internal_type', '=', 'payable_negociable_obligations'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta de Pasivo para registrar las emisiones de obligaciones negociables",
                                            required=True, config_parameter='higher_authority.account_cert_payable')
+    account_receivable_cert=fields.Many2one('account.account', company_dependent=True,
+                                           string="Créditos por bonos",
+                                           domain="[('internal_type', '=', 'asset_receivable'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                           help="Cuenta para registrar el saldo pendiente que eel tenedor de bonos debe abonar",
+                                           required=True )

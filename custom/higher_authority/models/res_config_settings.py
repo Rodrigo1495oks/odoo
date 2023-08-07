@@ -124,4 +124,16 @@ class ResConfigSettings(models.TransientModel):
                                            string="Intereses de obligaciones y bonos",
                                            domain="[('internal_type', '=', 'expenses_interest_and_implicit_financial_components'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta de Resultado para registrar el acaecimiento de los interes periodicos",
-                                           required=True, related='company_id.account_cert_interest',config_parameter='higher_authority.account_cert_interest')
+                                           required=True, related='company_id.account_cert_interest',related='company_id.account_cert_interest',config_parameter='higher_authority.account_cert_interest')
+    
+    account_receivable_cert=fields.Many2one('account.account', company_dependent=True,
+                                           string="Intereses de obligaciones y bonos",
+                                           domain="[('internal_type', '=', 'asset_receivable'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                           help="Cuenta para registrar el saldo pendiente que el tenedor de bonos debe abonar",
+                                           required=True, related='company_id.account_receivable_cert',config_parameter='higher_authority.account_receivable_cert')
+    
+    account_cert_amortized=fields.Many2one('account.account', company_dependent=True,
+                                           string="Obligaciones Amortizadas",
+                                           domain="[('internal_type', '=', 'liability_payable_amortized'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                           help="Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar",
+                                           required=True, related='company_id.account_cert_amortized',config_parameter='higher_authority.account_cert_amortized' )

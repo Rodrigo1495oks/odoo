@@ -106,8 +106,12 @@ class AccountCertificate(models.Model):
     @api.depends('certificates_ids')
     def _compute_invoice(self):
         for order in self:
-            order.certificate_count = len(order.certificates_ids)
+            order.refunds_count = len(order.refunds_ids)
 
+    @api.depends('certificates_ids')
+    def _compute_refund(self):
+        for order in self:
+            order.certificate_count = len(order.certificates_ids)
     # calcular la tasa proporcional
 
     @api.depends('TNA')
@@ -132,7 +136,10 @@ class AccountCertificate(models.Model):
             for fee in range(order.qty):
                 flow.append(order.interes_fee)
             flow.append(order.final_value)
-            order.TIR = round(TIR(flow), 8)
+            order.effective_rate = round(TIR(flow), 8)
+
+    # BUSSINESS FIELDS
+
     name = fields.Char(string='Referencia', default='New',
                        required=True, copy=False, readonly=True)
 
@@ -144,8 +151,9 @@ class AccountCertificate(models.Model):
         ('confirm', 'Confirmado'),
         ('cancel', 'Cancelado'),
     ])
+    priority = fields.Selection(
+        [('0', 'Normal'), ('1', 'Urgent')], 'Priority', default='0', index=True)
     # Campos relacionados
-
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id, readonly=True)
     currency_id = fields.Many2one(
@@ -159,13 +167,14 @@ class AccountCertificate(models.Model):
     )
 
     compound_subperiod = fields.Selection(string='Periodo de Capitalización', selection=[
+        ('none', '---Seleccione una opción'),
         ('monthly', 'Mensual'),
         ('year', 'Anual'),
         ('quarterly', 'Trimestral'),
         ('bimonthly', 'Bimestral')
-    ], required=True)
+    ], required=True, default='none')
     TNA = fields.Float(string='Tasa Nominal Anual', default=0.0, required=True)
-    TIR = fields.Float(string='Tasa Interna de Retorno',
+    effective_rate = fields.Float(string='Tasa Interna de Retorno',
                        readonly=True, default=0.0, required=True, compute='_compute_TIR')
 
     interes_fee = fields.Monetary(
@@ -184,7 +193,8 @@ class AccountCertificate(models.Model):
     fees_expenses = fields.Monetary(
         string='Gastos de la Transacción', default=0)
 
-    amortization = fields.Boolean(string='Amortización', default=True)
+    amortization = fields.Boolean(
+        string='Amortización', default=True, readonly=True)
     expiration_date = fields.Date(
         string='Fecha de Vencimiento', default=fields.Date.today())
 
@@ -200,9 +210,13 @@ class AccountCertificate(models.Model):
     cert_lines = fields.One2many(string='Líneas de Flujo de Efectivo',
                                  comodel_name='account.certificate.line', inverse_name='cert_order')
     certificates_ids = fields.Many2many(
-        'account.move', string='Bonos Negociables', copy=False, store=True, domain=[('move_type', '=', 'certificate')])
+        'account.move', string='Asientos', copy=False, store=True, domain=[('move_type', '=', 'certificate')])
     certificate_count = fields.Integer(
         compute="_compute_invoice", string='Bonos', copy=False, default=0, store=True)
+    refunds_ids = fields.Many2many(
+        'account.move', string='Asientos', copy=False, store=True, domain=[('move_type', '=', 'certificate_refund')])
+    refunds_count = fields.Integer(
+        compute="_compute_refund", string='Bonos', copy=False, default=0, store=True)
     user_id = fields.Many2one(
         'res.users', string='Operador', index=True, tracking=True,
         default=lambda self: self.env.user, check_company=True)
@@ -259,6 +273,7 @@ class AccountCertificate(models.Model):
             if cert.state == 'confirm':
                 if cert._check_accrual_completition():
                     cert.create_refund()
+                    cert.amortization = True
                     return {
                         'warning': {
                             'title': 'Listo!',
@@ -270,17 +285,18 @@ class AccountCertificate(models.Model):
     def create_certificate(self):
         """Create the certificate associated to the IC.
         """
+
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
         # 0) Primero necesito saber cuantas ganancias liquidas tengo.
         # y cunto de reservas libres tengo
         # leer la cuenta para buscar el saldo
-        account_financial_expenses = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_financial_expenses')
-        account_receivable_cert = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_receivable_cert')
-        account_cert_payable = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_cert_payable')
+        account_financial_expenses = self.company_id.account_financial_expenses or self.env['account.account'].search([
+            ('internal_type', '=', 'expenses_interest_and_implicit_financial_components')])[0]
+        account_receivable_cert = self.partner_id.account_receivable_cert or self.company_id.account_receivable_cert or self.env['account.account'].search([
+            ('internal_type', '=', 'asset_receivable')])[0]
+        account_cert_payable = self.partner_id.account_cert_payable or self.company_id.account_cert_payable or self.env['account.account'].search([
+            ('internal_type', '=', 'liability_payable')])[0]
         # leer el saldo y determianr su valor
 
         certificate_vals_list = []
@@ -309,12 +325,8 @@ class AccountCertificate(models.Model):
                 'partner_id': self.partner_id.id
             }
 
-            certificate_vals['line_ids'].append(
-                (0, 0, expenses_line))
-            certificate_vals['line_ids'].append(
-                (0, 0, receivable_line))
-            certificate_vals['line_ids'].append(
-                (0, 0, payable_line))
+            certificate_vals['line_ids'].extend(
+                (0, 0, expenses_line), (0, 0, receivable_line), (0, 0, payable_line))
 
             certificate_vals_list.append(certificate_vals)
 
@@ -353,6 +365,35 @@ class AccountCertificate(models.Model):
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': f"{self.name} - {self.issue_date}",
             'line_ids': [],
+            'partner_id': self.partner_id.id,
+            'certificate_id': self.id,
+            'company_id': self.company_id.id,
+        }
+        return invoice_vals
+
+    def _prepare_certificate_refund(self):
+        """Prepare the dict of values to create the new invoice for a purchase order.
+        """
+        self.ensure_one()
+        move_type = self._context.get(
+            'default_move_type', 'certificate_refund')
+
+        partner_invoice = self.env['res.partner'].browse(
+            self.partner_id.address_get(['invoice'])['invoice'])
+        partner_bank_id = self.partner_id.commercial_partner_id.bank_ids.filtered_domain(
+            ['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)])[:1]
+
+        invoice_vals = {
+            'ref': self.serial or '',
+            'move_type': move_type,
+            'narration': self.notes,
+            'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
+            'payment_reference': 'Reintegro: %s (%s)' % (self.name, ',-"" '.join(self.partner_id, f"{fields.Date.today()}")),
+            'partner_bank_id': partner_bank_id.id,
+            'invoice_origin': f"{self.name} - {self.issue_date}",
+            'line_ids': [],
+            'partner_id': self.partner_id.id,
+            'certificate_id': self.id,
             'company_id': self.company_id.id,
         }
         return invoice_vals
@@ -371,12 +412,13 @@ class AccountCertificate(models.Model):
             certificates = self.certificates_ids
 
         result = self.env['ir.actions.act_window']._for_xml_id(
-            'higher_authority.action_move_in_certificate_type')
+            'higher_authority.action_move_in_account_certificate_type')
         # choose the view_mode accordingly
         if len(certificates) > 1:
             result['domain'] = [('id', 'in', certificates.ids)]
         elif len(certificates) == 1:
-            res = self.env.ref('higher_authority.view_certificate_form', False)
+            res = self.env.ref(
+                'higher_authority.view_certificate_form', False)
             form_view = [(res and res.id or False, 'form')]
             if 'views' in result:
                 result['views'] = form_view + \
@@ -406,26 +448,27 @@ class AccountCertificate(models.Model):
                                         order.issue_date else 0)/days.get(order.compound_subperiod), 0)
             for period in range(periods+1):
                 implicit_interest = (
-                    amortized_cost * order.TIR)-(order.interes_fee)
+                    amortized_cost * order.effective_rate)-(order.interes_fee)
                 flow_line = order.prepare_flow_lines()
                 flow_line.update({
                     'due_date': f'{order.issue_date + (days.get(order.compound_subperiod)*period)}',
                     'number': period,
                     'state': 'draft',
-                    'interes_total': f'{amortized_cost * order.TIR}',
+                    'interes_total': f'{amortized_cost * order.effective_rate}',
                     'implicit_interest': f'{implicit_interest}',
                     'amortized_cost': f'{amortized_cost+implicit_interest}',
                 })
                 if period == maxPeriod:
                     flow_line.update({
-                            # continuar por aquí!
+                        # continuar por aquí!
                     })
                 self.env['account.certificate.line'].create(flow_line)
                 amortized_cost += implicit_interest
 
     def prepare_flow_lines(self):
         flow_vals = {
-            'name': f'{self.name} - {self.issue_date}',
+            'name': '',
+            'ref': f'{self.name} - {self.issue_date}',
             'due_date': '',
             'number': '',
             'state': 'draft',
@@ -452,60 +495,49 @@ class AccountCertificate(models.Model):
         return line.state == 'accrued'
 
     def create_refund(self):
-        """Create the certificate associated to the IC.
+        """Crea el reembolso del bono! lo unico que debemos hacer aquí es crear un pago 
+            a partir del asiento que crea el bono y que el pago cancele el bono en su totalidad.
+
         """
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
-        # 0) Primero necesito saber cuantas ganancias liquidas tengo.
-        # y cunto de reservas libres tengo
-        # leer la cuenta para buscar el saldo
-        account_financial_expenses = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_financial_expenses')
-        account_receivable_cert = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_receivable_cert')
-        account_cert_payable = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_cert_payable')
-        # leer el saldo y determinar su valor
+
+        account_cert_amortized = self.partner_id.account_cert_amortized or self.company_id.account_cert_amortized or self.env['account.account'].search([
+            ('internal_type', '=', 'liability_payable_amortized')])[0]
+        account_cert_payable = self.partner_id.account_cert_payable or self.company_id.account_cert_payable or self.env['account.account'].search([
+            ('internal_type', '=', 'liability_payable')])[0]
 
         certificate_vals_list = []
         for order in self:
-            if order.state != 'approved':
+            if order.state != 'confirm':
                 continue
 
             order = order.with_company(order.company_id)
             # Invoice values.
-            certificate_vals = order._prepare_certificate()
+            certificate_vals = order._prepare_certificate_refund()
             # Invoice line values (asset ad product) (keep only necessary sections).
 
-            expenses_line = {
-                'account_id': (account_financial_expenses.id),
-                'debit': order.fees_expenses or 0,
-            }
-
-            receivable_line = {
-                'account_id': (account_receivable_cert.id),
-                'credit': (order.nominal_value) or 0,
+            amortized_line = {
+                'account_id': (account_cert_amortized.id),
+                'credit': (order.final_value) or 0,
+                'partner_id': self.partner_id.id
             }
 
             payable_line = {
                 'account_id': account_cert_payable.id,
-                'credit': (order.qty * order.issue_value) or 0,
+                'debit': order.final_value or 0,
                 'partner_id': self.partner_id.id
             }
 
-            certificate_vals['line_ids'].append(
-                (0, 0, expenses_line))
-            certificate_vals['line_ids'].append(
-                (0, 0, receivable_line))
-            certificate_vals['line_ids'].append(
-                (0, 0, payable_line))
+            certificate_vals['line_ids'].extend([
+                (0, 0, amortized_line), (0, 0, payable_line)])
 
             certificate_vals_list.append(certificate_vals)
 
             # 3) Create invoices.
             SusMoves = self.env['account.move']
             AccountMove = self.env['account.move'].with_context(
-                default_move_type='certificate')
+                default_move_type='certificate_refund')
             for vals in certificate_vals_list:
                 SusMoves |= AccountMove.with_company(
                     vals['company_id']).create(vals)
@@ -515,8 +547,44 @@ class AccountCertificate(models.Model):
             # is actually negative or not
             SusMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
                               < 0).action_switch_invoice_into_refund_credit_note()
-            return self.action_view_certificate(SusMoves)
-        
+
+            return self.action_view_certificate_refund(SusMoves)
+
+#    CREAR ACA LA ACCION PARA VER LOS ASIENTOS
+    def action_view_certificate_refund(self, refunds=False):
+        """This function returns an action that display existing  certificates entries of
+        given certificate order ids. When only one found, show the certificate entries
+        immediately.
+        """
+        if not refunds:
+            # Invoice_ids may be filtered depending on the user. To ensure we get all
+            # reductions related to the reduction order, we read them in sudo to fill the
+            # cache.
+            self.invalidate_model(['certificates_ids'])
+            self.sudo()._read(['certificates_ids'])
+            certificates = self.certificates_ids
+
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_move_in_account_certificate_type')
+        # choose the view_mode accordingly
+        if len(certificates) > 1:
+            result['domain'] = [('id', 'in', certificates.ids)]
+        elif len(certificates) == 1:
+            res = self.env.ref(
+                'higher_authority.view_certificate_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + \
+                    [(state, view)
+                     for state, view in result['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            result['res_id'] = certificates.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+
+        return result
+
     @api.model
     def create(self, vals):
         if vals.get('name', _('New')) == _('New'):
@@ -543,7 +611,7 @@ class AccountCertificateLine(models.Model):
 
     name = fields.Char(string='Referencia', default='New',
                        required=True, copy=False, readonly=True)
-
+    ref = fields.Char(string='Código')
     due_date = fields.Date(string='Fecha de Vencimiento')
     number = fields.Integer(
         string='Período', readonly=True, default=0, required=True)
@@ -565,9 +633,10 @@ class AccountCertificateLine(models.Model):
     cert_order = fields.Many2one(string='Orden de Emisión', comodel_name='account.certificate',
                                  required=True, readonly=True, store=True, index=True, copy=True)
 
-    move_ids = fields.One2many(
-        'stock.move', 'purchase_line_id', string='Reservation', readonly=True, copy=False)
-
+    certificates_line_ids = fields.Many2many(
+        'stock.move', 'certificate_line_id', string='Asiento', readonly=True, copy=False)
+    certificate_line_count = fields.Integer(
+        compute="_compute_invoice", string='Bonos', copy=False, default=0, store=True)
     # este modelo tendra un boton para registrar el devengamiento de los pagos
     # de intereses - lo cual creará el asiento contable correspondiente.
 
@@ -584,6 +653,11 @@ class AccountCertificateLine(models.Model):
     # }
 
     # metodos computados
+    @api.depends('certificates_ids')
+    def _compute_invoice(self):
+        for order in self:
+            order.certificate_line_count = len(order.certificates_line_ids)
+
     def button_set_new(self):
         for cert in self:
             if cert.state == 'draft':
@@ -617,6 +691,37 @@ class AccountCertificateLine(models.Model):
             else:
                 raise UserError('No puede cancelarse la línea')
 
+    def action_view_certificate_line(self, certificates=False):
+        """Accion que permite ver el asiento asociado"""
+        if not certificates:
+            # Invoice_ids may be filtered depending on the user. To ensure we get all
+            # reductions related to the reduction order, we read them in sudo to fill the
+            # cache.
+            self.invalidate_model(['certificates_ids'])
+            self.sudo()._read(['certificates_ids'])
+            certificates_line = self.certificates_line_ids
+
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_move_in_certificate_line_type')
+        # choose the view_mode accordingly
+        if len(certificates_line) > 1:
+            result['domain'] = [('id', 'in', certificates_line.ids)]
+        elif len(certificates_line) == 1:
+            res = self.env.ref(
+                'higher_authority.view_certificate_line_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + \
+                    [(state, view)
+                     for state, view in result['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            result['res_id'] = certificates_line.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+
+        return result
+
     def create_accrued_fee(self):
         """Create the certificate associated to the IC.
         """
@@ -625,25 +730,27 @@ class AccountCertificateLine(models.Model):
         # 0) Primero necesito saber cuantas ganancias liquidas tengo.
         # y cunto de reservas libres tengo
         # leer la cuenta para buscar el saldo
-        account_cert_interest = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_cert_interest')
-        account_cert_payable = self.env['ir.config_parameter'].get_param(
-            'higher_authority.account_cert_payable')
+
+        account_cert_interest = self.partner_id.account_cert_interest or self.company_id.account_cert_interest or self.env['account.account'].search([
+            ('internal_type', '=', 'expenses_interest_and_implicit_financial_components')])[0]
+        account_cert_payable = self.partner_id.account_cert_payable or self.company_id.account_cert_payable or self.env['account.account'].search([
+            ('internal_type', '=', 'liability_payable')])[0]
         # leer el saldo y determianr su valor
 
         certificate_vals_list = []
-        for order in self:
-            if order.state != 'approved':
+        for line in self:
+            if line.state != 'new':
                 continue
 
-            order = order.with_company(order.company_id)
+            line = line.with_company(line.company_id)
             # Invoice values.
-            certificate_vals = order._prepare_fee()
+            certificate_vals = line._prepare_fee()
             # Invoice line values (asset ad product) (keep only necessary sections).
 
             interes_line = {
                 'account_id': (account_cert_interest.id),
                 'debit': self.interes_total or 0,
+                'partner_id': self.partner_id.id
             }
 
             payable_line = {
@@ -652,25 +759,27 @@ class AccountCertificateLine(models.Model):
                 'partner_id': self.partner_id.id
             }
 
-            certificate_vals['line_ids'].append(
-                (0, 0, interes_line))
-            certificate_vals['line_ids'].append(
-                (0, 0, payable_line))
+            certificate_vals['line_ids'].extend([
+                (0, 0, interes_line), (0, 0, payable_line)])
+
             certificate_vals_list.append(certificate_vals)
 
             # 3) Create invoices.
             SusMoves = self.env['account.move']
             AccountMove = self.env['account.move'].with_context(
-                default_move_type='certificate')
+                default_move_type='certificate_line')
             for vals in certificate_vals_list:
-                SusMoves |= AccountMove.with_company(
+                lineMove = AccountMove.with_company(
                     vals['company_id']).create(vals)
+                SusMoves |= lineMove
+                line.certificates_line_ids |= lineMove
 
             # 4) Some moves might actually be refunds: convert them if the totalamount     is         negative
             # We do this after the moves have been created since we need taxes, etc.to     know           if the total
             # is actually negative or not
             SusMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
                               < 0).action_switch_invoice_into_refund_credit_note()
+            return self.action_view_certificate_line(SusMoves)
 
     def _prepare_fee(self):
         """Prepare the dict of values to create the new invoice for a purchase order.

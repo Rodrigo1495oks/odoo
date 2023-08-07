@@ -153,7 +153,7 @@
                             context="{'group_by':'company_id'}" />
                         <filter string="Estado" name="state" context="{'group_by':'state'}" />
                         <filter string="Accionista" name="shareholder"
-                            context="{'group_by':'shareholder_id'}" />
+                            context="{'group_by':'partner_id'}" />
                         <filter string="Tipo de Acción" name="share_type"
                             context="{'group_by':'share_type'}" />
                     </group>

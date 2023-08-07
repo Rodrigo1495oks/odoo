@@ -4,37 +4,37 @@
 
                 <!-- certificate MOVE -->
         <!-- VIEW -->
-        <record id="view_certificate_form" model="ir.ui.view">
-            <field name="name">account.certificate.form</field>
+        <record id="view_certificate_refund_form" model="ir.ui.view">
+            <field name="name">account.certificate.refund.form</field>
             <field name="model">account.move</field>
             <field name="arch" type="xml">
-                <form string="Account Entry" js_class="account_move_form" id='certificate'>
+                <form string="Account Entry" js_class="account_move_form" id='certificate_refund'>
                     <header>
                         <!-- Post -->
                         <button name="action_post" string="Post" class="oe_highlight"
                             type="object" groups="account.group_account_invoice" data-hotkey="v"
                             context="{'validate_analytic': True}"
-                            attrs="{'invisible': ['|', ('hide_post_button', '=', True), ('move_type', '!=', 'certificate')]}" />
+                            attrs="{'invisible': ['|', ('hide_post_button', '=', True), ('move_type', '!=', 'certificate_refund')]}" />
                         <button name="action_post" string="Confirm" class="oe_highlight"
                             type="object" groups="account.group_account_invoice" data-hotkey="v"
                             context="{'validate_analytic': True}"
-                            attrs="{'invisible': ['|', '|', ('hide_post_button', '=', True), ('move_type', '=', 'certificate'), ('display_inactive_currency_warning','=',True)]}" />
+                            attrs="{'invisible': ['|', '|', ('hide_post_button', '=', True), ('move_type', '=', 'certificate_refund'), ('display_inactive_currency_warning','=',True)]}" />
                         <!-- Send (only invoices) -->
                         <button name="action_invoice_sent"
                             type="object"
                             string="Send &amp; Print"
-                            attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', True), ('move_type', 'not in', ('out_invoice', 'out_refund', 'certificate'))]}"
+                            attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', True), ('move_type', 'not in', ('out_invoice', 'out_refund', 'certificate_refund'))]}"
                             class="oe_highlight"
                             data-hotkey="y" />
                         <button name="action_invoice_sent"
                             type="object"
                             string="Send &amp; Print"
-                            attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', False), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund','certificate'))]}"
+                            attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('is_move_sent', '=', False), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund','certificate_refund'))]}"
                             data-hotkey="y" />
                         <!-- Register Payment (only invoices / receipts) -->
                         <button name="action_register_payment" id="account_invoice_payment_btn"
                             type="object" class="oe_highlight"
-                            attrs="{'invisible': ['|', '|', ('state', '!=', 'posted'), ('payment_state', 'not in', ('not_paid', 'partial')), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt', 'certificate'))]}"
+                            attrs="{'invisible': ['|', '|', ('state', '!=', 'posted'), ('payment_state', 'not in', ('not_paid', 'partial')), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt', 'certificate_refund'))]}"
                             context="{'dont_redirect_to_payments': True}"
                             string="Register Payment" data-hotkey="g"
                             groups="account.group_account_invoice" />
@@ -42,21 +42,21 @@
                         <button name="preview_invoice" type="object" string="Preview"
                             data-hotkey="o"
                             title="Preview invoice"
-                            attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund','certificate'))]}" />
+                            attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund','certificate_refund'))]}" />
                         <!-- Reverse -->
                         <button name="%(action_view_account_move_reversal)d" string="Reverse Entry"
                             type="action" groups="account.group_account_invoice" data-hotkey="z"
-                            attrs="{'invisible': ['|', ('move_type', '!=', 'certificate'), '|', ('state', '!=', 'posted'), ('payment_state', '=', 'reversed')]}" />
+                            attrs="{'invisible': ['|', ('move_type', '!=', 'certificate_refund'), '|', ('state', '!=', 'posted'), ('payment_state', '=', 'reversed')]}" />
                         <button name="action_reverse" string='Add Credit Note'
                             type='object' groups="account.group_account_invoice"
-                            attrs="{'invisible': ['|', ('move_type', 'not in', ('out_invoice', 'in_invoice','certificate')), ('state', '!=', 'posted')]}" />
+                            attrs="{'invisible': ['|', ('move_type', 'not in', ('out_invoice', 'in_invoice','certificate_refund')), ('state', '!=', 'posted')]}" />
                         <!-- Cancel -->
                         <button name="button_cancel" string="Cancel Entry" type="object"
                             groups="account.group_account_invoice" data-hotkey="w"
-                            attrs="{'invisible' : ['|', '|', ('id', '=', False), ('state', '!=', 'draft'),('move_type', '!=', 'certificate')]}" />
+                            attrs="{'invisible' : ['|', '|', ('id', '=', False), ('state', '!=', 'draft'),('move_type', '!=', 'certificate_refund')]}" />
                         <button name="button_cancel" string="Cancel" type="object"
                             groups="account.group_account_invoice" data-hotkey="w"
-                            attrs="{'invisible' : ['|', '|', ('id', '=', False), ('state', '!=', 'draft'),('move_type', '==', 'certificate')]}" />
+                            attrs="{'invisible' : ['|', '|', ('id', '=', False), ('state', '!=', 'draft'),('move_type', '==', 'certificate_refund')]}" />
                         <button name="button_draft" string="Reset to Draft" type="object"
                             groups="account.group_account_invoice"
                             attrs="{'invisible' : [('show_reset_to_draft_button', '=', False)]}"
@@ -151,14 +151,14 @@
                                 class="oe_stat_button"
                                 icon="fa-bars"
                                 type="object"
-                                attrs="{'invisible': ['|', '|', ('move_type', '!=', 'certificate'), ('id', '=', False), ('payment_id', '=', False)]}"
+                                attrs="{'invisible': ['|', '|', ('move_type', '!=', 'certificate_refund'), ('id', '=', False), ('payment_id', '=', False)]}"
                                 string="1 Payment">
                             </button>
                             <button name="open_reconcile_view"
                                 class="oe_stat_button"
                                 icon="fa-bars"
                                 type="object"
-                                attrs="{'invisible': ['|', '|', ('move_type', '!=', 'certificate'), ('id', '=', False), ('has_reconciled_entries', '=', False)]}"
+                                attrs="{'invisible': ['|', '|', ('move_type', '!=', 'certificate_refund'), ('id', '=', False), ('has_reconciled_entries', '=', False)]}"
                                 string="Reconciled Items">
                             </button>
                             <button name="open_created_caba_entries"
@@ -172,11 +172,11 @@
 
                         <!-- Payment status for invoices / receipts -->
                         <widget name="web_ribbon" title="Paid"
-                            attrs="{'invisible': ['|', ('payment_state', '!=', 'paid'), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate'))]}" />
+                            attrs="{'invisible': ['|', ('payment_state', '!=', 'paid'), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate_refund'))]}" />
                         <widget name="web_ribbon" title="In Payment"
-                            attrs="{'invisible': ['|', ('payment_state', '!=', 'in_payment'), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate'))]}" />
+                            attrs="{'invisible': ['|', ('payment_state', '!=', 'in_payment'), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate_refund'))]}" />
                         <widget name="web_ribbon" title="Partial"
-                            attrs="{'invisible': ['|', ('payment_state', '!=', 'partial'), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate'))]}" />
+                            attrs="{'invisible': ['|', ('payment_state', '!=', 'partial'), ('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate_refund'))]}" />
                         <widget name="web_ribbon" title="Reversed"
                             bg_color="bg-danger"
                             attrs="{'invisible': [('payment_state', '!=', 'reversed')]}" />
@@ -220,7 +220,7 @@
                         <div class="oe_title">
                             <span class="o_form_label">
                                 <field name="move_type"
-                                    attrs="{'invisible': [('move_type', '=', 'certificate')]}"
+                                    attrs="{'invisible': [('move_type', '=', 'certificate_refund')]}"
                                     readonly="1" nolabel="1" />
                             </span>
 
@@ -250,18 +250,18 @@
                                     attrs="{'invisible': [('move_type', 'not in', ('in_invoice', 'in_refund', 'in_receipt'))]}" />
                                 <label for="partner_id" string="Accionista"
                                     style="font-weight:bold;"
-                                    attrs="{'invisible': [('move_type', 'not in', ('in_invoice', 'in_refund', 'in_receipt','certificate'))]}" />
+                                    attrs="{'invisible': [('move_type', 'not in', ('in_invoice', 'in_refund', 'in_receipt','certificate_refund'))]}" />
                                 <field name="partner_id" widget="res_partner_many2one" nolabel="1"
                                     context="{
                                             'res_partner_search_mode': (context.get('default_move_type', 'entry') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
                                             'show_address': 1, 'default_is_company': True, 'show_vat': True}"
                                     domain="[('type', '!=', 'private'), ('company_id', 'in', (False, company_id))]"
                                     options='{"always_reload": True, "no_quick_create": True}'
-                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]}" />
+                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate_refund'))]}" />
                                 <field name="partner_id" widget="res_partner_many2one"
                                     nolabel="1"
                                     context="{
-                                            'res_partner_search_mode': (context.get('default_move_type', 'certificate') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'certificate') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
+                                            'res_partner_search_mode': (context.get('default_move_type', 'certificate_refund') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'certificate_refund') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
                                             'show_address': 1, 'default_is_company': True, 'show_vat': True}"
                                     domain="[('type', '!=', 'private'), ('company_id', 'in', (False, company_id))]"
                                     options='{"always_reload": True, "no_quick_create": True}'
@@ -272,11 +272,11 @@
                                 <field name="quick_edit_total_amount" class="w-50"
                                     attrs="{'invisible': ['|', ('move_type', '=', 'entry'), ('quick_edit_mode', '=', False)], 'readonly': [('state', '!=', 'draft')]}" />
                                 <label for="ref" string="Bill Reference"
-                                    attrs="{'invisible':[('move_type', 'not in', ('in_invoice', 'in_receipt', 'in_refund','certificate'))]}" />
+                                    attrs="{'invisible':[('move_type', 'not in', ('in_invoice', 'in_receipt', 'in_refund','certificate_refund'))]}" />
                                 <field name="ref" nolabel="1"
                                     attrs="{'invisible':[('move_type', 'not in', ('in_invoice', 'in_receipt', 'in_refund'))]}" />
                                 <field name="ref"
-                                    attrs="{'invisible':[('move_type', 'in', ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund','certificate'))]}" />
+                                    attrs="{'invisible':[('move_type', 'in', ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund','certificate_refund'))]}" />
                                 <field name="tax_cash_basis_origin_move_id"
                                     attrs="{'invisible': [('tax_cash_basis_origin_move_id', '=', False)]}" />
                                 <label name="invoice_vendor_bill_id_label"
@@ -296,7 +296,7 @@
                                 <!-- Invoice date (only invoices / receipts) -->
                                 <label for="invoice_date" string="Invoice Date"
                                     style="font-weight:bold;"
-                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'out_receipt','certificate'))]}" />
+                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'out_receipt','certificate_refund'))]}" />
                                 <label for="invoice_date" string="Bill Date"
                                     style="font-weight:bold;"
                                     attrs="{'invisible': [('move_type', 'not in', ('in_invoice', 'in_refund', 'in_receipt'))]}" />
@@ -310,7 +310,7 @@
                                             'readonly': [('state', '!=', 'draft')],
                                        }" />
                                 <field name="payment_reference"
-                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate'))]}" />
+                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate_refund'))]}" />
                                 <field name="partner_bank_id"
                                     context="{'default_partner_id': bank_partner_id}"
                                     domain="[('partner_id', '=', bank_partner_id)]"
@@ -319,14 +319,14 @@
                                 <!-- Invoice payment terms (only invoices) + due date (only invoices
                                 / receipts) -->
                                 <div class="o_td_label"
-                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt', 'certificate'))]}">
+                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt', 'certificate_refund'))]}">
                                     <label for="invoice_date_due" string="Due Date"
                                         attrs="{'invisible': [('invoice_payment_term_id', '!=', False)]}" />
                                     <label for="invoice_payment_term_id" string="Payment terms"
                                         attrs="{'invisible': [('invoice_payment_term_id', '=', False)]}" />
                                 </div>
                                 <div class="d-flex"
-                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate'))]}">
+                                    attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt','certificate_refund'))]}">
                                     <field name="invoice_date_due" force_save="1"
                                         placeholder="Date"
                                         attrs="{'invisible': [('invoice_payment_term_id', '!=', False)]}" />
@@ -340,11 +340,11 @@
 
                                 <label for="journal_id"
                                     groups="account.group_account_readonly"
-                                    invisible="context.get('default_journal_id') and context.get('move_type', 'certificate') != 'certificate'" />
+                                    invisible="context.get('default_journal_id') and context.get('move_type', 'certificate_refund') != 'certificate_refund'" />
                                 <div name="journal_div"
                                     class="d-flex"
                                     groups="account.group_account_readonly"
-                                    invisible="context.get('default_journal_id') and context.get('move_type', 'certificate') != 'certificate'">
+                                    invisible="context.get('default_journal_id') and context.get('move_type', 'certificate_refund') != 'certificate_refund'">
                                     <field name="journal_id"
                                         options="{'no_create': True, 'no_open': True}"
                                         attrs="{'readonly': [('posted_before', '=', True)]}" />
@@ -579,7 +579,7 @@
                                         <field name="invoice_outstanding_credits_debits_widget"
                                             class="oe_invoice_outstanding_credits_debits"
                                             colspan="2" nolabel="1" widget="payment"
-                                            attrs="{'invisible': ['|', ('state', '!=', 'posted'), ('move_type', 'in', ('out_receipt', 'in_receipt','certificate'))]}" />
+                                            attrs="{'invisible': ['|', ('state', '!=', 'posted'), ('move_type', 'in', ('out_receipt', 'in_receipt','certificate_refund'))]}" />
                                     </group>
                                 </group>
                             </page>
@@ -750,7 +750,7 @@
                                     </group>
                                     <group string="Accounting"
                                         name="accounting_info_group"
-                                        attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund','certificate'))]}">
+                                        attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund','certificate_refund'))]}">
                                         <field name="company_id" groups="base.group_multi_company" />
                                         <field name="invoice_incoterm_id" />
                                         <field name="fiscal_position_id" />
@@ -808,8 +808,8 @@
                 </form>
             </field>
         </record>
-        <record id="view_certificate_tree" model="ir.ui.view">
-            <field name="name">account.certificate.tree</field>
+        <record id="view_certificate_refund_tree" model="ir.ui.view">
+            <field name="name">account.certificate.refund.tree</field>
             <field name="model">account.move</field>
             <field name="inherit_id" ref="account.view_in_invoice_tree" />
             <field name="mode">primary</field>
@@ -819,12 +819,12 @@
                 </field>
             </field>
         </record>
-        <record id="view_certificate_filter" model="ir.ui.view">
-            <field name="name">account.certificate.select</field>
+        <record id="view_certificate_refund_filter" model="ir.ui.view">
+            <field name="name">account.certificate.refund.select</field>
             <field name="model">account.move</field>
             <field name="arch" type="xml">
-                <search string="Search certificate">
-                    <field name="name" string="certificate"
+                <search string="Search certificate_refund">
+                    <field name="name" string="certificate_refund"
                         filter_domain="[
                                 '|', '|' , '|', '|',
                                 ('name', 'ilike', self), ('invoice_origin', 'ilike', self),
@@ -862,7 +862,7 @@
                     <separator />
                     <filter name="invoice_date" string="Invoice Date" date="invoice_date" />
                     <filter name="date"
-                        invisible="context.get('default_move_type') in ('out_invoice', 'out_refund', 'out_receipt')"
+                        invisible="context.get('default_move_type') in ('out_invoice', 'out_refund', 'certificate_refund')"
                         string="Accounting Date" date="date" />
                     <filter name="due_date" string="Due Date" date="invoice_date_due" />
                     <separator />
@@ -887,20 +887,20 @@
             </field>
         </record>
         <!-- ACTIONS -->
-        <record id="action_move_in_certificate_type" model="ir.actions.act_window">
+        <record id="action_move_in_certificate_refund_type" model="ir.actions.act_window">
             <field name="name">Ventas de Acciones</field>
             <field name="res_model">account.move</field>
             <field name="view_mode">tree,kanban,form</field>
-            <field name="view_id" ref="view_in_certificate_tree" />
-            <field name="search_view_id" ref="view_certificate_filter" />
-            <field name="domain">[('move_type', '=', 'certificate')]</field>
-            <field name="context">{'default_move_type': 'certificate'}</field>
+            <field name="view_id" ref="view_in_certificate_refund_tree" />
+            <field name="search_view_id" ref="view_certificate_refund_filter" />
+            <field name="domain">[('move_type', '=', 'certificate_refund')]</field>
+            <field name="context">{'default_move_type': 'certificate_refund'}</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
-                    Create a certificate Movement
+                    Create a certificate_refund Movement
                 </p>
                 <p>
-                    Create certificate, register payments and keep track of the discussions with
+                    Create certificate_refund, register payments and keep track of the discussions with
                     your shareholders.
                 </p>
             </field>

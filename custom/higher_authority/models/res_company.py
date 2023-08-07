@@ -33,64 +33,63 @@ class ResCompany(models.Model):
     # ACCOUNTS
 
     financial_year_result_account = fields.Many2one(
-        string='Cuenta de Resultados del ejercicio', comodel_name='account.account', config_parameter='higher_authority.financial_year_result_account', domain="[('internal_type', '=', 'equity_unaffected'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+        string='Cuenta de Resultados del ejercicio', comodel_name='account.account', config_parameter='higher_authority.financial_year_result_account', domain="[('internal_type', '=', 'equity_unaffected'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",required=True,
                                                        help="Esta cuenta será usada para registrar los saldos de subscripción del accionista, a pesar que sea establecida una cuenta por defecto diferente",)
 
     property_account_subscription_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Acciones",
                                                        domain="[('internal_type', '=', 'receivable'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para registrar los saldos de subscripción del accionista, cuenta que puede ser modificada en el partner",
-                                                       required=True, config_parameter='higher_authority.property_account_subscription_id')
+                                                       required=True, )
     property_account_shareholding_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Capital Suscripto",
                                                        domain="[('internal_type', '=', 'equity'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner",
-                                                       required=True, config_parameter='higher_authority.property_account_shareholding_id')
+                                                       required=True, )
     property_account_integration_id = fields.Many2one('account.account', company_dependent=True,
                                                       string="Cuenta de Capital Integrado",
                                                       domain="[('internal_type', '=', 'equity'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                       help="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner",
-                                                      required=True, config_parameter='higher_authority.property_account_integration_id')
+                                                      required=True, )
     property_account_contribution_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Aportes",
                                                        domain="[('internal_type', '=', 'contribution'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para las para registrar los partes pendientes de aprobación, a pesar que sea establecida una cuenta por defecto diferente",
-                                                       required=True, config_parameter='higher_authority.property_account_integration_id')
+                                                       required=True, )
 
     property_account_issue_discount_id = fields.Many2one('account.account', company_dependent=True,
                                                          string="Descuentos de Capital",
                                                          domain="[('internal_type', '=', 'equity_issue_discount'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                          help="Esta cuenta será usada para las para registrar los pagos de aportes, a pesar que sea establecida una cuenta por defecto diferente",
-                                                         required=True, config_parameter='higher_authority.property_account_issue_discount_id')
+                                                         required=True, )
     property_account_issue_premium_id = fields.Many2one('account.account', company_dependent=True,
                                                         string="Primas de Emisión",
                                                         domain="[('internal_type', '=', 'equity_issue_premium'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                         help="Esta cuenta será usada para las para registrar las primas de emision de acciones, a pesar que sea establecida una cuenta por defecto diferente",
-                                                        required=True, config_parameter='higher_authority.property_account_issue_premium_id')
+                                                        required=True, )
     property_account_portfolio_shares = fields.Many2one('account.account', company_dependent=True,
                                                         string="Acciones en Cartera",
                                                         domain="[('internal_type', '=', 'equity_portfolio_shares'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                         help="Esta cuenta será usada para las para registrar el rescate de acciones en carteera",
-                                                        required=True, config_parameter='higher_authority.property_account_portfolio_shares')
+                                                        required=True, )
     account_capital_adjustment = fields.Many2one('account.account', company_dependent=True,
                                                  string="Ajuste al capital",
                                                  domain="[('internal_type', '=', 'equity_capital_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                  help="Esta cuenta será usada para las para registrar los ajustes de capital, a pesar que sea establecida una cuenta por defecto diferente",
-                                                 required=True, config_parameter='higher_authority.account_capital_adjustment')
+                                                 required=True, )
 
     account_shareholders_for_redemption_of_shares = fields.Many2one('account.account', company_dependent=True,
                                                                     string="Accionistas por rescates de acciones",
                                                                     domain="[('internal_type', '=', 'liability_payable_redemption_shares'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                                     help="Esta cuenta será usada para las para registrar los pagos de aportes, a pesar que sea establecida una cuenta por defecto diferente",
-                                                                    required=True, config_parameter='higher_authority.account_shareholders_for_redemption_of_shares')
+                                                                    required=True)
     account_share_redemption_discount = fields.Many2one('account.account', company_dependent=True,
                                                         string="Descuentos por rescates de acciones",
                                                         domain="[('internal_type', '=', 'contribution'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                         help="Esta cuenta será usada para las para registrar los pagos de aportes, a pesar que sea establecida una cuenta por defecto diferente",
-                                                        required=True, config_parameter='higher_authority.account_share_redemption_discount')
+                                                        required=True, )
 
-    percentage_redemption = fields.Float(string='Porcentaje de rescate', help='Porcentaje fijado por la Gerencia para el pago en efectivo por cancelación de acciones',
-                                         config_parameter='higher_authority.percentage_redemption')
+    percentage_redemption = fields.Float(string='Porcentaje de rescate', help='Porcentaje fijado por la Gerencia para el pago en efectivo por cancelación de acciones', default=0.0)
 
 
     # """Campos usados para la emision y gestion de los bonos"""
@@ -99,17 +98,28 @@ class ResCompany(models.Model):
                                                  string="Otros Gastos Financieros",
                                                  domain="[('internal_type', '=', 'other_expenses'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                  help="Cuenta de gasto para registrar las erogacion por emision de obligaciones negociables",
-                                                 required=True, config_parameter='higher_authority.account_financial_expenses')
+                                                 required=True)
 
     account_cert_payable = fields.Many2one('account.account', company_dependent=True,
                                            string="Cuenta Bonos a pagar",
                                            domain="[('internal_type', '=', 'payable_negociable_obligations'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta de Pasivo para registrar las emisiones de obligaciones negociables",
-                                           required=True, config_parameter='higher_authority.account_cert_payable')
+                                           required=True)
     
 
     account_cert_interest = fields.Many2one('account.account', company_dependent=True,
                                            string="Intereses de obligaciones y bonos",
                                            domain="[('internal_type', '=', 'expenses_interest_and_implicit_financial_components'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta de Resultado para registrar el acaecimiento de los interes periodicos",
-                                           required=True, config_parameter='higher_authority.account_cert_interest')
+                                           required=True)
+    
+    account_receivable_cert=fields.Many2one('account.account', company_dependent=True,
+                                           string="Intereses de obligaciones y bonos",
+                                           domain="[('internal_type', '=', 'asset_receivable'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                           help="Cuenta para registrar el saldo pendiente que eel tenedor de bonos debe abonar",
+                                           required=True )
+    account_cert_amortized=fields.Many2one('account.account', company_dependent=True,
+                                           string="Obligaciones Amortizadas",
+                                           domain="[('internal_type', '=', 'liability_payable_amortized'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                           help="Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar",
+                                           required=True )

@@ -21,7 +21,7 @@
                 <tree string="Reducción" decoration-success="state=='confirm' "
                     decoration-bf='state=="new"' decoration-muted="state=='cancel'">
                     <field name="short_name" />
-                    <field name='shareholder_id' />
+                    <field name='partner_id' />
                     <field name="user_id" widget="many2one_avatar_user " />
                     <field name="name" />
                     <field name="activity_ids" widget="list_activity" optional="show" />
@@ -35,7 +35,7 @@
         </record>
 
         <!-- formulario -->
-        <record id="redemption_order_view_form" model="ir.ui.view">
+        <record id="share_sale_order_view_form" model="ir.ui.view">
             <field name="name">share.sale.form</field>
             <field name="model">share.sale</field>
             <field name="arch" type="xml">
@@ -124,8 +124,8 @@
                         <filter string="Fecha de Rescate" name="date"
                             context="{'group_by':'date'}" />
                         <filter string="Estado" name="state" context="{'group_by':'state'}" />
-                        <filter string="Accionista" name="shareholder_id"
-                            context="{'group_by':'shareholder_id'}" />
+                        <filter string="Accionista" name="partner_id"
+                            context="{'group_by':'partner_id'}" />
                     </group>
                 </search>
             </field>
@@ -139,7 +139,7 @@
                 <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
                 <kanban>
                     <field name="short_name" />
-                    <field name="shareholder_id" readonly="1" />
+                    <field name="partner_id" readonly="1" />
                     <field name="state" />
 
                     <progressbar field="state"

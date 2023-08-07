@@ -20,14 +20,13 @@ class AccountJournal(models.Model):
     # _name = "account.journal"
     _inherit='account.journal'
 
-    type = fields.Selection([
-            ('sale', 'Sales'),
-            ('purchase', 'Purchase'),
+    type = fields.Selection(selection_add=[
             ('integration','Integrations'),
             ('suscription','Subscripctions'),
-            ('cash', 'Cash'),
-            ('bank', 'Bank'),
-            ('general', 'Miscellaneous'),
+            ('contribution','Aportes Irrevocables'),
+            ('share_sale','Venta de Acciones'),
+            ('redemption','Rescate de Acciones'),
+            ('payable_amort','Obligaciones Negociables'),
         ], required=True,
         inverse='_inverse_type',
         help="Select 'Sale' for customer invoices journals.\n"\

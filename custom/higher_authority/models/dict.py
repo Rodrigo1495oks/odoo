@@ -51,3 +51,10 @@ print([item[0] for item in lista_de_tuplas])
 
 print({"item1":'value1','item2':'value2'}.items())
 
+lista=[]
+
+
+lista.extend([89,45,32])
+
+
+print(lista)

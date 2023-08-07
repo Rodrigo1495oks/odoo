@@ -19,6 +19,10 @@ class AccountAccount(models.Model):
         ('equity_issue_discount','Descuentos de emision'),
         ('equity_portfolio_shares','Acciones en cartera'),
         ('liability_payable_redemption_shares','Accionistas - Rescate de Acciones'),
+        ('liability_payable_amortized','Obligaciones Amortizadas'),
+        ('certificate_refund','Reintegro de Bonos'),
+        ('certificate','Bono'),
+        ('certificate_line','Lineas de Bono'),
         ('other_expenses','Otros Gastos'),
         ('expenses_interest_and_implicit_financial_components','Intereses y Componentes Financieros Implicitos'),
     ])

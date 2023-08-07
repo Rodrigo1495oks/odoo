@@ -227,7 +227,7 @@ class AccountPaymentRegister(models.TransientModel):
             'account_id': line.account_id.id,
             'currency_id': line.currency_id.id,
             'partner_bank_id': partner_bank_account.id,
-            'partner_type': 'shareholder' if move.move_type in ['subscription','contribution','redemption','share_sale','reduction','certificate'] else 'customer' if line.account_type == 'asset_receivable' else 'supplier',
+            'partner_type': 'investor' if move.move_type in ['certificate'] else 'shareholder' if move.move_type in ['subscription','contribution','redemption','share_sale','reduction'] else 'customer' if line.account_type == 'asset_receivable' else 'supplier',
         }
 
     def _get_batches(self):
