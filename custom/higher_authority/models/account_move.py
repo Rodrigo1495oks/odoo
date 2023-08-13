@@ -73,7 +73,7 @@ class AccountMove(models.Model):
             ('reduction', 'Reducción de Capital'),
             ('certificate', 'Emision de Bonos'),
             ('certificate_line', 'Líneas de Bonos'),
-            ('certificate_refund', 'Líneas de Bonos')
+            ('certificate_refund', 'Reintegro de Bonos')
         ]
     )
     # Costos de emisión de acciones
@@ -146,11 +146,16 @@ class AccountMove(models.Model):
         states={'draft': [('readonly', False)]})
 
     certificate_line_count = fields.Integer(
-        compute="_compute_origin_certificate_line_count", string='Integration Order Count')
+        compute="_compute_origin_certificate_line_count", string='Cert. Lines Count')
 
+    # Reintegro de bonos
+    certificate_refund_id = fields.Many2one(
+        string='Líneas de Bono', comodel_name='account.certificate', store=False, readonly=True,
+        states={'draft': [('readonly', False)]})
 
+    certificate_refund_count = fields.Integer(
+        compute="_compute_origin_cert_refund_count", string='Cert. Lines Count')
     #   COMPUTE METHODS
-
     @api.depends('line_ids.suscription_line_id')
     def _compute_origin_suscription_count(self):
         for move in self:
@@ -199,6 +204,11 @@ class AccountMove(models.Model):
     def _compute_origin_certificate_line_count(self):
         for move in self:
             move.certificate_line_count = len(move.line_ids.certificate_line_id)
+    
+    @api.depends('line_ids.certificate_refund_id')
+    def _compute_origin_cert_refund_count(self):
+        for move in self:
+            move.certificate_refund_count = len(move.line_ids.certificate_refund_id)
 
     # ACTIONS
     def action_view_source_suscription_orders(self):
@@ -338,6 +348,22 @@ class AccountMove(models.Model):
         elif len(source_orders) == 1:
             result['views'] = [
                 (self.env.ref('higher_authority.view_certificate_line_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+    
+    def action_view_source_refund_lines(self):
+        """Muestra los bonos emitidos (lineas), asociados al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.certificate_line_id
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_CC_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [
+                (self.env.ref('higher_authority.account_certificate_view_form', False).id, 'form')]
             result['res_id'] = source_orders.id
         else:
             result = {'type': 'ir.actions.act_window_close'}

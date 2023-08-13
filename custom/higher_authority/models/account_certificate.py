@@ -527,7 +527,7 @@ class AccountCertificate(models.Model):
             }
 
             payable_line = {
-                'account_id': account_cert_payable.id,
+                'account_id': (account_cert_payable.id),
                 'debit': order.final_value or 0,
                 'partner_id': self.partner_id.id
             }
@@ -637,9 +637,11 @@ class AccountCertificateLine(models.Model):
                                  required=True, readonly=True, store=True, index=True, copy=True)
 
     certificates_line_ids = fields.Many2many(
-        'stock.move', 'certificate_line_id', string='Asiento', readonly=True, copy=False)
+        'account.move', 'certificate_line_id', string='Asiento', readonly=True, copy=False)
     certificate_line_count = fields.Integer(
         compute="_compute_invoice", string='Bonos', copy=False, default=0, store=True)
+    
+
     # este modelo tendra un boton para registrar el devengamiento de los pagos
     # de intereses - lo cual creará el asiento contable correspondiente.
 
@@ -654,7 +656,7 @@ class AccountCertificateLine(models.Model):
     #     'amortized_cost':'',
     #     'cert_order':'',
     # }
-
+    
     # metodos computados
     @api.depends('certificates_ids')
     def _compute_invoice(self):

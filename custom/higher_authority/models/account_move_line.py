@@ -19,7 +19,7 @@ class AccountMoveLine(models.Model):
 
     suscription_order_id = fields.Many2one(
         'suscription.order', 'Suscription Order', readonly=True)
-    
+
     integration_line_id = fields.Many2one(
         'integration.order.line', 'Integration Order Line', ondelete='set null', index='btree_not_null')
     integration_order_id = fields.Many2one(
@@ -35,14 +35,18 @@ class AccountMoveLine(models.Model):
     # capital reduction
     reduction_order_id = fields.Many2one(
         'capital.reduction', 'Reduction Order', readonly=True)
+    # Account Share Cost
     account_share_cost_line_id = fields.Many2one(
-        'account.share.cost.line', 'Purchase Order Line', ondelete='set null', index='btree_not_null')
+        'account.share.cost.line', 'Share Cost Line', ondelete='set null', index='btree_not_null')
     account_share_cost_order_id = fields.Many2one(
-        'account.share.cost', 'Purchase Order', related='account_share_cost_line_id.order_id', readonly=True)
+        'account.share.cost', 'Share Cost', related='account_share_cost_line_id.order_id', readonly=True)
+    # Certificates
+    certificate_order_id = fields.Many2one(
+        'account.certificate', 'Cert.', related='certificate_line_id.cert_order', readonly=True)
     certificate_line_id = fields.Many2one(
         'account.certificate.line', 'Lineas de Certificados', ondelete='set null', index='btree_not_null')
-    certificate_order_id = fields.Many2one(
-        'account.certificate', 'Bono', related='certificate_line_id.cert_order', readonly=True)
+    certificate_refund_id = fields.Many2one(
+        'account.certificate', 'Cert Refund', related='move_id.certificate_refund_id', readonly=True)
 
     def _copy_data_extend_business_fields(self, values):
         # OVERRIDE to copy the 'purchase_line_id' field as well.
@@ -54,3 +58,4 @@ class AccountMoveLine(models.Model):
         values['share_sale_order_id'] = self.share_sale_order_id.id
         values['account_share_cost_line_id'] = self.account_share_cost_line_id.id
         values['certificate_line_id'] = self.certificate_line_id.id
+        values['certificate_refund_id'] = self.certificate_refund_id.id

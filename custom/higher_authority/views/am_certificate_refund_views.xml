@@ -2,7 +2,7 @@
 <odoo>
     <data>
 
-                <!-- certificate MOVE -->
+        <!-- certificate MOVE -->
         <!-- VIEW -->
         <record id="view_certificate_refund_form" model="ir.ui.view">
             <field name="name">account.certificate.refund.form</field>
@@ -900,39 +900,46 @@
                     Create a certificate_refund Movement
                 </p>
                 <p>
-                    Create certificate_refund, register payments and keep track of the discussions with
+                    Create certificate_refund, register payments and keep track of the discussions
+                    with
                     your shareholders.
                 </p>
             </field>
         </record>
-                <!-- BUTTONS -->
-                <record id="view_move_form_inherit_certificate" model="ir.ui.view">
-                    <field name="name">account.move.inherit.certificate</field>
-                    <field name="model">account.move</field>
-                    <field name="inherit_id" ref="account.view_move_form"/>
-                    <field name="arch" type="xml">
-                        <!-- Auto-complete could be done from either a bill either a purchase order -->
-                        <field name="reduction_id" position="after">
-                            <t groups="higher_authority.group_higher_authority_user">
-                                <field name="certificate_id" invisible="1"/>
-                            </t> <!-- Extraño lo que hace no lo entiendo-->
-                        </field>
-                        <!-- Add link to purchase_line_id to account.move.line -->
-                        <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='company_id']" position="after">
-                            <!-- <field name="purchase_line_id" groups="purchase.group_purchase_user" invisible="1"/> -->
-                            <field name="certificate_order_id" groups="higher_authority.group_higher_authority_user" attrs="{'column_invisible': [('parent.move_type', '!=', 'certificate')]}" optional="hide"/>
-                        </xpath>
-                        <xpath expr="//div[@name='button_box']" position="inside">
-                            <button class="oe_stat_button"
-                                    name="action_view_source_certificates_orders"
-                                    type="object"
-                                    groups="higher_authority.group_higher_authority_user"
-                                    icon="fa-pencil-square-o"
-                                    attrs="{'invisible': ['|', ('certificate_count', '=', 0), ('move_type', 'not in', ('certificate')]}">
-                                <field string="Certificates" name="certificate_count" widget="statinfo"/>
-                            </button>
-                        </xpath>
-                    </field>
-                </record>
+        <!-- BUTTONS -->
+        <record id="view_move_form_inherit_refund" model="ir.ui.view">
+            <field name="name">account.move.inherit.refund</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form" />
+            <field name="arch" type="xml">
+                <!-- Auto-complete could be done from either a bill either a purchase order -->
+                <field name="certificate_line_id" position="after">
+                    <t groups="higher_authority.group_higher_authority_user">
+                        <field name="certificate_refund_id" invisible="1" />
+                    </t> <!--
+                    Extraño lo que hace no lo entiendo-->
+                </field>
+                <!-- Add link to purchase_line_id to account.move.line -->
+                <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='company_id']"
+                    position="after">
+                    <!-- <field name="purchase_line_id" groups="purchase.group_purchase_user"
+                    invisible="1"/> -->
+                    <field name="certificate_refund_id"
+                        groups="higher_authority.group_higher_authority_user"
+                        attrs="{'column_invisible': [('parent.move_type', '!=', 'certificate_refund')]}"
+                        optional="hide" />
+                </xpath>
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button"
+                        name="action_view_source_refund_lines"
+                        type="object"
+                        groups="higher_authority.group_higher_authority_user"
+                        icon="fa-pencil-square-o"
+                        attrs="{'invisible': ['|', ('certificate_refund_count', '=', 0), ('move_type', 'not in', ('certificate_refund')]}">
+                        <field string="Certificates Refunds" name="certificate_refund_count" widget="statinfo" />
+                    </button>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>
