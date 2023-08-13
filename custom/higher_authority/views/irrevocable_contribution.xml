@@ -162,9 +162,9 @@
         </record>
 
         <!-- Estate Property Kanban View  -->
-        <record model="ir.ui.view" id="view_estate_property_kanban">
-            <field name="name">estate.property.kanban</field>
-            <field name="model">estate.property</field>
+        <record model="ir.ui.view" id="view_irrevocable_contribution_kanban">
+            <field name="name">irrevocable.contribution.kanban</field>
+            <field name="model">irrevocable.contribution</field>
             <field name="arch" type="xml">
                 <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
                 <kanban>
@@ -241,6 +241,50 @@
                     </templates>
                 </kanban>
             </field>
+        </record>
+        <!-- FILTROS PARA LOS STATS BUTTONS -->
+        <record id="view_irrevocable_contribution_filter" model="ir.ui.view">
+            <field name="name">irrevocable.contribution.select</field>
+            <field name="model">irrevocable.contribution</field>
+            <field name="arch" type="xml">
+                <search string="Search Contribution">
+                    <field name="name" string="Contribution"
+                        filter_domain="['|', '|', ('name', 'ilike', self), ('partner_ref', 'ilike', self), ('partner_id', 'child_of', self)]" />
+                    <field name="partner_id" operator="child_of" />
+                    <field name="user_id" />
+                    <field name="topic" />
+                    <filter name="my_sus" string="My Contributions"
+                        domain="[('user_id', '=', uid)]" />
+                    <separator />
+                    <filter name="draft" string="RFQs"
+                        domain="[('state', 'in', ('draft', 'new'))]" />
+                    <separator />
+                    <filter name="approved" string="Purchase Orders"
+                        domain="[('state', 'in', ('approved', 'confirm'))]" />
+                    <filter name="to_approve" string="To Approve"
+                        domain="[('state', '=', 'new')]" />
+                    <separator />
+                    <filter name="suscription_date" string="Order Date" date="suscription_date" />
+                    <filter name="draft_rfqs" string="Draft RFQs" domain="[('state', '=', 'draft')]" />
+                    <separator />
+                    <group expand="0" string="Group By">
+                        <filter string="Vendor" name="vendor" domain="[]"
+                            context="{'group_by': 'partner_id'}" />
+                        <filter string="Purchase Representative" name="representative" domain="[]"
+                            context="{'group_by': 'user_id'}" />
+                        <filter string="Order Date" name="suscription_date" domain="[]"
+                            context="{'group_by': 'suscription_date'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record id="action_IC_form" model="ir.actions.act_window">
+            <field name="name">Requests for Contribution Orders</field>
+            <field name="res_model">irrevocable.contribution</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="higher_authority.irrevocable_contribution_view_form" />
+            <field name="search_view_id" ref="view_irrevocable_contribution_filter" />
+            <field name="target">main</field>
         </record>
     </data>
 </odoo>

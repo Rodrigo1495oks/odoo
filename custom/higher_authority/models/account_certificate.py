@@ -175,7 +175,7 @@ class AccountCertificate(models.Model):
     ], required=True, default='none')
     TNA = fields.Float(string='Tasa Nominal Anual', default=0.0, required=True)
     effective_rate = fields.Float(string='Tasa Interna de Retorno',
-                       readonly=True, default=0.0, required=True, compute='_compute_TIR')
+                                  readonly=True, default=0.0, required=True, compute='_compute_TIR')
 
     interes_fee = fields.Monetary(
         string='Cuota de Interés', help='Cuota de interés explícito', readonly=True, default=0, compute='_compute_proportional_rate')
@@ -312,17 +312,20 @@ class AccountCertificate(models.Model):
             expenses_line = {
                 'account_id': (account_financial_expenses.id),
                 'debit': order.fees_expenses or 0,
+                'certificate_line_id': self.id
             }
 
             receivable_line = {
                 'account_id': (account_receivable_cert.id),
                 'credit': (order.nominal_value) or 0,
+                'certificate_line_id': self.id
             }
 
             payable_line = {
                 'account_id': account_cert_payable.id,
                 'credit': (order.qty * order.issue_value) or 0,
-                'partner_id': self.partner_id.id
+                'partner_id': self.partner_id.id,
+                'certificate_line_id': self.id
             }
 
             certificate_vals['line_ids'].extend(

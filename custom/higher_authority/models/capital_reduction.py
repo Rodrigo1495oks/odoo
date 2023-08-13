@@ -172,7 +172,7 @@ class ReductionOrder(models.Model):
             else:
                 raise UserError(
                     'Accion no permitida')
-    # logica
+    # lógica
 
     def action_create_reduction_vol(self):
         """Estaa funcion la dejo por razones de complitud \n.
@@ -304,31 +304,37 @@ class ReductionOrder(models.Model):
             suscribed_line = {
                 'account_id': property_account_shareholding_id,
                 'debit': total_suscribed or 0,
+                'reduction_order_id': self.id
             }
             integrated_line = {
                 'account_id': property_account_integration_id,
                 'debit': total_integrated or 0,
+                'reduction_order_id': self.id
             }
             premium_line = {
                 'account_id': premium_issue_account,
                 'debit': total_issue_premium or 0,
+                'reduction_order_id': self.id
             }
             adjustment_line = {
                 'account_id': account_capital_adjustment,
                 'debit': total_adjustment or 0,
+                'reduction_order_id': self.id
             }
             discount_line = {
                 'account_id': property_account_issue_discount_id,
                 'credit': total_issue_discount or 0,
+                'reduction_order_id': self.id
             }
             redemption_of_shares_line = {
-
                 'account_id': account_shareholders_for_redemption_of_shares,
                 'credit': total_shareholders_for_redemption_of_shares or 0,
+                'reduction_order_id': self.id
             }
             redemption_discount_line = {
                 'account_id': account_share_redemption_discount,
                 'credit': total_share_redemption_discount or 0,
+                'reduction_order_id': self.id
             }
 
             reduction_vals['line_ids'].extend((0, 0, suscribed_line),(0, 0, integrated_line),(0, 0, suscribed_line),(0, 0, premium_line),(0, 0, adjustment_line),(0, 0, discount_line),(0, 0, redemption_of_shares_line),(0, 0, redemption_discount_line))

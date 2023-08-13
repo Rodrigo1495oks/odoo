@@ -76,8 +76,8 @@ class AccountMove(models.Model):
             ('certificate_refund', 'Líneas de Bonos')
         ]
     )
-     # Costos de emisión de acciones
-    account_share_cost_id = fields.Many2one('integration.order', store=False, readonly=True,
+    # Costos de emisión de acciones
+    account_share_cost_id = fields.Many2one('account.share.cost', store=False, readonly=True,
                                             states={
                                                 'draft': [('readonly', False)]},
                                             string='Account Share Cost Order',
@@ -85,7 +85,7 @@ class AccountMove(models.Model):
 
     account_share_cost_count = fields.Integer(
         compute="_compute_origin_sc_count", string='Account Share Cost Order Count')
-    
+
     # Suscripción de Acciones
     suscription_id = fields.Many2one(
         string='Suscripción', comodel_name='suscription.order', store=False, readonly=True,
@@ -102,12 +102,37 @@ class AccountMove(models.Model):
         compute="_compute_origin_integration_count", string='Integration Order Count')
     # Aportes Irrevocables
     contribution_id = fields.Many2one('irrevocable.contribution', store=False, readonly=True,
-                                     states={'draft': [('readonly', False)]},
-                                     string='Contribution Order',
-                                     help="Auto-complete from a past Contribution Order.")
+                                      states={'draft': [('readonly', False)]},
+                                      string='Contribution Order',
+                                      help="Auto-complete from a past Contribution Order.")
 
     contribution_order_count = fields.Integer(
         compute="_compute_origin_contribution_count", string='Contribution Order Count')
+
+    # Rescate de Acciones (Acciones en cartera)
+    redemption_id = fields.Many2one('portfolio.shares', store=False, readonly=True,
+                                    states={'draft': [('readonly', False)]},
+                                    string='Contribution Order',
+                                    help="Auto-complete from a past Contribution Order.")
+
+    redemption_order_count = fields.Integer(
+        compute="_compute_origin_redemption_count", string='Contribution Order Count')
+    # Venta de Acciones
+    share_sale_id = fields.Many2one('share.sale', store=False, readonly=True,
+                                    states={'draft': [('readonly', False)]},
+                                    string='Share Sale Order',
+                                    help="Auto-complete from a past Share Sale Order.")
+
+    share_sale_order_count = fields.Integer(
+        compute="_compute_origin_share_sale_count", string='Share Sale Order Count')
+    # Reducción de Capital
+    reduction_id = fields.Many2one('capital.reduction', store=False, readonly=True,
+                                    states={'draft': [('readonly', False)]},
+                                    string='Reduction Order',
+                                    help="Auto-complete from a past Reduction Order.")
+
+    reduction_order_count = fields.Integer(
+        compute="_compute_origin_reduction_count", string='Reduction Order Count')
     # Campos para los bonos
 
     certificate_id = fields.Many2one(
@@ -119,18 +144,13 @@ class AccountMove(models.Model):
     certificate_line_id = fields.Many2one(
         string='Líneas de Bono', comodel_name='account.certificate.line', store=False, readonly=True,
         states={'draft': [('readonly', False)]})
-    certificate_count = fields.Integer(
-        compute="_compute_origin_certificate_count", string='Integration Order Count')
-    
+
     certificate_line_count = fields.Integer(
         compute="_compute_origin_certificate_line_count", string='Integration Order Count')
 
-    capital_reduction_id = fields.Many2one(
-        string='Reducción de Capital', comodel_name='capital.reduction')
-
-    
 
     #   COMPUTE METHODS
+
     @api.depends('line_ids.suscription_line_id')
     def _compute_origin_suscription_count(self):
         for move in self:
@@ -142,26 +162,43 @@ class AccountMove(models.Model):
         for move in self:
             move.integration_order_count = len(
                 move.line_ids.integration_line_id.order_id)
-    @api.depends('line_ids.suscription_line_id')
+
+    @api.depends('line_ids.contribution_order_id')
     def _compute_origin_contribution_count(self):
         for move in self:
             move.contribution_order_count = len(
                 move.line_ids.contribution_order_id)
 
+    @api.depends('line_ids.redemption_order_id')
+    def _compute_origin_redemption_count(self):
+        for move in self:
+            move.redemption_order_count = len(
+                move.line_ids.redemption_order_id)
+    @api.depends('line_ids.share_sale_order_id')
+    def _compute_origin_share_sale_count(self):
+        for move in self:
+            move.share_sale_order_count = len(
+                move.line_ids.share_sale_order_id)
+    @api.depends('line_ids.share_sale_order_id')
+    def _compute_origin_reduction_count(self):
+        for move in self:
+            move.reduction_order_count = len(
+                move.line_ids.reduction_order_id)
     @api.depends('line_ids.account_share_cost_line_id')
     def _compute_origin_sc_count(self):
         for move in self:
-            move.integration_order_count = len(
-                move.line_ids.integration_line_id.order_id)
+            move.account_share_cost_count = len(
+                move.line_ids.account_share_cost_line_id.order_id)
 
     @api.depends('line_ids.certificate_id')
     def _compute_origin_certificate_count(self):
         for move in self:
-            move.integration_order_count = len(move.certificate_id)
+            move.certificate_count = len(move.line_ids.certificate_id)
+
     @api.depends('line_ids.certificate_line_id')
     def _compute_origin_certificate_line_count(self):
         for move in self:
-            move.certificate_line_count = len(move.certificate_line_id)
+            move.certificate_line_count = len(move.line_ids.certificate_line_id)
 
     # ACTIONS
     def action_view_source_suscription_orders(self):
@@ -179,7 +216,7 @@ class AccountMove(models.Model):
         else:
             result = {'type': 'ir.actions.act_window_close'}
         return result
-    
+
     def action_view_source_share_cost_orders(self):
         """Muestra los costos de emision asociados al asiento"""
         self.ensure_one()
@@ -211,18 +248,65 @@ class AccountMove(models.Model):
         else:
             result = {'type': 'ir.actions.act_window_close'}
         return result
-    
+
     def action_view_source_contribution_orders(self):
         """Muestra las suscripciones de accionistas asociadas al asiento"""
         self.ensure_one()
         source_orders = self.line_ids.contribution_order_id
         result = self.env['ir.actions.act_window']._for_xml_id(
-            'higher_authority.action_SO_form')
+            'higher_authority.action_IC_form')
         if len(source_orders) > 1:
             result['domain'] = [('id', 'in', source_orders.ids)]
         elif len(source_orders) == 1:
             result['views'] = [
-                (self.env.ref('higher_authority.suscription_order_view_form', False).id, 'form')]
+                (self.env.ref('higher_authority.irrevocable_contribution_view_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+
+    def action_view_source_redemption_orders(self):
+        """Muestra las suscripciones de accionistas asociadas al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.redemption_order_id
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_PS_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [
+                (self.env.ref('higher_authority.redemption_order_view_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+    
+    def action_view_source_share_sale_orders(self):
+        """Muestra las suscripciones de accionistas asociadas al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.share_sale_order_id
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_SS_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [
+                (self.env.ref('higher_authority.share_sale_order_view_form', False).id, 'form')]
+            result['res_id'] = source_orders.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+    def action_view_source_reduction_orders(self):
+        """Muestra las Reducciones de capital asociadas al asiento"""
+        self.ensure_one()
+        source_orders = self.line_ids.reduction_order_id
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_RO_form')
+        if len(source_orders) > 1:
+            result['domain'] = [('id', 'in', source_orders.ids)]
+        elif len(source_orders) == 1:
+            result['views'] = [
+                (self.env.ref('higher_authority.share_sale_order_view_form', False).id, 'form')]
             result['res_id'] = source_orders.id
         else:
             result = {'type': 'ir.actions.act_window_close'}
@@ -230,7 +314,7 @@ class AccountMove(models.Model):
     def action_view_source_certificates_orders(self):
         """Muestra los bonos emitidos, asociados al asiento"""
         self.ensure_one()
-        source_orders = self.line_ids.integration_line_id.order_id
+        source_orders = self.line_ids.certificate_line_id.cert_order
         result = self.env['ir.actions.act_window']._for_xml_id(
             'higher_authority.action_CC_form')
         if len(source_orders) > 1:
@@ -248,12 +332,12 @@ class AccountMove(models.Model):
         self.ensure_one()
         source_orders = self.line_ids.certificate_line_id
         result = self.env['ir.actions.act_window']._for_xml_id(
-            'higher_authority.action_certLine_form')
+            'higher_authority.action_cert_line_form')
         if len(source_orders) > 1:
             result['domain'] = [('id', 'in', source_orders.ids)]
         elif len(source_orders) == 1:
             result['views'] = [
-                (self.env.ref('higher_authority.account_certificate_line_view_form', False).id, 'form')]
+                (self.env.ref('higher_authority.view_certificate_line_form', False).id, 'form')]
             result['res_id'] = source_orders.id
         else:
             result = {'type': 'ir.actions.act_window_close'}

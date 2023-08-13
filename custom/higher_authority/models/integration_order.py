@@ -1582,7 +1582,23 @@ class IntegrationOrderLine(models.Model):
 
         return name
 
-    
+    def _prepare_account_move_line(self, move=False):
+        self.ensure_one()
+        aml_currency = move and move.currency_id or self.currency_id
+        date = move and move.date or fields.Date.today()
+        res = {
+            'display_type': self.display_type or 'product',
+            'name': '%s: %s' % (self.order_id.name, self.name),
+            'product_id': self.product_id.id,
+            'product_uom_id': self.product_uom.id,
+            'quantity': self.qty_to_invoice,
+            'price_unit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
+            'tax_ids': [(6, 0, self.taxes_id.ids)],
+            'integration_line_id': self.id,
+        }
+        if self.analytic_distribution and not self.display_type:
+            res['analytic_distribution'] = self.analytic_distribution
+        return res
 
     @api.model
     def _prepare_add_missing_fields(self, values):

@@ -26,6 +26,15 @@ class AccountMoveLine(models.Model):
         'integration.order', 'Integration Order', related='integration_line_id.order_id', readonly=True)
     contribution_order_id = fields.Many2one(
         'irrevocable.contribution', 'Contribution Order', readonly=True)
+    # portfolio shares
+    redemption_order_id = fields.Many2one(
+        'share.sale', 'Redemption Order', readonly=True)
+    # share_sale
+    share_sale_order_id = fields.Many2one(
+        'share.sale', 'Share Sale Order', readonly=True)
+    # capital reduction
+    reduction_order_id = fields.Many2one(
+        'capital.reduction', 'Reduction Order', readonly=True)
     account_share_cost_line_id = fields.Many2one(
         'account.share.cost.line', 'Purchase Order Line', ondelete='set null', index='btree_not_null')
     account_share_cost_order_id = fields.Many2one(
@@ -40,5 +49,8 @@ class AccountMoveLine(models.Model):
         super(AccountMoveLine, self)._copy_data_extend_business_fields(values)
         values['suscription_order_id'] = self.certificate_line_id.id
         values['integration_line_id'] = self.integration_line_id.id
+        values['contribution_order_id'] = self.contribution_order_id.id
+        values['redemption_order_id'] = self.redemption_order_id.id
+        values['share_sale_order_id'] = self.share_sale_order_id.id
         values['account_share_cost_line_id'] = self.account_share_cost_line_id.id
         values['certificate_line_id'] = self.certificate_line_id.id

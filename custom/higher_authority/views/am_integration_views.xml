@@ -921,7 +921,7 @@
                 <!-- Add link to purchase_line_id to account.move.line -->
                 <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='company_id']" position="after">
                     <!-- <field name="purchase_line_id" groups="purchase.group_purchase_user" invisible="1"/> -->
-                    <field name="integration_id" groups="higher_authority.group_higher_authority_user" attrs="{'column_invisible': [('parent.move_type', '!=', 'integration')]}" optional="hide"/>
+                    <field name="integration_order_id" groups="higher_authority.group_higher_authority_user" attrs="{'column_invisible': [('parent.move_type', '!=', 'integration')]}" optional="hide"/>
                 </xpath>
                 <xpath expr="//div[@name='button_box']" position="inside">
                     <button class="oe_stat_button"
