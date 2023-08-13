@@ -167,5 +167,50 @@
                 </kanban>
             </field>
         </record>
+        <!-- FILTROS PARA LOS STATS BUTTONS -->
+        <record id="view_share_sale_filter" model="ir.ui.view">
+            <field name="name">request.share.sale.select</field>
+            <field name="model">share.sale</field>
+            <field name="arch" type="xml">
+                <search string="Search Share Sales">
+                    <field name="name" string="Share Sales"
+                        filter_domain="['|', '|', ('name', 'ilike', self), ('partner_ref', 'ilike', self), ('partner_id', 'child_of', self)]" />
+                    <field name="short_name" />
+                    <field name="partner_id" operator="child_of" />
+                    <field name="user_id" />
+                    <field name="topic" />
+                    <filter name="my_share_sales" string="My Share Sales"
+                        domain="[('user_id', '=', uid)]" />
+                    <separator />
+                    <filter name="draft" string="RFQs"
+                        domain="[('state', 'in', ('draft', 'new'))]" />
+                    <separator />
+                    <filter name="approved" string="Purchase Orders"
+                        domain="[('state', 'in', ('approved', 'confirm'))]" />
+                    <filter name="to_approve" string="To Approve"
+                        domain="[('state', '=', 'new')]" />
+                    <separator />
+                    <filter name="date" string="Order Date" date="date" />
+                    <filter name="draft_rfqs" string="Draft RFQs" domain="[('state', '=', 'draft')]" />
+                    <separator />
+                    <group expand="0" string="Group By">
+                        <filter string="Vendor" name="vendor" domain="[]"
+                            context="{'group_by': 'partner_id'}" />
+                        <filter string="Purchase Representative" name="representative" domain="[]"
+                            context="{'group_by': 'user_id'}" />
+                        <filter string="Order Date" name="date" domain="[]"
+                            context="{'group_by': 'date'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record id="action_SS_form" model="ir.actions.act_window">
+            <field name="name">Requests for share sale</field>
+            <field name="res_model">share.sale</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="higher_authority.share_sale_order_view_form" />
+            <field name="search_view_id" ref="view_share_sale_filter" />
+            <field name="target">main</field>
+        </record>
     </data>
 </odoo>

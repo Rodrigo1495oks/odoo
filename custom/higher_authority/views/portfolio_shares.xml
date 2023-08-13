@@ -167,5 +167,49 @@
                 </kanban>
             </field>
         </record>
+        <!-- FILTROS PARA LOS STATS BUTTONS -->
+        <record id="view_redemption_filter" model="ir.ui.view">
+            <field name="name">request.portfolio.shares.select</field>
+            <field name="model">portfolio.shares</field>
+            <field name="arch" type="xml">
+                <search string="Search Redemtion">
+                    <field name="name" string="Redemtion"
+                        filter_domain="['|', '|', ('name', 'ilike', self), ('partner_ref', 'ilike', self), ('partner_id', 'child_of', self)]" />
+                    <field name="partner_id" operator="child_of" />
+                    <field name="user_id" />
+                    <field name="topic" />
+                    <filter name="my_sus" string="My Redemtions"
+                        domain="[('user_id', '=', uid)]" />
+                    <separator />
+                    <filter name="draft" string="RFQs"
+                        domain="[('state', 'in', ('draft', 'new'))]" />
+                    <separator />
+                    <filter name="approved" string="Purchase Orders"
+                        domain="[('state', 'in', ('approved', 'confirm'))]" />
+                    <filter name="to_approve" string="To Approve"
+                        domain="[('state', '=', 'new')]" />
+                    <separator />
+                    <filter name="date" string="Order Date" date="date" />
+                    <filter name="draft_rfqs" string="Draft RFQs" domain="[('state', '=', 'draft')]" />
+                    <separator />
+                    <group expand="0" string="Group By">
+                        <filter string="Vendor" name="vendor" domain="[]"
+                            context="{'group_by': 'partner_id'}" />
+                        <filter string="Purchase Representative" name="representative" domain="[]"
+                            context="{'group_by': 'user_id'}" />
+                        <filter string="Order Date" name="date" domain="[]"
+                            context="{'group_by': 'date'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record id="action_PS_form" model="ir.actions.act_window">
+            <field name="name">Requests for Redemption Orders</field>
+            <field name="res_model">portfolio.shares</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="higher_authority.redemption_order_view_form" />
+            <field name="search_view_id" ref="view_redemption_filter" />
+            <field name="target">main</field>
+        </record>
     </data>
 </odoo>

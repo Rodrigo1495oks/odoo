@@ -170,11 +170,13 @@ class IrrevocableContribution(models.Model):
                 'display_type': 'line_note',
                 'account_id': self.partner_id.property_account_cash_id.id,
                 'debit': self.amount,
+                'contribution_order_id': self.id
             }
             credit_line = {
                 'display_type': 'line_note',
                 'account_id': self.partner_id.property_account_contribution_id.id,
                 'credit': self.amount,
+                'contribution_order_id': self.id
             }
             contribution_vals['line_ids'].append(
                 (0, 0, debit_line))
@@ -221,15 +223,15 @@ class IrrevocableContribution(models.Model):
 
             debit_line = {
                 'display_type': 'line_note',
-                # property_account_contribution_id
                 'account_id': self.partner_id.property_account_contribution_id.id,
                 'debit': self.amount,
+                'contribution_order_id': self.id
             }
             credit_line = {
                 'display_type': 'line_note',
-                # property_account_cash_id
                 'account_id': self.partner_id.property_account_cash_id.id,
                 'credit': self.amount,
+                'contribution_order_id': self.id
             }
             contribution_vals['line_ids'].append(
                 (0, 0, debit_line))

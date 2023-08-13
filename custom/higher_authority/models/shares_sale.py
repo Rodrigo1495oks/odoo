@@ -138,7 +138,7 @@ class ShareSale(models.Model):
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
         # 0) Primero necesito saber cuantas ganancias liquidas tengo.
-        # y cunto de reservas libres tengo
+        # y cuanto de reservas libres tengo
         # leer la cuenta para buscar el saldo
         period = self._return_last_fiscal_year()
         result_account = self.env['ir.config_parameter'].get_param(
@@ -183,6 +183,7 @@ class ShareSale(models.Model):
                         'account_id': self.partner_id.property_account_shareholding_id.id or (self.env['ir.config_parameter'].get_param(
                             'higher_authority.property_account_shareholding_id').id),
                         'credit': total_integrated or 0,
+                        'share_sale_order_id':self.id
                     }
 
                     capital_line = {
@@ -190,17 +191,20 @@ class ShareSale(models.Model):
                         'account_id': (self.env['ir.config_parameter'].get_param(
                             'higher_authority.property_account_portfolio_shares').id),
                         'debit': (total_integrated) or 0,
+                        'share_sale_order_id':self.id
                     }
                     result_credit_line = {
                         'display_type': 'line_note',
                         'account_id': (result_account).id,
                         'credit': (sum(total_integrated, total_issue_premium)-total_issue_discount) or 0,
+                        'share_sale_order_id':self.id
                     }
                     receivable_line = {
                         'display_type': 'line_note',
                         'account_id': self.partner_id.property_account_subscription_id.id or (property_account_subscription_id.id),
                         'debit': (sum(total_integrated, total_issue_premium)-total_issue_discount) or 0,
-                        'partner_id': self.partner_id.partner_id.id
+                        'partner_id': self.partner_id.partner_id.id,
+                        'share_sale_order_id':self.id
                     }
                     share_sale_vals['line_ids'].append(
                         (0, 0, suscribed_line))

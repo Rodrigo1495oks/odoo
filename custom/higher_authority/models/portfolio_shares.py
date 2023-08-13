@@ -190,10 +190,12 @@ class PortfolioShares(models.Model):
                     integrated_line = {
                         'account_id': property_account_integration_id,
                         'debit': total_integrated or 0.0,
+                        'redemption_order_id':self.id
                     }
                     capital_line = {
                         'account_id': property_account_portfolio_shares,
-                        'credit': (total_integrated) or 0.,
+                        'credit': (total_integrated) or 0.0,
+                        'redemption_order_id':self.id
                     }
                     redemption_vals['line_ids'].append(
                         (0, 0, integrated_line))
