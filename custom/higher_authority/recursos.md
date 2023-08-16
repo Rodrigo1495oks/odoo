@@ -1,5 +1,7 @@
 ># Recursos para desarrollar el módulo
 
+<!--  -->
+
 [calculo de la TIR * con Python](https://altocodigo.blogspot.com/2019/05/calculo-de-la-tir-tasa-interna-de.html)
 
 [Registracion de Bonos](https://www.ineaf.es/tribuna/obligaciones-y-bonos-contabilidad-de-la-emision-de-deuda-privada/)

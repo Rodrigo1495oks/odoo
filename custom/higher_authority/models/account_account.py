@@ -15,6 +15,7 @@ class AccountAccount(models.Model):
 
     account_type=fields.Selection(selection_add=[
         ('contribution','Aportes no Capitalizados'),
+        ('contribution_credits','Saldos pendientes Aportes')
         ('equity_issue_premium','Primas de Emision'),
         ('equity_issue_discount','Descuentos de emision'),
         ('equity_portfolio_shares','Acciones en cartera'),

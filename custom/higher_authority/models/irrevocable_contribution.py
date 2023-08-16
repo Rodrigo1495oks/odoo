@@ -154,7 +154,11 @@ class IrrevocableContribution(models.Model):
         """
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
-
+        property_account_contribution_credits_id = self.partner_id.property_account_contribution_credits_id or self.company_id.property_account_contribution_credits_id or self.env['account.account'].search([
+            ('internal_type', '=', 'property_account_contribution_credits_id')])[0]
+        property_account_contribution_id = self.partner_id.property_account_contribution_id or self.company_id.property_account_contribution_id or self.env['account.account'].search([
+            ('internal_type', '=', 'contribution')])[0]
+        
         # 1) Prepare suscription vals and clean-up the section lines
         contribution_vals_list = []
         for order in self:
@@ -166,15 +170,19 @@ class IrrevocableContribution(models.Model):
             contribution_vals = order._prepare_contribution()
             # Invoice line values (asset ad product) (keep only necessary sections).
 
+            # NOTA SOBRE LA REGISTRACIÓN DEL APORTE IRREVOCABLE
+            """
+            Acá hay dos opciones: registrar el pago sin la orden de pago, o registrar la contribución a una
+            cuenta de creditos, y registrando el recibo de pago inmediatamente.
+            """
+            # 
             debit_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_cash_id.id,
+                'account_id': property_account_contribution_credits_id,
                 'debit': self.amount,
                 'contribution_order_id': self.id
             }
             credit_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_contribution_id.id,
+                'account_id': property_account_contribution_id,
                 'credit': self.amount,
                 'contribution_order_id': self.id
             }
@@ -209,7 +217,10 @@ class IrrevocableContribution(models.Model):
         """
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
-
+        property_account_contribution_credits_id = self.partner_id.property_account_contribution_credits_id or self.company_id.property_account_contribution_credits_id or self.env['account.account'].search([
+            ('internal_type', '=', 'property_account_contribution_credits_id')])[0]
+        property_account_contribution_id = self.partner_id.property_account_contribution_id or self.company_id.property_account_contribution_id or self.env['account.account'].search([
+            ('internal_type', '=', 'contribution')])[0]
         # 1) Prepare suscription vals and clean-up the section lines
         contribution_vals_list = []
         for order in self:
@@ -222,14 +233,12 @@ class IrrevocableContribution(models.Model):
             # Invoice line values (asset ad product) (keep only necessary sections).
 
             debit_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_contribution_id.id,
+                'account_id': property_account_contribution_id,
                 'debit': self.amount,
                 'contribution_order_id': self.id
             }
             credit_line = {
-                'display_type': 'line_note',
-                'account_id': self.partner_id.property_account_cash_id.id,
+                'account_id': property_account_contribution_credits_id,
                 'credit': self.amount,
                 'contribution_order_id': self.id
             }

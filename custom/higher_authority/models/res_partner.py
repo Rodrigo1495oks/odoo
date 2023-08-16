@@ -67,7 +67,11 @@ class Partner(models.Model):
                                                        domain="[('internal_type', '=', 'contribution'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para las para registrar los partes pendientes de aprobación, a pesar que sea establecida una cuenta por defecto diferente",
                                                        required=True)
-
+    property_account_contribution_credits_id = fields.Many2one('account.account', company_dependent=True,
+                                                       string="Saldo de aportes no integrados",
+                                                       domain="[('internal_type', '=', 'contribution_credits'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                                       help="Esta cuenta será usada para las para registrar los partes pendientes de pago, a pesar que sea establecida una cuenta por defecto diferente",
+                                                       required=True, )
     property_account_issue_discount_id = fields.Many2one('account.account', company_dependent=True,
                                                          string="Descuentos de Emisión",
                                                          domain="[('internal_type', '=', 'equity_issue_discount'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
