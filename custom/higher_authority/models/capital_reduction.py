@@ -12,12 +12,12 @@ import requests
 import math
 import babel.dates
 import logging
-
+from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError
 from werkzeug import urls
 
 from datetime import datetime, timedelta
-
+from odoo.tools import date_utils
 from odoo.tools.float_utils import float_is_zero, float_compare
 
 from odoo import models, fields, api, tools, _
@@ -396,7 +396,7 @@ class ReductionOrder(models.Model):
             ('internal_type', '=', 'equity_unaffected')])[0]
 
             # leer el saldo y determianr su valor
-            balance = float(self.check_balance(result_account, period.date_to))
+            balance = float(self.check_balance(result_account, period.date_to or self._default_cutoff_date())) or 0
             balance = -(balance)
             # - si es pérdida: se procede al calculo
             # (sumatoria de las reservas y el 50% del capital):
@@ -574,6 +574,21 @@ class ReductionOrder(models.Model):
                     p = period
 
         return p
+    
+    @api.model
+    def _default_cutoff_date(self):
+        """obtiene la fecha de cierre por defecto"""
+        today = fields.Date.context_today(self)
+        company = self.env.company
+        date_from, date_to = date_utils.get_fiscal_year(
+            today,
+            day=company.fiscalyear_last_day,
+            month=int(company.fiscalyear_last_month),
+        )
+        if date_from:
+            return date_from - relativedelta(days=1)
+        else:
+            return False
 
     def _compute_percentage_to_reduce(self, total_to_cancel=0):
         self.ensure_one()
