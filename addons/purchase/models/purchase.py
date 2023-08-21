@@ -1408,7 +1408,7 @@ class PurchaseOrderLine(models.Model):
             name += '\n' + product_lang.description_purchase
 
         date_planned = self.order_id.date_planned or self._get_date_planned(seller, po=po)
-
+        
         return {
             'name': name,
             'product_qty': uom_po_qty,

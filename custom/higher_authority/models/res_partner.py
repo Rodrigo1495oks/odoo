@@ -85,7 +85,7 @@ class Partner(models.Model):
     
     account_capital_adjustment = fields.Many2one('account.account', company_dependent=True,
                                                  string="Ajuste al capital",
-                                                 domain="[('internal_type', '=', 'equity_capital_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                                 domain="[('internal_type', '=', 'equity_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                  help="Esta cuenta será usada para las para registrar los ajustes de capital, a pesar que sea establecida una cuenta por defecto diferente",
                                                  required=True)
 

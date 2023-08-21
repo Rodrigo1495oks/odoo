@@ -80,6 +80,8 @@
                             <group string='Campos monetarios' id='header_right_group'>
                                 <field name="nominal_value" widget="monetary" />
                                 <field name="price" widget="monetary" />
+                                <field name="adjusted_value" widget="monetary" />
+                                <field name="capital_adjust"/>
                                 <field name="issue_premium" widget="monetary" />
                                 <field name="issue_discount" widget="monetary" />
                                 <field name="issue_discount" widget="monetary" />

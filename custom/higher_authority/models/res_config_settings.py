@@ -86,7 +86,7 @@ class ResConfigSettings(models.TransientModel):
                                                         required=True, related='company_id.property_account_portfolio_shares',config_parameter='higher_authority.property_account_portfolio_shares')
     account_capital_adjustment = fields.Many2one('account.account', company_dependent=True,
                                                  string="Ajuste al capital",
-                                                 domain="[('internal_type', '=', 'equity_capital_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                                 domain="[('internal_type', '=', 'equity_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                  help="Esta cuenta será usada para las para registrar los ajustes de capital, a pesar que sea establecida una cuenta por defecto diferente",
                                                  required=True, related='company_id.account_capital_adjustment',config_parameter='higher_authority.account_capital_adjustment')
 
@@ -137,3 +137,10 @@ class ResConfigSettings(models.TransientModel):
                                            domain="[('internal_type', '=', 'liability_payable_amortized'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar",
                                            required=True, related='company_id.account_cert_amortized',config_parameter='higher_authority.account_cert_amortized' )
+    
+    # Reservas
+    account_legal_reserve=fields.Many2one('account.account', company_dependent=True,
+                                           string="Reserva Legal",
+                                           domain="[('internal_type', '=', 'legal_reserve'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                           help="Cuenta Única para registrar el saldo de la Reserva Legal",
+                                           required=True,related='company_id.account_legal_reserve',config_parameter='higher_authority.account_legal_reserve' )

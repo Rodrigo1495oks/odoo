@@ -57,7 +57,11 @@ class AccountShare(models.Model):
         string='Valor de Emisión', required=True, copy=True)
     price = fields.Float(string='Valor pactado en la suscripción',
                          help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True, compute='_compute_price')
-    # share_adjustment=fields.Float(string='Ajsute Valor Nominal', help='Valor que es registrado en la cuenta "Ajuste al capital"', readonly=True, copy=True, compute='_compute_price')
+    adjusted_value = fields.Monetary(string='Valor Ajustado', readonly=True,
+                                     default=0.0, help='Valor obtenido a partir de una hoja de ajuste')
+    capital_adjust = fields.Many2one(
+        string='Hoja de Ajuste', readonly=True, help='Hoja de ajuste por inflación')
+
     issue_premium = fields.Float(
         string='Prima de emision', help='Cotizacion sobre la par', compute='_compute_price')
 
@@ -113,6 +117,25 @@ class AccountShare(models.Model):
                     'state': 'portfolio',
                     'date_of_redemption': fields.Date.today(),
                     'partner_id': False
+                })
+            else:
+                raise UserError('Acción no válida para esta accion')
+
+    def _action_cancel_premium(self):
+        for share in self:
+            if share.state in ['suscribed', 'integrated']:
+                debit_line = {
+                    'account_id': self.partner_id.property_account_issue_premium_id or self.company_id.property_account_issue_premium_id or self.env['account.account'].search([
+                        ('internal_type', '=', 'equity_issue_premium')])[0],
+                    'debit': self.issue_premium,
+                }
+                credit_line = {
+                    'account_id': self.company_id.financial_year_result_account or self.env['account.account'].search([
+                        ('internal_type', '=', 'equity_unaffected')])[0],
+                    'credit': self.issue_premium,
+                }
+                share.update({
+                    'issue_premium': 0.0
                 })
             else:
                 raise UserError('Acción no válida para esta accion')

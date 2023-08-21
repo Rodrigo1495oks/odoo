@@ -14,6 +14,7 @@ class AccountAccount(models.Model):
 
 
     account_type=fields.Selection(selection_add=[
+        ('equity_adjustment','Ajuste al Capital'),
         ('contribution','Aportes no Capitalizados'),
         ('contribution_credits','Saldos pendientes Aportes')
         ('equity_issue_premium','Primas de Emision'),
@@ -24,6 +25,7 @@ class AccountAccount(models.Model):
         ('certificate_refund','Reintegro de Bonos'),
         ('certificate','Bono'),
         ('certificate_line','Lineas de Bono'),
+        ('legal_reserve','Reserva Legal'),
         ('other_expenses','Otros Gastos'),
         ('expenses_interest_and_implicit_financial_components','Intereses y Componentes Financieros Implicitos'),
     ])

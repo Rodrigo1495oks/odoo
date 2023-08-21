@@ -80,7 +80,7 @@ class ResCompany(models.Model):
                                                         required=True, )
     account_capital_adjustment = fields.Many2one('account.account', company_dependent=True,
                                                  string="Ajuste al capital",
-                                                 domain="[('internal_type', '=', 'equity_capital_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                                 domain="[('internal_type', '=', 'equity_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                  help="Esta cuenta será usada para las para registrar los ajustes de capital, a pesar que sea establecida una cuenta por defecto diferente",
                                                  required=True, )
 
@@ -128,4 +128,11 @@ class ResCompany(models.Model):
                                            string="Obligaciones Amortizadas",
                                            domain="[('internal_type', '=', 'liability_payable_amortized'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar",
+                                           required=True)
+    # Reservas
+
+    account_legal_reserve=fields.Many2one('account.account', company_dependent=True,
+                                           string="Reserva Legal",
+                                           domain="[('internal_type', '=', 'legal_reserve'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                           help="Cuenta Única para registrar el saldo de la Reserva Legal",
                                            required=True)
