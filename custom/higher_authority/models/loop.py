@@ -14,3 +14,10 @@ if all([check_and_break(line) for line in lines]):
     print('verdadero')
 else:
     print('falso')
+
+print('suma de iterable')
+print(sum([2,4,6]))
+
+
+valores=[1,2,3,4,5,6,7,8,9,10]
+

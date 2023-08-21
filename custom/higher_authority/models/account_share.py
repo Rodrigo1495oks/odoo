@@ -81,9 +81,11 @@ class AccountShare(models.Model):
                                         help='Campo técnico usado para registrar las reducciones de capital que se llevaron a cabo con esta acción')
     portfolio_shares = fields.Many2one(
         string='Acciones en cartera', comodel_name='portfolio.shares', store=True, index=True, readonly=True)
-
+    user_id = fields.Many2one('res.users', string='Usuario',
+                              index=True, tracking=True, default=lambda self: self.env.user)
     share_sale = fields.Many2one(
         string='Venta de Acciones', comodel_name='share.sale', store=True, index=True, readonly=True, help='Campo técnico usado para registrar las ventas de acciones que se llevaron a cabo con esta acción')
+    notes = fields.Html(string='Notas')
     # def action_integrate(self):
     #     for share in self:
     #         if share.state == 'new' or share.state == 'subscribed':
@@ -134,8 +136,30 @@ class AccountShare(models.Model):
                         ('internal_type', '=', 'equity_unaffected')])[0],
                     'credit': self.issue_premium,
                 }
+
+                cancelation_vals = {
+                    'ref': self.date_of_issue or '',
+                    'move_type': 'issue_premium_cancelation',
+                    'narration': self.notes,
+                    'currency_id': self.company_id.currency_id.id,
+                    'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
+                    'partner_id': self.partner_id.id,
+                    'invoice_origin': f"Cancelación de Prima: {self.short_name}",
+                    'line_ids': [],
+                    'company_id': self.company_id.id,
+                }
+                cancelation_vals['line_ids'].extend(
+                    (0, 0, debit_line), (0, 0, credit_line))
+
+                SusMoves = self.env['account.move']
+                AccountMove = self.env['account.move'].with_context(
+                    default_move_type='issue_premium_cancelation')
+                redMove = AccountMove.with_company(
+                    cancelation_vals['company_id']).create(cancelation_vals)
+                SusMoves |= redMove
+                
                 share.update({
-                    'issue_premium': 0.0
+                'issue_premium': 0.0
                 })
             else:
                 raise UserError('Acción no válida para esta accion')

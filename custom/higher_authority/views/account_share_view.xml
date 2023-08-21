@@ -87,6 +87,9 @@
                                 <field name="issue_discount" widget="monetary" />
                             </group>
                         </group>
+                        <group>
+                            <field name="notes" />
+                        </group>
                     </sheet>
                 </form>
             </field>

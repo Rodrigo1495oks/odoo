@@ -73,7 +73,8 @@ class AccountMove(models.Model):
             ('reduction', 'Reducción de Capital'),
             ('certificate', 'Emision de Bonos'),
             ('certificate_line', 'Líneas de Bonos'),
-            ('certificate_refund', 'Reintegro de Bonos')
+            ('certificate_refund', 'Reintegro de Bonos'),
+            ('issue_premium_cancelation', 'Cancelación de Primas')
         ]
     )
     # Costos de emisión de acciones

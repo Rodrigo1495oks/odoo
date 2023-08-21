@@ -391,15 +391,11 @@ class ReductionOrder(models.Model):
             # 2- Determinar el resultado del ejercicio (31/12 del ejercicio cerrado)
             # seleccionamos el periodo fiscal mas reciente
 
-            period = self._return_last_fiscal_year()
-
             # leer la cuenta para buscar el saldo
             result_account = self.company_id.financial_year_result_account or self.env['account.account'].search([
                 ('internal_type', '=', 'equity_unaffected')])[0]
             # Leer las cuentas del accionista
 
-            property_account_issue_premium_id = self.partner_id.property_account_issue_premium_id or self.company_id.property_account_issue_premium_id or self.env['account.account'].search([
-                ('internal_type', '=', 'equity_issue_premium')])[0]
             property_account_subscription_id = self.partner_id.property_account_subscription_id or self.company_id.property_account_subscription_id or self.env['account.account'].search([
                 ('internal_type', '=', 'equity')])[0]
             property_account_integration_id = self.partner_id.property_account_integration_id or self.company_id.property_account_integration_id or self.env['account.account'].search([
@@ -407,7 +403,7 @@ class ReductionOrder(models.Model):
 
             # leer el saldo y determinar su valor
             balance = float(self.check_balance(
-                result_account, period.date_to or self._default_cutoff_date())) or 0
+                result_account, self._return_last_fiscal_year().date_to or self._default_cutoff_date())) or 0
             balance = -(balance)
             # - si es pérdida: se procede al calculo
             # (sumatoria de las reservas y el 50% del capital):
@@ -423,7 +419,7 @@ class ReductionOrder(models.Model):
             # Sila condicion se cumple: prosigo:
             # itero sobre todas las reservas
             i = 0
-
+            integrated_value = suscribed_value = 0
             for reserve in self.env['account.reserve'].search([], order='type desc, priority asc, issue_date asc'):
                 """Voy cancelando las reservas hasta que se haya absorbido todo el quebranto"""
                 if not (i >= balance):
@@ -449,36 +445,47 @@ class ReductionOrder(models.Model):
                     else:
                         break  # si salde todo el quebranto, paro
             if not (i >= balance):
-                for share in self.env['account.share'].search([('partner_id', '=', self.partner_id),('state', 'in', ['suscribed', 'integrated'])], order='date_of_issue asc'):
+                for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['suscribed', 'integrated'])], order='state asc, date_of_issue asc'):
                     """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
                     if not (i >= balance):
                         i += share.issue_premium
                         share._action_cancel_premium()
                     else:
                         break  # si salde todo el quebranto, paro
-
-            issue_premium_debit = {
-                'account_id': property_account_issue_premium_id,
-                'debit': self.manual_amount or 0,
-                'reduction_order_id': self.id
-            }
+            if not (i >= balance):
+                for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['integrated'])], order='state asc, date_of_issue asc'):
+                    """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
+                    if not (i >= balance):
+                        integrated_value+=share.nominal_value
+                        i += share.nominal_value
+                    else:
+                        break  # si salde todo el quebranto, paro
+            if not (i >= balance):
+                for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['suscribed'])], order='state asc, date_of_issue asc'):
+                    """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
+                    if not (i >= balance):
+                        suscribed_value+=share.nominal_value
+                        i += share.nominal_value
+                    else:
+                        break  # si salde todo el quebranto, paro
             suscribed_debit = {
                 'account_id': property_account_subscription_id,
-                'debit': self.manual_amount or 0,
+                'debit': suscribed_value or 0,
                 'reduction_order_id': self.id
             }
             integrated_debit = {
                 'account_id': property_account_integration_id,
-                'debit': self.manual_amount or 0,
+                'debit': integrated_value or 0,
                 'reduction_order_id': self.id
             }
             credit_line = {
                 'account_id': result_account,
-                'credit': i or 0,
+                'credit': suscribed_value + integrated_value,
                 'reduction_order_id': self.id
             }
 
-            reduction_vals['line_ids'].extend((0, 0, debit_line))
+            reduction_vals['line_ids'].extend(
+                (0, 0, suscribed_debit), (0, 0, integrated_debit), (0, 0, credit_line))
 
             reduction_vals_list.append(reduction_vals)
 
@@ -622,14 +629,13 @@ class ReductionOrder(models.Model):
         return topic_values
 
     def _return_last_fiscal_year(self):
-        periods = self.env['account.fiscal.year'].search(
-            [('state', 'in', '(suscribed, portfolio, negotiation)')])
+        periods = self.env['account.fiscal.year'].browse()
 
         max = 0
         p = ''
         # selecciono el periodo mas reciente (ultimop ejercicio cerrado)
         for period in periods:
-            if period.date <= self.date:
+            if period.date_from <= self.date:
                 if period.date_to >= max:
                     max = period.date_to
                     p = period
