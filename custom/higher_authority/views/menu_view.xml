@@ -28,19 +28,22 @@
             name="Incorporaciones"
             parent="shareholding_root_menu">
             <menuitem id="menu_action_subscription" name='Pedidos de Suscripción'
-                action="subscription_order_action" sequence="1" parent="shareholding_inc_menu"/>
+                action="subscription_order_action" sequence="1" parent="shareholding_inc_menu" />
             <menuitem id="menu_action_integration" name='Pedidos de Integración'
-                action="integration_rfq" sequence="2" parent="shareholding_inc_menu"/>
+                action="integration_rfq" sequence="2" parent="shareholding_inc_menu" />
 
         </menuitem>
 
-        <!-- Reducciones -->
         <menuitem
             id="removing_shareholding_menu"
             name="Reducciones"
             parent="shareholding_root_menu">
+            <!-- Reducciones -->
             <menuitem id="menu_action_reduction" name='Pedidos de Suscripción'
-                action="reduction_order_action" sequence="1" parent='removing_shareholding_menu'/>
+                action="reduction_order_action" sequence="1" parent='removing_shareholding_menu' />
+            <!-- Ordenes de Cancelación -->
+            <menuitem id="menu_action_reduction" name='Pedidos de Suscripción'
+                action="reduction_list_action" sequence="2" parent='removing_shareholding_menu' />
         </menuitem>
 
         <!-- Acciones -->
@@ -49,16 +52,16 @@
             parent="shareholding_root_menu">
 
             <menuitem id="menu_action_shares" name='Acciones' action="account_share_action"
-                sequence="1" parent='shares_menu'/>
+                sequence="1" parent='shares_menu' />
             <menuitem id="menu_action_share_cost" name='Costos de Emisión - (Solicitud)'
-                action="account_share_cost_rfq" sequence="2" parent='shares_menu'/>
+                action="account_share_cost_rfq" sequence="2" parent='shares_menu' />
             <menuitem id="menu_action_share_cost_confirmed" name='Costos de Emisión'
-                action="account_share_cost_form_action" sequence="3" parent='shares_menu'/>
+                action="account_share_cost_form_action" sequence="3" parent='shares_menu' />
 
 
         </menuitem>
-            <!-- Configuration -->
+        <!-- Configuration -->
         <menuitem id="menu_configuration" name="Configuración"
-            parent="shareholding_root_menu"/>
+            parent="shareholding_root_menu" />
     </data>
 </odoo>

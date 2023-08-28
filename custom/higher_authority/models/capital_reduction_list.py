@@ -58,7 +58,6 @@ class ReductionList(models.Model):
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id, readonly=True)
-
     percentage_to_reduce = fields.Float(
         string='Porcentaje de Reducción', default=0.0, help='Porcentaje a reducir para mantener el VPP')
     reduction_ids = fields.One2many(
