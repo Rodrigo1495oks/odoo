@@ -34,6 +34,7 @@ from odoo.tools.misc import get_lang
 from odoo.tools import pycompat
 from odoo.exceptions import UserError, AccessError
 
+
 class AssemblyMeeting(models.Model):
     _name = 'assembly.meeting'
     _inherit = ['mail.thread', 'mail.activity.mixin']
@@ -52,7 +53,7 @@ class AssemblyMeeting(models.Model):
         ('extraordinary', 'Asamblea Extraordinaria')
     ])
     partner_ids = fields.Many2many(string='Accionistas Presentes', comodel_name='res.partner',
-                                    column1='assembly_meet', column2='shareholder', relation='assembly_meeting_shareholders')
+                                   column1='assembly_meet', column2='shareholder', relation='assembly_meeting_shareholders')
 
     state = fields.Selection(string='Estado', selection=[
         ('draft', 'Borrador'),
@@ -68,15 +69,18 @@ class AssemblyMeeting(models.Model):
 
     def action_draft(self):
         for meet in self:
-            if meet.state not in ['canceled','finished']:
-                meet.state='draft'
+            if meet.state not in ['canceled', 'finished']:
+                meet.state = 'draft'
+
     def action_confirm(self):
         for meet in self:
-            meet.state='new' if meet.state in ['draft'] else None
+            meet.state = 'new' if meet.state in ['draft'] else None
+
     def action_finish(self):
         for meet in self:
-            meet.state='finished' if meet.state in ['new'] else None
+            meet.state = 'finished' if meet.state in ['new'] else None
     # low level methods
+
     @api.model
     def create(self, vals):
         if vals.get('short_name', _('New')) == _('New'):
@@ -84,6 +88,8 @@ class AssemblyMeeting(models.Model):
                 'assembly.meeting') or _('New')
         res = super(AssemblyMeeting, self.create(vals))
         return res
+
+
 class AssemblyMeetingTopic(models.Model):
     _name = 'assembly.meeting.topic'
     # _inherits = {'account.asset', 'ref_name'}
@@ -100,7 +106,8 @@ class AssemblyMeetingTopic(models.Model):
                 record.meeting_assigned = True
                 return True
 
-    short_name = fields.Char(string='Referencia', required=True, index='trigram', copy=False, default='New')
+    short_name = fields.Char(
+        string='Referencia', required=True, index='trigram', copy=False, default='New')
 
     name = fields.Char(string='Título')
     description = fields.Text(
@@ -119,7 +126,7 @@ class AssemblyMeetingTopic(models.Model):
         ('irrevocable', 'Aporte Irrevocable'),
         ('reduction', 'Cancelar Acciones'),
         ('redemption', 'Acciones en Cartera'),
-        ('share_sale','Venta de Acciones')
+        ('share_sale', 'Venta de Acciones')
 
     ], required=True)
     # campos relacionales
@@ -131,13 +138,16 @@ class AssemblyMeetingTopic(models.Model):
     share_issuance = fields.One2many(
         string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance', inverse_name='topic')
 
+    reduction_cancelation = fields.One2many(string='Cancelación de Acciones', readonly=True,
+                                            index=True, store=True, comodel_name='capital.reduction.list', inverse_name='topic')
+
     def action_confirm(self):
         for topic in self:
-            if topic.state not in ['new'] and topic.assembly_meeting.state not in ['draft','finished','canceled']:
-                topic.state='new' 
-            else: 
+            if topic.state not in ['new'] and topic.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+                topic.state = 'new'
+            else:
                 raise UserError('topico ya tratado o reunion no establecida')
-            
+
     def name_get(self):
         result = []
         for topic in self:
@@ -145,24 +155,26 @@ class AssemblyMeetingTopic(models.Model):
             name = '%s (%s)' % (topic.short_name, ', '.join(share_issuances))
             result.append((topic.id, name))
             return result
-        
+
     def action_approve_topic(self):
         for topic in self:
-            if topic.state=='new' and topic.assembly_meeting.state not in ['draft','finished','canceled']:
-                topic.state='aproved'
+            if topic.state == 'new' and topic.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+                topic.state = 'aproved'
+            else:
+                raise UserError('No puede aprobarse este tópico')
 
-            else: raise UserError('No puede aprobarse este tópico')
-    
     def action_refuse_topic(self):
         for topic in self:
-            if topic.state not in ['draft','aproved','refused'] and topic.assembly_meeting.state not in ['draft','finished','canceled']:
-                topic.state='refused'
+            if topic.state not in ['draft', 'aproved', 'refused'] and topic.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+                topic.state = 'refused'
             else:
                 raise UserError('No puede rechazarse este tópico')
+
     def action_draft(self):
         for meet in self:
             if meet.state in ['new']:
-                meet.state='draft'
+                meet.state = 'draft'
+
     def action_set_canceled(self):
         self.ensure_one()
         for topic in self:
@@ -171,6 +183,7 @@ class AssemblyMeetingTopic(models.Model):
             else:
                 raise UserError(
                     'No puede Cancelarse un inmueble que ya esta cancelado o vendido')
+
     @api.model
     def create(self, vals):
         if vals.get('short_name', _('New')) == _('New'):
