@@ -38,11 +38,16 @@ class IrrevocableContribution(models.Model):
     _order = 'short_name desc, name desc'
     _rec_name = 'short_name'
 
-    @api.depends('invoice_ids')
-    def _compute_invoice(self):
+    @api.depends('integration_ids')
+    def _compute_integration(self):
         for order in self:
-            invoices = order.mapped('invoice_ids')
-            order.invoice_count = len(invoices)
+            invoices = order.mapped('integration_ids')
+            order.integration_count = len(invoices)
+    @api.depends('contribution_ids')
+    def _compute_contribution(self):
+        for order in self:
+            invoices = order.mapped('contribution_ids')
+            order.contribution_count = len(invoices)
 
     short_name = fields.Char(string='Referencia', default='New',
                              required=True, copy=False, readonly=True)
@@ -51,10 +56,10 @@ class IrrevocableContribution(models.Model):
         [('0', 'Normal'), ('1', 'Urgent')], 'Priority', default='0', index=True)
     date = fields.Date(string='Fecha', required=True,
                        default=fields.datetime.now)
-
+    type = fields.Selection(string='Tipo', help='Escoga el tipo de aporte', selection=[(
+        'future', 'Para Futuras Suscripciones'), ('loss', 'Para Absorber Pérdidas Acumuladas')], default='future')
     partner_id = fields.Many2one(
         string='Accionista', comodel_name='res.partner')
-
     date_due = fields.Date(string='Fecha Límite de integración', required=True)
     integration_date = fields.Date(
         string='Fecha de Integración', readonly=True)
@@ -70,11 +75,15 @@ class IrrevocableContribution(models.Model):
     is_integrated = fields.Boolean(string='Integrado')
 
     share_issuance = fields.Many2one(
-        string='Emisión', comodel_name='share.issuance')
+        string='Emisión', comodel_name='share.issuance', readonly=True, help='Emisión de Acciones Relacionada')
 
-    invoice_count = fields.Integer(
-        compute="_compute_invoice", string='Cantidad de Asientos', copy=False, default=0, store=True)
-    invoice_ids = fields.Many2many(
+    contribution_count = fields.Integer(
+        compute="_compute_contribution", string='Cantidad de Asientos', copy=False, default=0, store=True)
+    contribution_ids = fields.Many2many(
+        'account.move', string='Asientos', copy=False, store=True)
+    integration_count = fields.Integer(
+        compute="_compute_integration", string='Cantidad de Asientos', copy=False, default=0, store=True)
+    integration_ids = fields.Many2many(
         'account.move', string='Asientos', copy=False, store=True)
 
     state = fields.Selection(string='Estado', selection=[('draft', 'Borrador'), ('new', 'Nuevo'), (
@@ -84,6 +93,8 @@ class IrrevocableContribution(models.Model):
                                          domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
 
     notes = fields.Html(string='Descripción')
+    topic = fields.Many2one(string='Tema de Reunión',
+                            comodel_name='assembly.meeting.topic', ondelete='restrict', readonly=True)
 
     # low level methods
 
@@ -95,9 +106,26 @@ class IrrevocableContribution(models.Model):
         res = super(IrrevocableContribution, self.create(vals))
         return res
 
+    # def button_set_new(self):
+    #     for cont in self:
+    #         if cont.state == 'draft':
+    #             cont.state = 'new'
+    def action_confirm(self):
+        self.ensure_one()
+        for issue in self:
+            if issue.state == 'draft':
+                topic_vals = self._prepare_topic_values()
+                self.topic += self.env['assembly.meeting.topic'].create(
+                    topic_vals)
+                issue.state = 'new'
+                return True
+            else:
+                raise UserError(
+                    'Accion no permitida')
+
     def action_approve(self):
         for cont in self:
-            if cont.state not in ['draft', 'cancel', 'confirm', 'approved']:
+            if cont.state not in ['draft', 'cancel', 'confirm', 'approved'] & cont.topic.state=='approved':
                 cont.action_create_contribution()
                 cont._action_create_share_issuance()
                 cont.state = 'approved'
@@ -106,29 +134,17 @@ class IrrevocableContribution(models.Model):
 
     def action_cancel(self):
         for cont in self:
-            if cont.state not in ['draft', 'new', 'cancel'] and cont.topic.id.state == 'refused':
+            if cont.state not in ['draft', 'new', 'cancel','confirm'] and cont.topic.id.state == 'refused':
                 cont.action_cancel_contribution()
                 cont._action_cancel_share_issuance()
                 cont.state = 'cancel'
             else:
                 raise UserError('No puede cancelarse el aporte')
 
-    def action_confirm(self):
-        self.ensure_one()
-        for issue in self:
-            if issue.state == 'draft':
-                topic_vals = self._prepare_topic_values()
-                self.env['assembly.meeting.topic'].create(topic_vals)
-                issue.state = 'new'
-                return True
-            else:
-                raise UserError(
-                    'Accion no permitida')
-
     def action_integrate(self):
         for cont in self:
-            if cont.share_issuance:
-                cont.create_contribution()
+            if cont.share_issuance and cont.state == 'approved':
+                cont.create_integration()
                 cont.state = 'confirm'
             else:
                 raise UserError(
@@ -158,7 +174,7 @@ class IrrevocableContribution(models.Model):
             ('internal_type', '=', 'property_account_contribution_credits_id')])[0]
         property_account_contribution_id = self.partner_id.property_account_contribution_id or self.company_id.property_account_contribution_id or self.env['account.account'].search([
             ('internal_type', '=', 'contribution')])[0]
-        
+
         # 1) Prepare suscription vals and clean-up the section lines
         contribution_vals_list = []
         for order in self:
@@ -175,7 +191,7 @@ class IrrevocableContribution(models.Model):
             Acá hay dos opciones: registrar el pago sin la orden de pago, o registrar la contribución a una
             cuenta de creditos, y registrando el recibo de pago inmediatamente.
             """
-            # 
+            #
             debit_line = {
                 'account_id': property_account_contribution_credits_id,
                 'debit': self.amount,
@@ -203,7 +219,6 @@ class IrrevocableContribution(models.Model):
             self.invoice_ids += newInv
             SusMoves |= newInv
 
-
         # 4) Some moves might actually be refunds: convert them if the total amount is negative
         # We do this after the moves have been created since we need taxes, etc. to know if the total
         # is actually negative or not
@@ -211,6 +226,68 @@ class IrrevocableContribution(models.Model):
                           < 0).action_switch_invoice_into_refund_credit_note()
 
         return self.action_view_contribution(SusMoves)
+
+    def create_integration(self):
+        """Create the integration associated to the IC.
+        """
+        # precision = self.env['decimal.precision'].precision_get(
+        #     'Product Unit of Measure')
+        property_account_integration_id = self.partner_id.property_account_integration_id or self.company_id.property_account_integration_id or self.env['account.account'].search([
+            ('internal_type', '=', 'equity')])[0]
+        property_account_contribution_id = self.partner_id.property_account_contribution_id or self.company_id.property_account_contribution_id or self.env['account.account'].search([
+            ('internal_type', '=', 'contribution')])[0]
+
+        # 1) Prepare suscription vals and clean-up the section lines
+        integration_vals_list = []
+        for order in self:
+            if order.state != 'approved':
+                continue
+
+            order = order.with_company(order.company_id)
+            # Invoice values.
+            integration_vals = order._prepare_integration()
+            # Invoice line values (asset ad product) (keep only necessary sections).
+
+            # NOTA SOBRE LA REGISTRACIÓN DEL APORTE IRREVOCABLE
+            """
+            Acá hay dos opciones: registrar el pago sin la orden de pago, o registrar la contribución a una
+            cuenta de creditos, y registrando el recibo de pago inmediatamente.
+            """
+            #
+            debit_line = {
+                'account_id': property_account_contribution_id,
+                'debit': self.amount,
+                'contribution_order_id': self.id
+            }
+            credit_line = {
+                'account_id': property_account_integration_id,
+                'credit': self.amount,
+                'contribution_order_id': self.id
+            }
+            integration_vals['line_ids'].append(
+                (0, 0, debit_line))
+            integration_vals['line_ids'].append(
+                (0, 0, credit_line))
+
+            integration_vals_list.append(integration_vals)
+
+        # 3) Create invoices.
+        SusMoves = self.env['account.move']
+        AccountMove = self.env['account.move'].with_context(
+            default_move_type='integration')
+        for vals in integration_vals_list:
+            newInv = AccountMove.with_company(
+                vals['company_id']).create(vals)
+            self.integration_ids += newInv
+            SusMoves |= newInv
+
+        # 4) Some moves might actually be refunds: convert them if the total amount is negative
+        # We do this after the moves have been created since we need taxes, etc. to know if the total
+        # is actually negative or not
+        SusMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
+                          < 0).action_switch_invoice_into_refund_credit_note()
+
+        return self.action_view_integration(SusMoves)
 
     def action_cancel_contribution(self):
         """Create the contribution 'Cancel' associated to the IC.
@@ -254,8 +331,10 @@ class IrrevocableContribution(models.Model):
         AccountMove = self.env['account.move'].with_context(
             default_move_type='contribution')
         for vals in contribution_vals_list:
-            SusMoves |= AccountMove.with_company(
+            newInv = AccountMove.with_company(
                 vals['company_id']).create(vals)
+            self.contribution_ids += newInv
+            SusMoves |= newInv
 
         # 4) Some moves might actually be refunds: convert them if the total amount is negative
         # We do this after the moves have been created since we need taxes, etc. to know if the total
@@ -303,20 +382,46 @@ class IrrevocableContribution(models.Model):
             'company_id': self.company_id.id,
         }
         return contribution_vals
-    
+    def _prepare_integration(self):
+        """Prepare the dict of values to create the new invoice for a purchase order.
+        """
+        self.ensure_one()
+        move_type = self._context.get('default_move_type', 'integration')
+
+        partner_invoice = self.env['res.partner'].browse(self.partner_id.address_get(['invoice'])['invoice'])
+        partner_bank_id = self.partner_id.commercial_partner_id.bank_ids.filtered_domain(['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)])[:1]
+
+        invoice_vals = {
+            'ref': self.partner_ref or '',
+            'contribution_id':self.id,
+            'move_type': move_type,
+            'narration': self.notes,
+            'currency_id': self.currency_id.id,
+            'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
+            'partner_id': partner_invoice.id,
+            'fiscal_position_id': (self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
+            'payment_reference': self.partner_ref or '',
+            'partner_bank_id': partner_bank_id.id,
+            'invoice_origin': self.name,
+            'invoice_payment_term_id': self.payment_term_id.id,
+            'invoice_line_ids': [],
+            'line_ids': [],
+            'company_id': self.company_id.id,
+        }
+        return invoice_vals
     def action_view_contribution(self, contribution=False):
         """This function returns an action that display existing  integrations entries of
         given Integration order ids. When only one found, show the integration entries
         immediately.
         """
-        
+
         if not contribution:
             # Invoice_ids may be filtered depending on the user. To ensure we get all
             # suscriptions related to the suscription order, we read them in sudo to fill the
             # cache.
             self.invalidate_model(['irrevocable_contribution'])
             self.sudo()._read(['irrevocable_contribution'])
-            contribution = self.invoice_ids
+            contribution = self.contribution_ids
 
         result = self.env['ir.actions.act_window']._for_xml_id(
             'higher_authority.action_move_in_contribution_type')
@@ -338,7 +443,40 @@ class IrrevocableContribution(models.Model):
             result = {'type': 'ir.actions.act_window_close'}
 
         return result
+    def action_view_integration(self, integration=False):
+        """This function returns an action that display existing  integrations entries of
+        given Integration order ids. When only one found, show the integration entries
+        immediately.
+        """
 
+        if not integration:
+            # Invoice_ids may be filtered depending on the user. To ensure we get all
+            # suscriptions related to the suscription order, we read them in sudo to fill the
+            # cache.
+            self.invalidate_model(['irrevocable_contribution'])
+            self.sudo()._read(['irrevocable_contribution'])
+            integration = self.integration_ids
+
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'higher_authority.action_move_in_integration_type')
+        # choose the view_mode accordingly
+        if len(integration) > 1:
+            result['domain'] = [('id', 'in', integration.ids)]
+        elif len(integration) == 1:
+            res = self.env.ref(
+                'higher_authority.view_integration_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + \
+                    [(state, view)
+                     for state, view in result['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            result['res_id'] = integration.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+
+        return result
     def _action_create_share_issuance(self):
         self.ensure_one()
         """Crea la emision de acciones correspondiente para 
@@ -346,7 +484,7 @@ class IrrevocableContribution(models.Model):
         """
         vals = {
             'irrevocable_contribution': self.id,
-            'short_name': self.number,
+            'name': self.number,
             'makeup_date': fields.Datetime.now(),
             'nominal_value': self.amount,
             'price': self.amount,
@@ -359,9 +497,7 @@ class IrrevocableContribution(models.Model):
         return True
 
     def _prepare_topic_values(self):
-
         self.ensure_one()
-
         topic_values = {
             "name": "Aporte de Capital. \n",
             "description": "Aporte de Capital",

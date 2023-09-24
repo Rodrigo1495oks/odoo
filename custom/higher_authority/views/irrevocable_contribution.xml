@@ -33,6 +33,9 @@
             <field name="arch" type="xml">
                 <form string="Aporte Irrevocable">
                     <header>
+                        <!-- <button name="button_set_new" string="Establecer a Nuevo" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '=', 'new')]}" /> -->
                         <button name="action_approve" string="Aprobar" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '=', 'new')]}" />
@@ -53,9 +56,18 @@
                             <button type="object" name="action_view_contribution"
                                 class="oe_stat_button"
                                 icon="fa-pencil-square-o"
-                                attrs="{'invisible':['|', ('offer_count', '=', 0), ('active', '=', 'False')]}">
-                                <field name="invoice_count" widget="statinfo" string="Asientos" />
-                                <field name='invoice_ids' invisible="1" />
+                                attrs="{'invisible':['|', ('active', '=', 'False')]}">
+                                <field name="contribution_count" widget="statinfo" string="Asientos" />
+                                <field name='contribution_ids' invisible="1" />
+                            </button>
+                        </div>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object" name="action_view_integration"
+                                class="oe_stat_button"
+                                icon="fa-pencil-square-o"
+                                attrs="{'invisible':['|', ('active', '=', 'False')]}">
+                                <field name="integration_count" widget="statinfo" string="Asientos" />
+                                <field name='integration_ids' invisible="1" />
                             </button>
                         </div>
                         <widget name="web_ribbon" title="Cancelado" bg_color="bg-danger"

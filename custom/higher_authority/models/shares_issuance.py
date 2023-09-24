@@ -159,21 +159,21 @@ class SharesIssuance(models.Model):
 
     def action_suscribe(self):
         for issuance in self:
-            if issuance.state == 'approved':
+            if issuance.state == 'approved' and not issuance.irrevocable_contribution:
                 issuance.state == 'suscribed'
                 for share in issuance.shares:
                     share.share_aprove()
             else:
-                raise UserError('Acción no válida')
+                raise UserError('No ha sido aprobada. O se trata de un aporte irrevocable, en cuyo caso deberá integrar las acciones directamente')
 
     def action_integrate(self):
         for issuance in self:
-            if issuance.state == 'suscribed':
+            if issuance.state == 'suscribed' or issuance.irrevocable_contribution.state=='approved':
                 issuance.state == 'integrated'
                 for share in issuance.shares:
                     share.state='integrated'
             else:
-                raise UserError('Acción no válida')
+                raise UserError('Acción no válida. LA emision no esta suscrita o el aporte irrevocable no esta Aprobado')
 
     def action_confirm(self):
         self.ensure_one()

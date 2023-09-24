@@ -140,6 +140,8 @@ class AssemblyMeetingTopic(models.Model):
 
     reduction_cancelation = fields.One2many(string='Cancelación de Acciones', readonly=True,
                                             index=True, store=True, comodel_name='capital.reduction.list', inverse_name='topic')
+    irrevocable_contribution=fields.One2many(string='Aporte Irrevocable', readonly=True,
+                                            index=True, store=True, comodel_name='irrevocable.contribution', inverse_name='topic')
 
     def action_confirm(self):
         for topic in self:

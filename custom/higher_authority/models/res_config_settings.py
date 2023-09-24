@@ -68,7 +68,11 @@ class ResConfigSettings(models.TransientModel):
                                                        domain="[('internal_type', '=', 'contribution'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",related='company_id.property_account_contribution_id',
                                                        help="Esta cuenta será usada para las para registrar los partes pendientes de aprobación, a pesar que sea establecida una cuenta por defecto diferente",
                                                        required=True, related='company_id.property_account_contribution_id',config_parameter='higher_authority.property_account_contribution_id')
-
+    property_account_contribution_losses_id = fields.Many2one('account.account', company_dependent=True,
+                                                       string="Cuenta de Aportes",
+                                                       domain="[('internal_type', '=', 'contribution_losses'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                                       help="Aportes para absorber pérdidas acumuladas",
+                                                       required=True, related='company_id.property_account_contribution_losses_id',config_parameter='higher_authority.property_account_contribution_losses_id')
     property_account_issue_discount_id = fields.Many2one('account.account', company_dependent=True,
                                                          string="Descuentos de Capital",
                                                          domain="[('internal_type', '=', 'equity_issue_discount'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",

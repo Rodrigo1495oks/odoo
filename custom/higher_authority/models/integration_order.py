@@ -813,7 +813,7 @@ class IntegrationOrder(models.Model):
         self.create_integration()
         return self.action_view_invoice(moves)
 
-    def _prepare_invoice(self):
+    def _prepare_integration(self):
         """Prepare the dict of values to create the new invoice for a purchase order.
         """
         self.ensure_one()
@@ -824,6 +824,7 @@ class IntegrationOrder(models.Model):
 
         invoice_vals = {
             'ref': self.partner_ref or '',
+            'integration_id':self.id,
             'move_type': move_type,
             'narration': self.notes,
             'currency_id': self.currency_id.id,
