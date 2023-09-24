@@ -98,8 +98,8 @@ class ReductionOrder(models.Model):
         'account.move', string='Reducciones', copy=False, store=True, domain=[('move_type', '=', 'reduction')])
     reduction_count = fields.Integer(
         compute="_compute_invoice", string='Reducciones', copy=False, default=0, store=True)
-    shares = fields.One2many(string='Acciones a Cancelar', help='Acciones creadas',
-                             comodel_name='account.share', inverse_name='capital_reduction', index=True, domain="[('state','not in',('cancel','draft','new', 'negotiation', 'portfolio')), ('partner_id','=','partner_id')]", compute='_compute_shares_to_cancel', readonly=True)
+    shares = fields.Many2many(string='Acciones a Cancelar', help='Acciones creadas', relation='reduction_share_rel', column1='reduction', column2='share', comodel_name='account.share', inverse_name='capital_reduction',
+                              index=True, domain="[('state','not in',('cancel','draft','new', 'negotiation', 'portfolio')), ('partner_id','=','partner_id')]", compute='_compute_shares_to_cancel', readonly=True)
     reduction_order = fields.Many2one(string='Órdenes de Reducción')
 
     manual_amount = fields.Monetary(
@@ -123,6 +123,8 @@ class ReductionOrder(models.Model):
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id, readonly=True)
+    reduction_list_id = fields.Many2one(
+        string='Pedidos de Reducción', help='Solicitudes de Reducción para mantener el VPP.', comodel_name='capital.reduction.list', readonly=True)
 
     @api.onchange('loss_absortion')
     def _onchange_absortion(self):
@@ -260,7 +262,7 @@ class ReductionOrder(models.Model):
 
             if total_to_cancel > max_to_red:
                 raise UserError(
-                    f'El total a cancelar supera el monto máximo    permitido: ${max_to_red}')
+                    f'El total a cancelar supera el monto máximo permitido: ${max_to_red}')
             # leer las cuentas para buscar el saldo
 
             property_account_shareholding_id = order.partner_id. property_account_shareholding_id.id or order.company_id.  property_account_shareholding_id or order.env['account.account'].search([
@@ -349,26 +351,24 @@ class ReductionOrder(models.Model):
                 0, 0, adjustment_line), (0, 0, discount_line), (0, 0,   redemption_of_shares_line), (0, 0, redemption_discount_line))
 
             reduction_vals_list.append(reduction_vals)
-
-            # 3) Create invoices.
-            SusMoves = self.env['account.move']
-
-            AccountMove = self.env['account.move'].with_context(
-                default_move_type='reduction')
-            for vals in reduction_vals_list:
-                redMove = AccountMove.with_company(
-                    vals['company_id']).create(vals)
-                self.reduction_ids.append(0, 0, redMove)
-                SusMoves |= redMove
-
-            # 4) Some moves might actually be refunds: convert them if the total    amount is negative
-            # We do this after the moves have been created since we need taxes,     etc. to know if the total
-            # is actually negative or not
-            SusMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
-                              < 0).action_switch_invoice_into_refund_credit_note()
             # e- dar de baja las acciones
             self._action_cancel_shares()
-            return self.action_view_reduction(SusMoves)
+        # 3) Create invoices.
+        SusMoves = self.env['account.move']
+        AccountMove = self.env['account.move'].with_context(
+            default_move_type='reduction')
+        for vals in reduction_vals_list:
+            redMove = AccountMove.with_company(
+                vals['company_id']).create(vals)
+            self.reduction_ids.append(0, 0, redMove)
+            SusMoves |= redMove
+        # 4) Some moves might actually be refunds: convert them if the total    amount is negative
+        # We do this after the moves have been created since we need taxes,     etc. to know if the total
+        # is actually negative or not
+        SusMoves.filtered(lambda m: m.currency_id.round(m.amount_total)
+                          < 0).action_switch_invoice_into_refund_credit_note()
+
+        return self.action_view_reduction(SusMoves)
 
     def action_create_reduction_obl(self):
         """Create the reduction associated to the SO.
@@ -384,7 +384,7 @@ class ReductionOrder(models.Model):
                 continue
 
             order = order.with_company(order.company_id)
-            pending_section = None
+
             # Invoice values.
             reduction_vals = order._prepare_reduction()
             # Invoice line values (asset ad product) (keep only necessary sections).
@@ -427,54 +427,12 @@ class ReductionOrder(models.Model):
             # itero sobre todas las reservas
             i = 0
             integrated_value = suscribed_value = 0
-            for reserve in self.env['account.reserve'].search([], order='type desc, priority asc, issue_date asc'):
-                """Voy cancelando las reservas hasta que se haya absorbido todo el quebranto"""
-                if not (i >= balance):
-                    i += reserve.amount
-                    reserve._action_cancel()  # Crea un asiento
-                    reserve.update({
-                        'reduction_id': self.id,
-                        'reduction_can': True,
-                    })
-                else:
-                    break  # si salde todo el quebranto, paro
+            order._cancel_reserve_loop(i, balance)
+            order._cancel_capital_adjustment_loop(i, balance)
+            order._cancel_premium_loop(i, balance)
+            order._cancel_suscribed_loop(i, balance, suscribed_value)
+            order._cancel_integrated_loop(i, balance, integrated_value)
 
-            if not (i >= balance):
-                for adjustment in self.env['capital.adjustment'].search([], order='issue_date asc'):
-                    """Voy cancelando los ajustes hasta que se haya absorbido todo el quebranto"""
-                    if not (i >= balance):
-                        i += adjustment.amount
-                        adjustment._action_cancel()  # Crea un asiento
-                        adjustment.update({
-                            'reduction_id': self.id,
-                            'reduction_can': True,
-                        })
-                    else:
-                        break  # si salde todo el quebranto, paro
-            if not (i >= balance):
-                for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['suscribed', 'integrated'])], order='state asc, date_of_issue asc'):
-                    """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
-                    if not (i >= balance):
-                        i += share.issue_premium
-                        share._action_cancel_premium()
-                    else:
-                        break  # si salde todo el quebranto, paro
-            if not (i >= balance):
-                for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['integrated'])], order='state asc, date_of_issue asc'):
-                    """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
-                    if not (i >= balance):
-                        integrated_value += share.nominal_value
-                        i += share.nominal_value
-                    else:
-                        break  # si salde todo el quebranto, paro
-            if not (i >= balance):
-                for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['suscribed'])], order='state asc, date_of_issue asc'):
-                    """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
-                    if not (i >= balance):
-                        suscribed_value += share.nominal_value
-                        i += share.nominal_value
-                    else:
-                        break  # si salde todo el quebranto, paro
             suscribed_debit = {
                 'account_id': property_account_subscription_id,
                 'debit': suscribed_value or 0,
@@ -623,6 +581,7 @@ class ReductionOrder(models.Model):
     def _action_cancel_shares(self):
         for red in self:
             for share in red.partner_id.shares:
+                share.capital_reduction = self.id
                 share.share_cancel()
 
     def _prepare_topic_values(self):
@@ -648,6 +607,64 @@ class ReductionOrder(models.Model):
                     p = period
 
         return p
+
+    def _cancel_reserve_loop(self, i, balance):
+        """Procedimiento que itera sobre las reservas hasta saldar la pérdida"""
+        for reserve in self.env['account.reserve'].search([], order='type desc, priority asc, issue_date asc'):
+            """Voy cancelando las reservas hasta que se haya absorbido todo el quebranto"""
+            if not (i >= balance):
+                i += reserve.amount
+                reserve._action_cancel()  # Crea un asiento
+                reserve.update({
+                    'reduction_id': self.id,
+                    'reduction_can': True,
+                })
+            else:
+                break  # si salde todo el quebranto, paro
+
+    def _cancel_capital_adjustment_loop(self, i, balance):
+        if not (i >= balance):
+            for adjustment in self.env['capital.adjustment'].search([], order='issue_date asc'):
+                """Voy cancelando los ajustes hasta que se haya absorbido todo el quebranto"""
+                if not (i >= balance):
+                    i += adjustment.amount
+                    adjustment._action_cancel()  # Crea un asiento
+                    adjustment.update({
+                        'reduction_id': self.id,
+                        'reduction_can': True,
+                    })
+                else:
+                    break  # si salde todo el quebranto, paro
+
+    def _cancel_premium_loop(self, i, balance):
+        if not (i >= balance):
+            for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['suscribed', 'integrated'])], order='state asc, date_of_issue asc'):
+                """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
+                if not (i >= balance):
+                    i += share.issue_premium
+                    share._action_cancel_premium()
+                else:
+                    break  # si salde todo el quebranto, paro
+
+    def _cancel_suscribed_loop(self, i, balance, suscribed_value):
+        if not (i >= balance):
+            for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['suscribed'])], order='state asc, date_of_issue asc'):
+                """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
+                if not (i >= balance):
+                    suscribed_value += share.nominal_value
+                    i += share.nominal_value
+                else:
+                    break  # si salde todo el quebranto, paro
+
+    def _cancel_integrated_loop(self, i, balance, integrated_value):
+        if not (i >= balance):
+            for share in self.env['account.share'].search([('partner_id', '=', self.partner_id), ('state', 'in', ['integrated'])], order='state asc, date_of_issue asc'):
+                """Voy cancelando las primas de las acciones hasta que se haya absorbido todo el quebranto"""
+                if not (i >= balance):
+                    integrated_value += share.nominal_value
+                    i += share.nominal_value
+                else:
+                    break  # si salde todo el quebranto, paro
 
     @api.model
     def _default_cutoff_date(self):

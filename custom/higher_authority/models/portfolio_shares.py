@@ -119,7 +119,7 @@ class PortfolioShares(models.Model):
             else:
                 raise UserError(
                     'Accion no permitida')
-        # ------------------#
+    # ------------------#
     #       HELPERS
     # ------------------#
     def _prepare_topic_values(self):
@@ -254,6 +254,7 @@ class PortfolioShares(models.Model):
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': f"{self.short_name} - {self.date}",
             'line_ids': [],
+            'redemption_id': self.id,
             'company_id': self.company_id.id,
         }
         return invoice_vals

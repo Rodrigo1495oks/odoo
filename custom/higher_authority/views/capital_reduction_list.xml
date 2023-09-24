@@ -15,8 +15,8 @@
         <!-- vistas -->
 
         <record id="reduction_list_view_tree" model="ir.ui.view">
-            <field name="name">capital.reduction.tree</field>
-            <field name="model">capital.reduction</field>
+            <field name="name">capital.reduction.list.tree</field>
+            <field name="model">capital.reduction.list</field>
             <field name="arch" type="xml">
                 <tree string="Reducción" decoration-success="state=='confirm' "
                     decoration-bf='state=="new"' decoration-muted="state=='cancel'">
@@ -37,7 +37,7 @@
         <!-- formulario -->
         <record id="reduction_list_view_form" model="ir.ui.view">
             <field name="name">capital.reduction.list.form</field>
-            <field name="model">capital.reduction</field>
+            <field name="model">capital.reduction.list</field>
             <field name="arch" type="xml">
                 <form string="Orden de Reducción">
                     <header>
@@ -106,7 +106,7 @@
 
         <record id="reduction_list_view_search" model="ir.ui.view">
             <field name="name">capital.reduction.list.search</field>
-            <field name="model">capital.reduction</field>
+            <field name="model">capital.reduction.list</field>
             <field name="arch" type="xml">
                 <search string="Reducciones">
                     <field name="short_name" string="Número" />
@@ -131,7 +131,7 @@
         <!-- Estate Property Kanban View  -->
         <record model="ir.ui.view" id="view_reduction_list_kanban">
             <field name="name">capital.reduction.kanban</field>
-            <field name="model">capital.reduction</field>
+            <field name="model">capital.reduction.list</field>
             <field name="arch" type="xml">
                 <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
                 <kanban>
@@ -168,7 +168,7 @@
         <!-- FILTROS PARA LOS STATS BUTTONS -->
         <record id="view_capital_reduction_list_filter" model="ir.ui.view">
             <field name="name">capital.reduction.list.select</field>
-            <field name="model">capital.reduction</field>
+            <field name="model">capital.reduction.list</field>
             <field name="arch" type="xml">
                 <search string="Search Contribution">
                     <field name="partner_id" operator="child_of" />

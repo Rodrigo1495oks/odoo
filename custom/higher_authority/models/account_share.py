@@ -73,8 +73,6 @@ class AccountShare(models.Model):
 
     share_issuance = fields.Many2one(
         string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance')
-    capital_reduction = fields.Many2one(
-        string='Reducción de Capital', readonly=True, index=True, store=True, comodel_name='capital.reduction')
     suscription_order = fields.Many2one(
         string='Orden de Subscripción', comodel_name='suscription.order', index=True)
     capital_reduction = fields.Many2one(string='Reducción', comodel_name='capital.reduction',
@@ -85,6 +83,7 @@ class AccountShare(models.Model):
                               index=True, tracking=True, default=lambda self: self.env.user)
     share_sale = fields.Many2one(
         string='Venta de Acciones', comodel_name='share.sale', store=True, index=True, readonly=True, help='Campo técnico usado para registrar las ventas de acciones que se llevaron a cabo con esta acción')
+    
     notes = fields.Html(string='Notas')
     # def action_integrate(self):
     #     for share in self:

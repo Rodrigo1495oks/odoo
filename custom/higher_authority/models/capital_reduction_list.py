@@ -38,7 +38,7 @@ from odoo.exceptions import UserError, AccessError
 class ReductionList(models.Model):
     _name = 'capital.reduction.list'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'Reducciones por Cancelación'
+    _description = 'Reducciones Masivas por Cancelación'
     _order = 'short_name desc, name desc'
     _rec_name = 'short_name'
 
@@ -61,7 +61,7 @@ class ReductionList(models.Model):
     percentage_to_reduce = fields.Float(
         string='Porcentaje de Reducción', default=0.0, help='Porcentaje a reducir para mantener el VPP')
     reduction_ids = fields.One2many(
-        string='Reducciones', comodel_name='capital.reduction', inverse_name='')
+        string='Reducciones', comodel_name='capital.reduction', inverse_name='reduction_list_id', readonly=True)
     user_id = fields.Many2one('res.users', string='Usuario',
                               index=True, tracking=True, default=lambda self: self.env.user, help='El usuario que Crea la Orden')
     notes = fields.Html(string='Notas')
@@ -107,8 +107,9 @@ class ReductionList(models.Model):
                     redMove = NewReduction.create(vals_for_reduction)
                     self.reduction_ids.append(0, 0, redMove)
                 Reduction |= redMove
+                red.state='confirm'
             else:
-                raise UserError('Acción no valida - (AC)')
+                raise UserError('La Confirmación no está aprobada por el Jefe o Gerente')
 
     def action_draft(self):
         self.ensure_one()
