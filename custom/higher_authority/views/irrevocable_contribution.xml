@@ -114,7 +114,8 @@
                                     attrs="{'readonly': [('state', '!=', 'draft')]}" />
                                 <field name="fiscal_position_id"
                                     attrs="{'readonly': [('state', '!=', 'draft')]}" />
-
+                                <field name="type"
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
                                 <field name="share_issuance"
                                     attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('is_meeting', '=', False)]}" />
                                 <field name="total_value" />

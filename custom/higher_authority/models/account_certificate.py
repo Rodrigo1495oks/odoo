@@ -224,7 +224,7 @@ class AccountCertificate(models.Model):
     partner_id = fields.Many2one(string='Comprador', comodel_name='res.partner',
                                  required=True, ondelete='cascade', readonly=True, index=True, store=True)
     notes = fields.Html(string='Notas')
-
+    
     # metodos computados
     def button_set_new(self):
         for cert in self:

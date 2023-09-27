@@ -12,9 +12,7 @@ class AccountAccount(models.Model):
     _name = "account.account"
     _inherit = ['account.account']
 
-
     account_type=fields.Selection(selection_add=[
-        
         ('liability_payable_redemption_shares','Accionistas - Rescate de Acciones'),
         ('liability_payable_amortized','Obligaciones Amortizadas'),
         ('certificate_refund','Reintegro de Bonos'),
@@ -30,6 +28,8 @@ class AccountAccount(models.Model):
         ('equity_portfolio_shares','Acciones en cartera'),
         ('legal_reserve','Reserva Legal'),
         ('reserve','Reserva'),
+        ('deferred_results_conv','Resultados Diferidos por Diferencias de Conversión'),
+        ('deferred_results_deriv','Resultados Diferidos por Instrumentos Derivados'),
         # Ingresos
         ("income_relief", "Ingreso por Desgravaciones"),
         ("income_refund", "Ingreso Por Reintegros"),

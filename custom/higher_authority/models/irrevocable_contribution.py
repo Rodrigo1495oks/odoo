@@ -48,7 +48,7 @@ class IrrevocableContribution(models.Model):
         for order in self:
             invoices = order.mapped('contribution_ids')
             order.contribution_count = len(invoices)
-
+    
     short_name = fields.Char(string='Referencia', default='New',
                              required=True, copy=False, readonly=True)
     name = fields.Char(string='Título', copy=False)
@@ -134,7 +134,7 @@ class IrrevocableContribution(models.Model):
 
     def action_cancel(self):
         for cont in self:
-            if cont.state not in ['draft', 'new', 'cancel','confirm'] and cont.topic.id.state == 'refused':
+            if cont.state not in ['draft', 'new', 'cancel'] and cont.topic.id.state == 'refused':
                 cont.action_cancel_contribution()
                 cont._action_cancel_share_issuance()
                 cont.state = 'cancel'
@@ -171,9 +171,11 @@ class IrrevocableContribution(models.Model):
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
         property_account_contribution_credits_id = self.partner_id.property_account_contribution_credits_id or self.company_id.property_account_contribution_credits_id or self.env['account.account'].search([
-            ('internal_type', '=', 'property_account_contribution_credits_id')])[0]
+            ('internal_type', '=', 'contribution_credits')])[0]
         property_account_contribution_id = self.partner_id.property_account_contribution_id or self.company_id.property_account_contribution_id or self.env['account.account'].search([
             ('internal_type', '=', 'contribution')])[0]
+        property_account_contribution_losses_id = self.partner_id.property_account_contribution_losses_id or self.company_id.property_account_contribution_losses_id or self.env['account.account'].search([
+            ('internal_type', '=', 'contribution_losses')])[0]
 
         # 1) Prepare suscription vals and clean-up the section lines
         contribution_vals_list = []
@@ -197,11 +199,18 @@ class IrrevocableContribution(models.Model):
                 'debit': self.amount,
                 'contribution_order_id': self.id
             }
-            credit_line = {
-                'account_id': property_account_contribution_id,
-                'credit': self.amount,
-                'contribution_order_id': self.id
-            }
+            if order.type=='future':
+                credit_line = {
+                    'account_id': property_account_contribution_id,
+                    'credit': self.amount,
+                    'contribution_order_id': self.id
+                }
+            else:
+                credit_line = {
+                    'account_id': property_account_contribution_losses_id,
+                    'credit': self.amount,
+                    'contribution_order_id': self.id
+                }
             contribution_vals['line_ids'].append(
                 (0, 0, debit_line))
             contribution_vals['line_ids'].append(
@@ -236,6 +245,8 @@ class IrrevocableContribution(models.Model):
             ('internal_type', '=', 'equity')])[0]
         property_account_contribution_id = self.partner_id.property_account_contribution_id or self.company_id.property_account_contribution_id or self.env['account.account'].search([
             ('internal_type', '=', 'contribution')])[0]
+        property_account_contribution_losses_id = self.partner_id.property_account_contribution_losses_id or self.company_id.property_account_contribution_losses_id or self.env['account.account'].search([
+            ('internal_type', '=', 'contribution_losses')])[0]
 
         # 1) Prepare suscription vals and clean-up the section lines
         integration_vals_list = []
@@ -254,11 +265,19 @@ class IrrevocableContribution(models.Model):
             cuenta de creditos, y registrando el recibo de pago inmediatamente.
             """
             #
-            debit_line = {
+            if order.type=='future':
+                debit_line = {
                 'account_id': property_account_contribution_id,
                 'debit': self.amount,
                 'contribution_order_id': self.id
-            }
+                }
+            else:
+                debit_line = {
+                'account_id': property_account_contribution_losses_id,
+                'debit': self.amount,
+                'contribution_order_id': self.id
+                }
+                
             credit_line = {
                 'account_id': property_account_integration_id,
                 'credit': self.amount,
@@ -295,9 +314,11 @@ class IrrevocableContribution(models.Model):
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
         property_account_contribution_credits_id = self.partner_id.property_account_contribution_credits_id or self.company_id.property_account_contribution_credits_id or self.env['account.account'].search([
-            ('internal_type', '=', 'property_account_contribution_credits_id')])[0]
+            ('internal_type', '=', 'contribution_credits')])[0]
         property_account_contribution_id = self.partner_id.property_account_contribution_id or self.company_id.property_account_contribution_id or self.env['account.account'].search([
             ('internal_type', '=', 'contribution')])[0]
+        property_account_contribution_losses_id = self.partner_id.property_account_contribution_losses_id or self.company_id.property_account_contribution_losses_id or self.env['account.account'].search([
+            ('internal_type', '=', 'contribution_losses')])[0]
         # 1) Prepare suscription vals and clean-up the section lines
         contribution_vals_list = []
         for order in self:
@@ -308,12 +329,19 @@ class IrrevocableContribution(models.Model):
             # Invoice values.
             contribution_vals = order._prepare_contribution()
             # Invoice line values (asset ad product) (keep only necessary sections).
-
-            debit_line = {
+            if order.type=='future':
+                debit_line = {
                 'account_id': property_account_contribution_id,
                 'debit': self.amount,
                 'contribution_order_id': self.id
-            }
+                }
+            else:
+                debit_line = {
+                'account_id': property_account_contribution_losses_id,
+                'debit': self.amount,
+                'contribution_order_id': self.id
+                }
+
             credit_line = {
                 'account_id': property_account_contribution_credits_id,
                 'credit': self.amount,
