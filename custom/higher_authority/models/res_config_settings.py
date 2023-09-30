@@ -43,9 +43,7 @@ class ResConfigSettings(models.TransientModel):
     # FOR INTEGRATION ORDERS
     # ACCOUNTS
 
-    financial_year_result_account = fields.Many2one(
-        string='Cuenta de Resultados del ejercicio', comodel_name='account.account', config_parameter='higher_authority.financial_year_result_account', domain="[('internal_type', '=', 'equity_unaffected'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",related='company_id.financial_year_result_account',
-                                                       help="Esta cuenta será usada para registrar los saldos de subscripción del accionista, a pesar que sea establecida una cuenta por defecto diferente",)
+    
 
     property_account_subscription_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Acciones",

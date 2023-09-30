@@ -8,7 +8,7 @@
     'license': 'LGPL-3',
     'category': 'Shareholding Account/Accounting',
     'depends': [
-        'base', 'account','account_asset_management',  'purchase', 'account_fiscal_year'
+        'base', 'account','account_asset_management',  'purchase', 'account_closing'
     ],
     'data': [
         'security/ir.model.access.csv',
