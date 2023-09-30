@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<odoo>
+    <!-- heredo el formulario -->
+    <record id="account_fiscal_year_form_view" model="ir.ui.view">
+        <field name="name">account.fiscal.period.view.form</field>
+        <field name="model">account.fiscal.period</field>
+        <field name="arch" type="xml">
+            <sheet>
+                <group id='header_left_group'>
+                    <field name='short_name' />
+                    <field name='name' />
+                    <field name='year' />
+                    <field name='start_date' />
+                    <field name='end_date' />
+                </group>
+                <group id='header_right_group'>
+                    <field name='fiscal_year' />
+                    <field name='op_cl' />
+                    <field name='state' />
+                </group>
+            </sheet>
+        </field>
+    </record>
+    <record id="account_fiscal_period_search_view" model="ir.ui.view">
+        <field name="name">Search view for account.fiscal.period</field>
+        <field name="model">account.fiscal.period</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name='year' />
+                <field name='short_name' />
+            </search>
+        </field>
+    </record>
+
+    <record id="account_fiscal_period_tree_view" model="ir.ui.view">
+        <field name="name">Tree view for account.fiscal.period</field>
+        <field name="model">account.fiscal.period</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name='short_name' />
+                <field name='name' />
+                <field name='year' />
+                <field name='start_date' />
+                <field name='end_date' />
+                <field name='fiscal_year' />
+                <field name='op_cl' />
+                <field name='state' />
+            </tree>
+        </field>
+    </record>
+
+    <record id="actions_account_fiscal_period" model="ir.actions.act_window">
+        <field name="name">Fiscal Periods</field>
+        <field name="res_model">account.fiscal.period</field>
+        <field name="view_mode">tree,form,search</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create a new fiscal Period.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem
+        id="menu_actions_account_fiscal_year"
+        parent="account.account_account_menu"
+        action="actions_account_fiscal_period"
+    />
+</odoo>

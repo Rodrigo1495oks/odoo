@@ -12,17 +12,30 @@ import re
 class AccountFiscalYear(models.Model):
     _name = "account.fiscal.year"
     _inherit = ['account.fiscal.year']
+    _description = 'Objeto Año Fiscal'
+    _order = 'short_name desc, name desc'
+    _rec_name = 'short_name'
 
+    def _get_valid_years(self):
+        lst = []
+        for year in range(1900, 2030):
+            lst.append(year)
+        return lst
+
+    _columns = {
+        'year': fields.selection(
+            _get_valid_years,
+            string='Selection')
+        }
+    
     name = fields.Char(string='Año Fiscal')
-
     state = fields.Selection(string='Estado', selection=[('closed', 'Cerrado'), ('open', 'Abierto')],
                              help='Indique si el año fiscal esta abierto o cerrado, solo puede haber un año fiscal en curso')
-    year = fields.Selection(string='Año', default='2020',
-                            compute='_compute_valid_years')
+    year = fields.Selection(string='Año', default='2020')
     short_name = fields.Char(string='Referencia', default='New',
                              required=True, copy=False, readonly=True)
     end_journal = fields.Many2one(
-        string='Diario de Cierre', comodel_name='account.journal', domain=[('type', '=', 'end_of_year')], help='Seleccione el diario de Cierra')
+        string='Diario de Cierre', comodel_name='account.journal', domain=[('type', '=', 'end_of_year')], help='Seleccione el diario de Cierre')
     periods = fields.One2many(
         string='Periodos', comodel_name='account.fiscal.period', inverse_name='fiscal_year', help='Periodos Fiscales Creados')
 
@@ -48,9 +61,7 @@ class AccountFiscalYear(models.Model):
                     ).format(
                         closed_year=closed_year.display_name
                     ))
-
     # ACCIONES
-
     def _prepare_period_values(self, start_date, end_date,):
         self.ensure_one()
         period_vals = {
@@ -64,15 +75,15 @@ class AccountFiscalYear(models.Model):
             'fiscal_year': self.id,
         }
         return period_vals
-
-    def _create_monthly_periods(self):
+    def create_monthly_periods(self):
         "los periodos serán siempre anuales (12 meses, 365 dias)"
         for fy in self:
             year = fy.date_from.year
             if fy.state == 'open':
                 for i in range(1, 12):
                     day = calendar.monthrange(year=year, month=i)
-                    start_date = fields.date(year=year, month=i, day=day[0])
+                    start_date = fields.date(
+                        year=year, month=i, day=day[0])
                     end_date = fields.date(year=year, month=i, day=day[1])
                     period_values = fy._prepare_period_values(
                         year, start_date, end_date)
@@ -81,9 +92,9 @@ class AccountFiscalYear(models.Model):
                     new_p = fy.env['account.fiscal.period'].create(
                         period_values)
                     fy.periods += new_p
+                    
         return UserWarning('Períodos Mensuales Creados correctamente')
-
-    def _create_quaterly_periods(self):
+    def create_quaterly_periods(self):
         "los periodos serán siempre anuales (12 meses, 365 dias)"
         for fy in self:
             year = fy.date_from.year
@@ -95,11 +106,11 @@ class AccountFiscalYear(models.Model):
                     year, start_date, end_date)
                 period_values['op_cl'] = True if i in [3, 12] else False
                 period_values['name'] = 'Período-%s °%s' % (year, i)
-                new_p = fy.env['account.fiscal.period'].create(period_values)
+                new_p = fy.env['account.fiscal.period'].create(
+                    period_values)
                 fy.periods += new_p
         return UserWarning('Períodos Mensuales Creados correctamente')
     # LOW LEVELS METHODS
-
     @api.model
     def create(self, vals):
         if vals.get('short_name', _('New')) == _('New'):
@@ -107,3 +118,10 @@ class AccountFiscalYear(models.Model):
                 'account.fiscal.year')) or _('New')
         res = super(AccountFiscalYear, self.create(vals))
         return res
+
+# class FiscalYear(models.Model):
+#     _name = "fiscal.year"
+#     _inherit = ['fiscal.year']
+#     _description = 'Años Válidos'
+#     _order = 'short_name desc, name desc'
+#     _rec_name = 'short_name'
