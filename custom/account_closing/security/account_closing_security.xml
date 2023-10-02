@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_closing_group_no_one" model="res.groups">
+        <field name="name">Usuario Nadie XD🤣</field>
+        <field name="category_id" ref="base.module_category_account_accounting" />
+        <field name="implied_ids"
+            eval="[(6, 0, [ref('base.group_private_addresses'), ref('base.group_no_one')])]" />
+        <field name="comment">The user will be able to approve document created by employees.</field>
+    </record>
+
+    <record id="account_closing_group_user" model="res.groups">
+        <field name="name">Usuario Cierre Contable</field>
+        <field name="category_id" ref="base.module_category_account_accounting" />
+        <field name="implied_ids"
+            eval="[(6, 0, [ref('base.group_private_addresses'), ref('base.group_user')])]" />
+        <field name="comment">The user will be able to approve document created by employees.</field>
+    </record>
+
+    <record id="account_closing_group_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="comment">The user will have access to the estate property configuration as well as statistic reports.</field>
+        <field name="category_id" ref="base.module_category_account_accounting"/>
+        <field name="implied_ids" eval="[(4, ref('account_closing_group_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+</odoo>
