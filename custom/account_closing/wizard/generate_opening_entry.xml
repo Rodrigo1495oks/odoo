@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_opening_entry_form" model="ir.ui.view">
+            <field name="name">suscription.payment.register.form</field>
+            <field name="model">suscription.payment.register</field>
+            <field name="arch" type="xml">
+                <form string="Opening Entries">
+                    <group>
+                        <field name='fiscal_year' />
+                        <field name='end_journal' />
+                        <field name='entry_name' />
+                    </group>
+                    <group>
+                        <field name='new_fy' />
+                        <field name='period' />
+                    </group>
+                    <footer>
+                        <button string='Create' class='btn-primary' name="action_create_closing"/>
+                        <button string='Cancel' class='btn-secundary' special='cancel' />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_create_opening_entry" model="ir.actions.act_window">
+            <field name="name">Crear Cierre de Ejercicio</field>
+            <field name='type'>ir.actions.act.window</field>
+            <field name="res_model">create.opening.entry</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_opening_entry_form" />
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

@@ -11,7 +11,12 @@
         'base', 'account', 'account_fiscal_year','account_lock_date_update', 'account_fiscal_year_auto_create'
     ],
     'data': [
-
+        'security/ir.model.access.csv',
+        'security/account_closing_security.xml',
+        'data/data.xml',
+        'views/res_config_settings_views.xml',
+        'views/account_fiscal_year_views.xml',
+        'views/account_fiscal_period_views.xml'
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

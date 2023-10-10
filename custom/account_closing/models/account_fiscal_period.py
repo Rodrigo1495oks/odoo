@@ -10,7 +10,6 @@ import re
 
 class AccountFiscalPeriod(models.Model):
     _name = "account.fiscal.period"
-    _inherit = ['account.fiscal.period']
     _description = 'Objeto Subscripción de Acciones'
     _order = 'short_name desc, name desc'
     _rec_name = 'short_name'
@@ -19,20 +18,14 @@ class AccountFiscalPeriod(models.Model):
     def _get_valid_years(self):
         lst = []
         for year in range(1900, 2030):
-            lst.append(year)
+            lst.append(f'{year}',year)
         return lst
-
-    _columns = {
-        'year': fields.selection(
-            _get_valid_years,
-            string='Selection')
-            }
+    
     name=fields.Char(string='Año Fiscal')
     
     state = fields.Selection(string='Estado', selection=[('closed', 'Cerrado'), ('open', 'Abierto')],
                              help='Indique si el periodo fiscal esta abierto o cerrado')
-    year = fields.Selection(string='Año', default='2020',
-                            compute='_compute_valid_years')
+    year = fields.Selection(string='Año', default='2020', selection=_get_valid_years)
     short_name = fields.Char(string='Referencia', default='New',
                              required=True, copy=False, readonly=True)
     start_date=fields.Date(string='Inicio')

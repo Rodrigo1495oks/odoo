@@ -7,7 +7,6 @@ from collections import defaultdict
 import re
 
 
-
 class AccountAccount(models.Model):
     _name = "account.account"
     _inherit = ['account.account']
@@ -21,7 +20,7 @@ class AccountAccount(models.Model):
         # Patrimonio Neto
         ('equity_adjustment','Ajuste al Capital'),
         ('contribution','Aportes no Capitalizados'),
-        ('contribution_credits','Saldos pendientes Aportes')
+        ('contribution_credits','Saldos pendientes Aportes'),
         ('contribution_losses','Aportes para Absorber Pérdidas'),
         ('equity_issue_premium','Primas de Emision'),
         ('equity_issue_discount','Descuentos de emision'),

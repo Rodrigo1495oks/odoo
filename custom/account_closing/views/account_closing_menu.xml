@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem
+        parent="menu_finance_entries_actions"
+        action="action_create_opening_entry"
+        id="menu_general_ledger_wizard"
+        sequence="3"
+    />
+
+<odoo/>
