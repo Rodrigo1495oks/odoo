@@ -422,3 +422,7 @@
 	path = OCA/account-financial-tools
 	url = https://github.com/OCA/account-financial-tools.git
 	branch = 16.0
+[submodule "odooapps"]
+	path = odooapps
+	url = https://github.com/odoomates/odooapps.git
+	branch = 16.0
