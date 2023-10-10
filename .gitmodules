@@ -426,3 +426,7 @@
 	path = odooapps
 	url = https://github.com/odoomates/odooapps.git
 	branch = 16.0
+[submodule "odoo-argentina"]
+	path = odoo-argentina
+	url = https://github.com/a2systems/odoo-argentina.git
+	branch = 16.0
