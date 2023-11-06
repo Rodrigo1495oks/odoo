@@ -24,14 +24,14 @@ class AccountFiscalYear(models.Model):
     
     name = fields.Char(string='Año Fiscal')
     state = fields.Selection(string='Estado', selection=[('closed', 'Cerrado'), ('open', 'Abierto')],
-                             help='Indique si el año fiscal esta abierto o cerrado, solo puede haber un año fiscal en curso')
+                             help='Indique si el año fiscal esta abierto o cerrado, solo puede haber un año fiscal en curso', default='open', readonly=True)
     year = fields.Selection(string='Año', default='2020', selection=_get_valid_years)
     short_name = fields.Char(string='Referencia', default='New',
                              required=True, copy=False, readonly=True)
     end_journal = fields.Many2one(
         string='Diario de Cierre', comodel_name='account.journal', domain=[('type', '=', 'end_of_year')], help='Seleccione el diario de Cierre')
     periods = fields.One2many(
-        string='Periodos', comodel_name='account.fiscal.period', inverse_name='fiscal_year', help='Periodos Fiscales Creados')
+        string='Periodos', comodel_name='account.fiscal.period', inverse_name='fiscal_year', help='Periodos Fiscales Creados', readonly=True)
     account_move=fields.Many2one(string='Asientos de Cierre', help='Asientos de cierre asociados', comodel_name='account.move', readonly=True)
 
     def name_get(self):

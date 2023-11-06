@@ -448,7 +448,7 @@ class ReductionOrder(models.Model):
                 'credit': suscribed_value + integrated_value,
                 'reduction_order_id': self.id
             }
-
+            
             reduction_vals['line_ids'].extend(
                 (0, 0, suscribed_debit), (0, 0, integrated_debit), (0, 0, credit_line))
 

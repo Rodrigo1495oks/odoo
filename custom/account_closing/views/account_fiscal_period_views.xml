@@ -1,26 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-
 <odoo>
-    <!-- heredo el formulario -->
+    <!-- Agregar el boton para abrir/cerrar 
+        varios periodos al mismo tiempo 
+    -->
+    <record id="action_close_period" model="ir.actions.server">
+        <field name="name">Close Periods</field>
+        <field name="res_model">account.fiscal.period</field>
+        <field name="model_id" ref="account_closing.account.fiscal.period"/>
+        <field name="binding_model_id" ref="account_closing.account.fiscal.period"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+            if record:
+                action_values = env.ref('account_closing.action_close_period').sudo().read()[0]
+                action_values.update({'context': env.context})
+                action = action_values
+        </field>
+    </record>
+    <record id="action_open_period" model="ir.actions.server">
+        <field name="name">Open Periods</field>
+        <field name="res_model">account.fiscal.period</field>
+        <field name="model_id" ref="account_closing.account.fiscal.period"/>
+        <field name="binding_model_id" ref="account_closing.account.fiscal.period"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+            if record:
+                action_values = env.ref('account_closing.action_open_period').sudo().read()[0]
+                action_values.update({'context': env.context})
+                action = action_values
+        </field>
+    </record>
     <record id="account_fiscal_year_form_view" model="ir.ui.view">
         <field name="name">account.fiscal.period.view.form</field>
         <field name="model">account.fiscal.period</field>
         <field name="arch" type="xml">
-            <sheet>
-                <group id='header_left_group'>
-                    <field name='short_name' />
-                    <field name='name' />
-                    <field name='year' />
-                    <field name='start_date' />
-                    <field name='end_date' />
-                </group>
-                <group id='header_right_group'>
-                    <field name='fiscal_year' />
-                    <field name='op_cl' />
-                    <field name='state' />
-                </group>
-            </sheet>
+            <form string="Períodos Fiscales" id='fiscal_period'>
+                <header>
+                    <button name="action_open_period" string="Abrir Período" type="object"
+                    class="oe_highlight" attrs="{'invisible': [('state', '=', 'open'"/>
+                    <button name="action_close_period" string="Cerrar Período" type="object"
+                    class="oe_highlight" attrs="{'invisible': [('state', '=', 'closed'"/>
+                    <field name="state" widget="statusbar"
+                    statusbar_visible="open,closed" readonly="1"/>
+                </header>
+                <sheet>
+                    <group id='header_left_group'>
+                        <field name='short_name' />
+                        <field name='name' />
+                        <field name='year' />
+                        <field name='start_date' />
+                        <field name='end_date' />
+                    </group>
+                    <group id='header_right_group'>
+                        <field name='fiscal_year' />
+                        <field name='op_cl' />
+                        <field name='state' />
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
     <record id="account_fiscal_period_search_view" model="ir.ui.view">

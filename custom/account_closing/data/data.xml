@@ -11,4 +11,15 @@
             <field name='company_id' eval='False' />
         </record>
     </data>
+    <data noupdate='1'> <!-- para que no se reinicie la secuencia-->
+        <!-- sequences for Fiscal year -->
+        <record id='seq_fiscal_period' model='ir.sequence'>
+            <field name='name'>Fiscal Period</field>
+            <field name='code'>account.fiscal.period</field>
+            <field name='prefix'>FP</field>
+            <field name='suffix'>s</field>
+            <field name='padding'>1</field>
+            <field name='company_id' eval='False' />
+        </record>
+    </data>
 </odoo>

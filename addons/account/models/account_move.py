@@ -41,6 +41,7 @@ TYPE_REVERSE_MAP = {
     'in_refund': 'entry',
     'out_receipt': 'entry',
     'in_receipt': 'entry',
+    'year_closing_entry':'entry'
 }
 
 EMPTY = object()
@@ -3404,7 +3405,7 @@ class AccountMove(models.Model):
         for partner, count in supplier_count.items():
             (partner | partner.commercial_partner_id)._increase_rank('supplier_rank', count)
 
-        # Trigger action for paid invoices if amount is zero
+        # Trigger action for p_idsaid invoices if amount is zero
         to_post.filtered(
             lambda m: m.is_invoice(include_receipts=True) and m.currency_id.is_zero(m.amount_total)
         )._invoice_paid_hook()

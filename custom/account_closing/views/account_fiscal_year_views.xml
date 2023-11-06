@@ -14,43 +14,47 @@
             <xpath expr="//form" position="replace">
                 <form string="Años Fiscales" id='fiscal_year'>
                     <header>
-                        <button name="create_monthly_periods" string="Crear Períodos Mensuales" type="object"
-                        class="oe_highlight"/>
-                        <button name="create_quaterly_periods" string="Crear Periodos Trimestrales" type="object"
-                        class="oe_highlight"/>
+                        <button name="create_monthly_periods" string="Crear Períodos Mensuales"
+                            type="object"
+                            class="oe_highlight" />
+                        <button name="create_quaterly_periods" string="Crear Periodos Trimestrales"
+                            type="object"
+                            class="oe_highlight" />
                         <field name="state" widget="statusbar"
-                        statusbar_visible="open,closed" />
+                            statusbar_visible="open,closed" />
                     </header>
-                    <div class="oe_title">
-                        <div class="oe_edit_only">
-                            <label for="short_name" />
+                    <sheet>
+
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="short_name" />
+                            </div>
+                            <h1 class="mb32">
+                                <field name="short_name" class="mb16" />
+                            </h1>
                         </div>
-                        <h1 class="mb32">
-                            <field name="short_name" class="mb16" />
-                        </h1>
-                    </div>
-                    <group id='header_left_group'>
-                        <field name='name' placeholder="Fiscal Year 2020" />
-                        <field name='short_name' />
-                        <field name='year' />
-                        <field name="company_id" groups="base.group_multi_company" />
-                    </group>
-                    <group id='header_right_group'>
-                        <field name='end_journal' />
-                        <field name='state' />
-                        <field name="date_from" />
-                        <field name="date_to" />
-                    </group>
-                    <notebook id='periods_page'>
-                        <page>
-                            <group>
-                                <field name="periods" />
-                            </group>
-                        </page>
-                    </notebook>
+                        <group id='header_left_group'>
+                            <field name='name' placeholder="Fiscal Year 2020" />
+                            <field name='short_name' />
+                            <field name='year' />
+                            <field name="company_id" groups="base.group_multi_company" />
+                        </group>
+                        <group id='header_right_group'>
+                            <field name='end_journal' />
+                            <field name='state' />
+                            <field name="date_from" />
+                            <field name="date_to" />
+                        </group>
+                        <notebook id='periods_page'>
+                            <page>
+                                <group>
+                                    <field name="periods" />
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
                 </form>
             </xpath>
-
         </field>
     </record>
     <record id="account_fiscal_year_search_view" model="ir.ui.view">

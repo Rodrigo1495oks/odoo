@@ -89,6 +89,7 @@ class AccountMoveReversal(models.TransientModel):
     @api.depends('move_ids')
     def _compute_from_moves(self):
         for record in self:
+            
             move_ids = record.move_ids._origin
             record.residual = len(move_ids) == 1 and move_ids.amount_residual or 0
             record.currency_id = len(move_ids.currency_id) == 1 and move_ids.currency_id or False
@@ -117,7 +118,7 @@ class AccountMoveReversal(models.TransientModel):
         default_values_list = []
         for move in moves:
             default_values_list.append(self._prepare_default_reversal(move))
-
+        
         batches = [
             [self.env['account.move'], [], True],   # Moves to be cancelled by the reverses.
             [self.env['account.move'], [], False],  # Others.

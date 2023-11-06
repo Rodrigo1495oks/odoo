@@ -610,7 +610,7 @@ class AccountJournal(models.Model):
         vals['company_id'] = company.id
 
         # Don't get the digits on 'chart_template_id' since the chart template could be a custom one.
-        self.search()
+        # self.search()
         random_account = self.env['account.account'].search([('company_id', '=', company.id)], limit=1)
         digits = len(random_account.code) if random_account else 6
 

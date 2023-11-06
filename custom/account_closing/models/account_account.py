@@ -46,7 +46,7 @@ class AccountAccount(models.Model):
         ("expense_administration", "Gastos de Administración"),
         ('expense_other','Otros Gastos'),
         ("expense_investments", "Egresos por inversiones en entes relacionados"),
-        ('expenses_interest_and_implicit_financial_components','Intereses y Componentes Financieros Implicitos'),
+        ('expense_interest_and_implicit_financial_components','Intereses y Componentes Financieros Implicitos'),
         ('expense_secundary','Otros Egresos'),
         ("expense_disposition", "Egresos por Disposición de Activos y/o Cancelación de pasivos"),
         ("expense_extra", "Egresos Extraordinarios"),

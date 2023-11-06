@@ -292,7 +292,7 @@ class AccountCertificate(models.Model):
         # y cunto de reservas libres tengo
         # leer la cuenta para buscar el saldo
         account_financial_expenses = self.company_id.account_financial_expenses or self.env['account.account'].search([
-            ('internal_type', '=', 'expenses_interest_and_implicit_financial_components')])[0]
+            ('internal_type', '=', 'expense_interest_and_implicit_financial_components')])[0]
         account_receivable_cert = self.partner_id.account_receivable_cert or self.company_id.account_receivable_cert or self.env['account.account'].search([
             ('internal_type', '=', 'asset_receivable')])[0]
         account_cert_payable = self.partner_id.account_cert_payable or self.company_id.account_cert_payable or self.env['account.account'].search([
@@ -603,7 +603,6 @@ class AccountCertificate(models.Model):
                 raise UserError(
                     _('In order to delete a certificate order, you must cancel it first.'))
 
-
 class AccountCertificateLine(models.Model):
     _name = 'account.certificate.line'
     _description = 'Líneas de Emisión de Bonos'
@@ -737,7 +736,7 @@ class AccountCertificateLine(models.Model):
         # leer la cuenta para buscar el saldo
 
         account_cert_interest = self.partner_id.account_cert_interest or self.company_id.account_cert_interest or self.env['account.account'].search([
-            ('internal_type', '=', 'expenses_interest_and_implicit_financial_components')])[0]
+            ('internal_type', '=', 'expense_interest_and_implicit_financial_components')])[0]
         account_cert_payable = self.partner_id.account_cert_payable or self.company_id.account_cert_payable or self.env['account.account'].search([
             ('internal_type', '=', 'liability_payable')])[0]
         # leer el saldo y determianr su valor
