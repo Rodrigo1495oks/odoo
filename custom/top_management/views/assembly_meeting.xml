@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Accion para crear la emisíon -->
+        <record id="assembly_meeting_action" model="ir.actions.act_window">
+            <field name="name">Crear Reunión</field>
+            <field name="res_model">assembly.meeting</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="assembly_meeting_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+        <!-- vistas -->
+        <record id="assembly_meeting_view_tree" model="ir.ui.view">
+            <field name="name">assembly.meeting.tree</field>
+            <field name="model">assembly.meeting</field>
+            <field name="arch" type="xml">
+                <tree string="Reunión" decoration-success="state=='finished'"
+                    decoration-bf='state=="new"' decoration-muted="state=='canceled'">
+                    <field name="assembly_meet_type" class="mr-3" />
+                    <field name="short_name" />
+                    <field name="shareholders" widget="many2one_avatar " />
+                    <field name="activity_ids" widget="list_activity" optional="show" />
+
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state == 'finished'"
+                        decoration-warning="state == 'draft' or 'new'"
+                        decoration-info="state == 'draft' or state == 'new'"
+                        decoration-muted="state=='canceled'" />
+                </tree>
+            </field>
+        </record>
+        <!-- formulario -->
+        <record id="assembly_meeting_view_form" model="ir.ui.view">
+            <field name="name">assembly.meeting.form</field>
+            <field name="model">assembly.meeting</field>
+            <field name="arch" type="xml">
+                <form string="Reunión de Asamblea">
+                    <header>
+                        <button name="action_draft" string="A Borrador" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                        <button name="action_finish" string="Finalizar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'in', ('canceled','finished'))]}" />
+                        <button name="action_confirm" string="Confirmar Alta" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,new,finished,canceled" />
+                    </header>
+                    <sheet>
+                        <group>
+                            <div class="oe_title">
+                                <span class="o_form_label"
+                                    attrs="{'invisible': [('state','in',('draft'))]}">Reunión de
+                                    Asamblea </span>
+                                <h1 class="d-flex mb32">
+                                    <field name="short_name" readonly="1" />
+                                </h1>
+                            </div>
+                            <field name='shareholders'
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                widget="many2one_avatar " />
+                            <field name='assembly_meet_type'
+                                attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            <field name='topics'
+                                attrs="{'readonly': [('state', '!=', 'draft')]}" options="{\'create_text\': \'Add Topic\'}" />
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" />
+                        <field name="activity_ids" />
+                        <field name="message_ids" />
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="assembly_meeting_view_search" model="ir.ui.view">
+            <field name="name">assembly.meeting.search</field>
+            <field name="model">assembly.meeting</field>
+            <field name="arch" type="xml">
+                <search string="Reuniones">
+                    <field name="short_name" string="Nombre" />
+                    <separator />
+                    <filter name="assembly_meet_type" string="Tipo de Reunión" />
+                    <separator />
+                    <group expand="1" string="Group By">
+                        <filter string="Estado" name="state" context="{'group_by':'state'}" />
+                        <filter string="Accionistas" name="shareholders"
+                            context="{'group_by':'shareholders'}" />
+                        <filter string="Tipo de Acción" name="assembly_meet_type"
+                            context="{'group_by':'assembly_meet_type'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Estate Property Kanban View  -->
+        <record model="ir.ui.view" id="view_assembly_meeting_kanban">
+            <field name="name">assembly.meeting.kanban</field>
+            <field name="model">assembly.meeting</field>
+            <field name="arch" type="xml">
+                <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
+                <kanban>
+                    <field name="short_name" />
+                    <field name="assembly_meet_type" readonly="1" />
+                    <field name="shareholders" />
+                    <field name="state" />
+                    <field name="topics" />
+
+                    <progressbar field="state"
+                        colors='{"new": "success", "today": "finished", "overdue": "canceled"}' />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top mb16">
+                                    <field name="short_name" />
+                                    <div class="o_kanban_record_headings ml-1">
+                                        <strong class="o_kanban_record_title">
+                                            <span>
+                                                <t t-esc="record.shareholders.value" />
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <strong>
+                                        <span>
+                                            <t t-esc="record.assembly_meet_type.value" />
+                                        </span>
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span>
+                                            <t t-esc="record.short_name.value" />
+                                        </span>
+                                        <field name="activity_ids" widget="kanban_activity" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection"
+                                            options="{'classes': {'draft': 'default', 'new': 'default', 'approved': 'success', 'confirm': 'warning'}}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+    </data>
+</odoo>
