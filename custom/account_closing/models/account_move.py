@@ -24,26 +24,12 @@ from unittest.mock import patch
 from odoo.addons.base.models.decimal_precision import DecimalPrecision
 # from odoo.addons.account.tools import format_rf_reference
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
-from odoo.tools import (
-    date_utils,
-    email_re,
-    email_split,
-    float_compare,
-    float_is_zero,
-    float_repr,
-    format_amount,
-    format_date,
-    formatLang,
-    frozendict,
-    get_lang,
-    is_html_empty,
-    sql
-)
+
 
 
 
 class AccountMove(models.Model):
-    # _name = "account.move"
+    _name = "account.move"
     _inherit = "account.move"
 
     @api.depends('move_type')
@@ -61,7 +47,7 @@ class AccountMove(models.Model):
     move_type = fields.Selection(
         selection_add=[
             ('year_closing_entry', 'Asiento de Cierre'),
-        ]
+        ], ondelete={'year_closing_entry':'cascade'}
     )
 
     fiscal_year = fields.Many2one(string='Año Fiscal', comodel_name='account.fiscal.year', help='Año Fiscal Relacionado',
@@ -71,7 +57,7 @@ class AccountMove(models.Model):
 
     # Constraints
     @api.constrains('fiscal_period', 'fiscal_year')
-    def _validate_fiscal_period(self):
+    def _check_fiscal_period(self):
         company = self.env['res.company'].browse(am.company_id)
         for am in self:
             if company.restrict_fy and (am.fiscal_year.state == 'closed' or am.fiscal_period.state == 'closed'):

@@ -16,7 +16,9 @@
         'data/data.xml',
         'views/res_config_settings_views.xml',
         'views/account_fiscal_year_views.xml',
-        'views/account_fiscal_period_views.xml'
+        'views/account_fiscal_period_views.xml',
+        'views/account_closing_menu.xml',
+        'views/account_move_views.xml',
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

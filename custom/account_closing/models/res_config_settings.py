@@ -5,8 +5,8 @@ from odoo import api, fields, models
 
 
 class ResConfigSettings(models.TransientModel):
+    _name = 'res.config.settings'
     _inherit = ['res.config.settings']
-    _name = ['res.config.settings']
 
     financial_year_result_account = fields.Many2one(
         string='Cuenta de Resultados del ejercicio', comodel_name='account.account', config_parameter='higher_authority.financial_year_result_account', domain="[('internal_type', '=', 'equity_unaffected'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]", related='company_id.financial_year_result_account',

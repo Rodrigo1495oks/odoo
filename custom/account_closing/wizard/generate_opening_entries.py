@@ -106,6 +106,8 @@ class CreateOpeningEntries(models.TransientModel):
                 'debit': result,
                 'credit': 0,
             })
+        # Asigno al año fiscal el monto del resultado
+        self.fiscal_year.balance=result
         closing_move_values['line_ids'].append((0, 0, closing_lines_values))
         # 3) Create invoices.
         ClosingMoves = self.env['account.move']

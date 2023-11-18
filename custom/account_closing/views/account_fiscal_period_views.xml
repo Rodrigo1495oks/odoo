@@ -40,7 +40,7 @@
                     <button name="action_open_period" string="Abrir Período" type="object"
                     class="oe_highlight" attrs="{'invisible': [('state', '=', 'open'"/>
                     <button name="action_close_period" string="Cerrar Período" type="object"
-                    class="oe_highlight" attrs="{'invisible': [('state', '=', 'closed'"/>
+                    class="oe_highlight" attrs="{'invisible': [('state', '=', 'closed')]}"/>
                     <field name="state" widget="statusbar"
                     statusbar_visible="open,closed" readonly="1"/>
                 </header>

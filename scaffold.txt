@@ -1,0 +1,5 @@
+odoo-bin scaffold <module name> <where to put it>
+odoo-bin scaffold <module name> custom/account_reserve
+odoo-bin scaffold account_reserve custom/
+odoo-bin scaffold higher_authority_management custom/
+

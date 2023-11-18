@@ -20,6 +20,9 @@
                         <button name="create_quaterly_periods" string="Crear Periodos Trimestrales"
                             type="object"
                             class="oe_highlight" />
+                        <button name="create_capital_reduction" string="Compensar Pérdidas" attrs="{'invisible': [('balance', '&lt;', 0.0)]}" 
+                            type="object"
+                            class="oe_highlight" />
                         <field name="state" widget="statusbar"
                             statusbar_visible="open,closed" />
                     </header>

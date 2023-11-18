@@ -17,9 +17,9 @@ def is_encodable_as_ascii(string):
     return True
 
 class AccountJournal(models.Model):
-    # _name = "account.journal"
+    _name = "account.journal"
     _inherit='account.journal'
 
     type = fields.Selection(selection_add=[
         ('end_of_year','Cierre de Ejercicio'),
-    ])
+    ],ondelete = {'end_of_year':  lambda recs: recs.write({'type': 'asset_current' })})

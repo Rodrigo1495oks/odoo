@@ -125,7 +125,9 @@ class ReductionOrder(models.Model):
                                  default=lambda self: self.env.company.id, readonly=True)
     reduction_list_id = fields.Many2one(
         string='Pedidos de Reducción', help='Solicitudes de Reducción para mantener el VPP.', comodel_name='capital.reduction.list', readonly=True)
-
+    fiscal_year = fields.Many2one(
+        string='Año Fiscal', comodel_name='account.fiscal.year', help='Año Fiscal Asociado', domain=[('state', '=', 'closed')], readonly=True)
+    
     @api.onchange('loss_absortion')
     def _onchange_absortion(self):
         if self.loss_absortion:
@@ -151,8 +153,8 @@ class ReductionOrder(models.Model):
     def button_approve(self):
         for red in self:
             if red.state == 'new' and red.reduction_type != 'cancelation':
-                topic_vals = self._prepare_topic_values()
-                self.env['assembly.meeting.topic'].create(topic_vals)
+                topic_vals = red._prepare_topic_values()
+                red.env['assembly.meeting.topic'].create(topic_vals)
                 red.state = 'approved'
             else:
                 raise UserError('Acción no permitida - ')
@@ -243,13 +245,9 @@ class ReductionOrder(models.Model):
         """Cancela acciones, y acredita el saldo al accionista.
         CREO UN ASIENTO POR CADA ORDEN Y UNA ORDEN POR CADA ACCIONISTA
         """
-        precision = self.env['decimal.precision'].precision_get(
-            'Product Unit of Measure')
 
         reduction_vals_list = []
-        sequence = 10
         for order in self:
-
             if order.state != 'approved':
                 continue
                 # a- calcular el maximo importe que se podrá reducir para este accionista
@@ -306,7 +304,6 @@ class ReductionOrder(models.Model):
 
             # 1) Prepare reduction vals and clean-up the section lines
             order = order.with_company(order.company_id)
-            pending_section = None
             # Invoice values.
             reduction_vals = order._prepare_reduction()
             # Invoice line values (asset ad product) (keep only necessary sections).
@@ -353,6 +350,7 @@ class ReductionOrder(models.Model):
             reduction_vals_list.append(reduction_vals)
             # e- dar de baja las acciones
             self._action_cancel_shares()
+
         # 3) Create invoices.
         SusMoves = self.env['account.move']
         AccountMove = self.env['account.move'].with_context(
@@ -372,13 +370,13 @@ class ReductionOrder(models.Model):
 
     def action_create_reduction_obl(self):
         """Create the reduction associated to the SO.
-        """
-        precision = self.env['decimal.precision'].precision_get(
-            'Product Unit of Measure')
+        Esta reduccion solo puede realizarse unicamente para absorber pérdidas
+        de un ejercicio. Solo podrá confeccionar una por cada ejercicio cerrado.
 
+        """
         # 1) Prepare reduction vals and clean-up the section lines
         reduction_vals_list = []
-        sequence = 10
+
         for order in self:
             if order.state != 'approved':
                 continue
@@ -393,25 +391,33 @@ class ReductionOrder(models.Model):
 
             # 1- sumar los conceptos correspondientes (acceder al modelo de share y sumar su valor total [nominal + prima] y AI)
             # sumar también todas las reservas, determinar el monto total y ver si insume
-            total_cap = self.get_capital_value()
-            total_reserve = self.get_reserve_value()  # falta hacer esta
+            total_cap = order.get_capital_value()
+            total_reserve = order.get_reserve_value()  # falta hacer esta
             # 2- Determinar el resultado del ejercicio (31/12 del ejercicio cerrado)
             # seleccionamos el periodo fiscal mas reciente
 
             # leer la cuenta para buscar el saldo
-            result_account = self.company_id.financial_year_result_account or self.env['account.account'].search([
+            result_account = order.company_id.financial_year_result_account or self.env['account.account'].search([
                 ('internal_type', '=', 'equity_unaffected')])[0]
             # Leer las cuentas del accionista
 
-            property_account_subscription_id = self.partner_id.property_account_subscription_id or self.company_id.property_account_subscription_id or self.env['account.account'].search([
+            property_account_subscription_id = order.partner_id.property_account_subscription_id or order.company_id.property_account_subscription_id or order.env['account.account'].search([
                 ('internal_type', '=', 'equity')])[0]
-            property_account_integration_id = self.partner_id.property_account_integration_id or self.company_id.property_account_integration_id or self.env['account.account'].search([
+            property_account_integration_id = order.partner_id.property_account_integration_id or order.company_id.property_account_integration_id or order.env['account.account'].search([
                 ('internal_type', '=', 'equity')])[1]
 
             # leer el saldo y determinar su valor
-            balance = float(self.check_balance(
-                result_account, self._return_last_fiscal_year().date_to or self._default_cutoff_date())) or 0
-            balance = -(balance)
+            if order.fiscal_year:
+                balance= order.fiscal_year.balance
+            else:
+                fyl=order.env['account.fiscal.year'].search([('state','=','closed'),('balance','<',0.0)])
+                fyl_balance=0
+                for fy in fyl:
+                    fyl_balance-=fy.balance
+                balance=fyl_balance
+                # balance=-(float(order.check_balance(
+                # result_account, order._return_last_fiscal_year().date_to or self._default_cutoff_date())) or 0)
+            
             # - si es pérdida: se procede al calculo
             # (sumatoria de las reservas y el 50% del capital):
             #   - comprobar si insume el 50% del capital + todas las reservas
@@ -436,17 +442,20 @@ class ReductionOrder(models.Model):
             suscribed_debit = {
                 'account_id': property_account_subscription_id,
                 'debit': suscribed_value or 0,
-                'reduction_order_id': self.id
+                'reduction_order_id': self.id,
+                'name':'Imputación a Cap. suscrito - Reducción N° (%s)' % (order.short_name)
             }
             integrated_debit = {
                 'account_id': property_account_integration_id,
                 'debit': integrated_value or 0,
-                'reduction_order_id': self.id
+                'reduction_order_id': self.id,
+                'name':'Imputación a Cap. integrado - Reducción N° (%s)' % (order.short_name)
             }
             credit_line = {
                 'account_id': result_account,
                 'credit': suscribed_value + integrated_value,
-                'reduction_order_id': self.id
+                'reduction_order_id': self.id,
+                'name':'Imputación a Resultado - Reducción N° (%s)' % (order.short_name)
             }
             
             reduction_vals['line_ids'].extend(
@@ -587,16 +596,15 @@ class ReductionOrder(models.Model):
     def _prepare_topic_values(self):
         self.ensure_one()
         topic_values = {
-            "name": "Reducción de Capital. \n",
-            "description": "Reducción de Capital",
+            "name": "Reducción de Capital. No%s "%(self.short_name),
+            "description": "Reducción de Capital %s"%(self.reduction_type),
             "state": "draft",
             "topic_type": "reduction",
         }
         return topic_values
 
     def _return_last_fiscal_year(self):
-        periods = self.env['account.fiscal.year'].browse()
-
+        periods = self.env['account.fiscal.year'].search([('state','=','closed')])
         max = 0
         p = ''
         # selecciono el periodo mas reciente (ultimop ejercicio cerrado)
@@ -605,7 +613,6 @@ class ReductionOrder(models.Model):
                 if period.date_to >= max:
                     max = period.date_to
                     p = period
-
         return p
 
     def _cancel_reserve_loop(self, i, balance):

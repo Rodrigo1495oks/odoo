@@ -126,7 +126,7 @@ class AssemblyMeetingTopic(models.Model):
         ('irrevocable', 'Aporte Irrevocable'),
         ('reduction', 'Cancelar Acciones'),
         ('redemption', 'Acciones en Cartera'),
-        ('share_sale', 'Venta de Acciones')
+        ('share_sale', 'Venta de Acciones'),
 
     ], required=True)
     # campos relacionales

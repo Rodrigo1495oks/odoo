@@ -72,8 +72,6 @@
                             attrs="{'readonly': [('state', '!=', 'draft'),('reduction_type','!=','voluntary')]}" />
                         <field name='amount_total'
                             attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                        <field name='capital_reduction_group'
-                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
                         <field name='user_id'
                             attrs="{'readonly': [('state', '!=', 'draft')]}" />
                         <field name='partner_id'
@@ -82,6 +80,7 @@
                             <group id="header_left_group">
                                 <field name="reduction_ids" />
                                 <field name="reduction_type" attrs="{'readonly': ['|',('state', '!=', 'draft'),('reduction_type', '=', 'cancelation')]}" />
+                                <field name="fiscal_year" attrs="{'invisible': [('reduction_type', '!=', 'obligatory')],'readonly':[('state', '!=', 'draft')]}" />
                             </group>
                             <group id="header_right_group">
                                 <field name='name' />
