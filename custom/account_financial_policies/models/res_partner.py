@@ -19,32 +19,12 @@ class Partner(models.Model):
     _name = 'res.partner'
     # specie_id = fields.Many2one(string='Especie', comodel_name='species')
 
-    start_date = fields.Datetime(
-        string='Fecha Inicio del cargo', readonly=True)
-    end_date = fields.Datetime(string='Fecha de Finalización', readonly=False)
-    date_of_birth = fields.Date(string='Fecha de Nacimiento', readonly=False)
-    post_code = fields.Integer(string='Código Postal')
+
+
     shareholder_rank = fields.Integer(default=0, copy=False)
     # priority = fields.Selection(
     #     [('0', 'Normal'), ('1', 'Urgent')], 'Priority', default='0', index=True)
 
-    # campos relacionales
-    # position = fields.Many2one(
-    #     string='Cargo', help='Cargo del accionista dentro de la asamblea', comodel_name='account.shareholder.position')
-    # shares = fields.One2many(string='Acciones', comodel_name='account.share',
-    #                          inverse_name='shareholder', store=True, help='Acciones que le pertenecen a este acconista')
-    # integration_orders = fields.One2many(
-    #     string='Integraciones', comodel_name='integration.order', inverse_name='partner_id')
-    # subscription_orders = fields.One2many(
-    #     string='Subscripciones', comodel_name='subscription.order', inverse_name='partner_id')
-    # contabilidad
-    # bank_account_id = fields.Many2one('res.partner.bank',
-    #                                   string="Bank Account",
-    #                                   ondelete='restrict', copy=False,
-    #                                   check_company=True,
-    #                                   domain="[('partner_id','=', company_partner_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
-    # bank_id = fields.Many2one(
-    #     'res.bank', related='bank_account_id.bank_id', readonly=False)
     
         # ACCOUNTS
 
@@ -52,54 +32,54 @@ class Partner(models.Model):
                                                        string="Cuenta de Acciones",
                                                        domain="[('account_type', '=', 'asset_receivable_others'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para registrar los saldos de subscripción del accionista, cuenta que puede ser modificada en el partner",
-                                                       required=True)
+                                                       required=False)
     property_account_shareholding_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Capital Suscripto",
                                                        domain="[('account_type', '=', 'equity'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner",
-                                                       required=True)
+                                                       required=False)
     property_account_integration_id = fields.Many2one('account.account', company_dependent=True,
                                                       string="Cuenta de Capital Integrado",
                                                       domain="[('account_type', '=', 'equity'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                       help="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner",
-                                                      required=True)
+                                                      required=False)
     property_account_contribution_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Aportes",
                                                        domain="[('account_type', '=', 'contribution'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para las para registrar los partes pendientes de aprobación, a pesar que sea establecida una cuenta por defecto diferente",
-                                                       required=True)
+                                                       required=False)
     property_account_contribution_losses_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Aportes",
                                                        domain="[('account_type', '=', 'contribution_losses'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Aportes para absorber pérdidas acumuladas",
-                                                       required=True)
+                                                       required=False)
     property_account_contribution_credits_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Saldo de aportes no integrados",
                                                        domain="[('account_type', '=', 'asset_receivable_others'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                        help="Esta cuenta será usada para las para registrar los partes pendientes de pago, a pesar que sea establecida una cuenta por defecto diferente",
-                                                       required=True, )
+                                                       required=False, )
     property_account_issue_discount_id = fields.Many2one('account.account', company_dependent=True,
                                                          string="Descuentos de Emisión",
                                                          domain="[('account_type', '=', 'equity_issue_discount'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                          help="Esta cuenta será usada para las para registrar los pagos de aportes, a pesar que sea establecida una cuenta por defecto diferente",
-                                                         required=True)
+                                                         required=False)
     property_account_issue_premium_id = fields.Many2one('account.account', company_dependent=True,
                                                         string="Primas de Emisión",
                                                         domain="[('account_type', '=', 'equity_issue_premium'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                         help="Esta cuenta será usada para las para registrar las primas de emision de acciones, a pesar que sea establecida una cuenta por defecto diferente",
-                                                        required=True)
+                                                        required=False)
     
     account_capital_adjustment = fields.Many2one('account.account', company_dependent=True,
                                                  string="Ajuste al capital",
                                                  domain="[('account_type', '=', 'equity_adjustment'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                  help="Esta cuenta será usada para las para registrar los ajustes de capital, a pesar que sea establecida una cuenta por defecto diferente",
-                                                 required=True)
+                                                 required=False)
 
     account_shareholders_for_redemption_of_shares = fields.Many2one('account.account', company_dependent=True,
                                                                     string="Accionistas por rescates de acciones",
                                                                     domain="[('account_type', '=', 'liability_payable_dividends_redemption_shares'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                                                     help="Esta cuenta será usada para las para registrar los pagos de aportes, a pesar que sea establecida una cuenta por defecto diferente",
-                                                                    required=True, )
+                                                                    required=False, )
 
     # """Campos usados para la emision y gestion de los bonos"""
 
@@ -107,12 +87,12 @@ class Partner(models.Model):
                                            string="Cuenta Bonos a pagar",
                                            domain="[('account_type', '=', 'liability_payable_financial'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta de Pasivo para registrar las emisiones de obligaciones negociables",
-                                           required=True, config_parameter='higher_authority.account_cert_payable')
+                                           required=False, config_parameter='higher_authority.account_cert_payable')
     account_receivable_cert=fields.Many2one('account.account', company_dependent=True,
                                            string="Créditos por bonos",
                                            domain="[('account_type', '=', 'asset_receivable_others'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta para registrar el saldo pendiente que eel tenedor de bonos debe abonar",
-                                           required=True )
+                                           required=False )
     # LOW LEVEL METHODS
     @api.model_create_multi
     def create(self, vals_list):

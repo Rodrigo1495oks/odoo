@@ -17,6 +17,3 @@ from odoo.exceptions import ValidationError
 class Partner(models.Model):
     _inherit = 'res.partner'
 
-    start_date = fields.Date(
-        string='Fecha Inicio del cargo', readonly=False)
-    end_date = fields.Date(string='Fecha de Finalización cargo', readonly=False)
