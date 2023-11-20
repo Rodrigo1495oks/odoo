@@ -18,7 +18,7 @@ class ResPartnerPosition(models.Model):
     _name='res.partner.position'
     _description='Cargo del Accionista dentro de la Compañía'
     _order = 'name'
-    _rec_name = 'short_name'
+    _rec_name = 'name'
     _inherit = ['base.archive']
 
     name=fields.Char(string='Nombre del Cargo')
@@ -28,3 +28,13 @@ class ResPartnerPosition(models.Model):
         ('shareholder','Síndico'),
     ], help='Rol del partner dentro de la companía')
     description=fields.Text(string='Descripción', help='Descripción General del Puesto')
+    # Campos relacionales
+
+    partner_id=fields.One2many(string='Accionista', comodel_name='res.partner',inverse_name='position', help='Accionistas', readonly=True)
+
+
+class Partner(models.Model):
+    _inherit = 'res.partner'
+
+    position=fields.Many2one(string='Cargo', comodel_name='res.partner.position', help='Cargo del Accionista dentro de la Compañía')
+    

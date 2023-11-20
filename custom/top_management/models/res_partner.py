@@ -28,8 +28,7 @@ class Partner(models.Model):
         [('0', 'Normal'), ('1', 'Urgent')], 'Priority', default='0', index=True)
 
     # campos relacionales
-    position = fields.Many2one(
-        string='Cargo', help='Cargo del accionista dentro de la asamblea', comodel_name='account.shareholder.position')
+
     # shares = fields.One2many(string='Acciones', comodel_name='account.share',
     #                          inverse_name='shareholder', store=True, help='Acciones que le pertenecen a este acconista')
     # integration_orders = fields.One2many(
