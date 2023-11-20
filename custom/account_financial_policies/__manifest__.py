@@ -11,7 +11,10 @@
         'base', 'account', 'account_utilities'
     ],
     'data': [
-
+        # Importamos las vistas y creamos el menu para Finanzas
+        'views/res_config_settings_views.xml',
+        'views/res_partner.xml',
+        'views/menu_view.xml',
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

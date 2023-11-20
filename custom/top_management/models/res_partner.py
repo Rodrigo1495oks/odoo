@@ -30,20 +30,14 @@ class Partner(models.Model):
     # campos relacionales
     position = fields.Many2one(
         string='Cargo', help='Cargo del accionista dentro de la asamblea', comodel_name='account.shareholder.position')
-    shares = fields.One2many(string='Acciones', comodel_name='account.share',
-                             inverse_name='shareholder', store=True, help='Acciones que le pertenecen a este acconista')
-    integration_orders = fields.One2many(
-        string='Integraciones', comodel_name='integration.order', inverse_name='partner_id')
-    subscription_orders = fields.One2many(
-        string='Subscripciones', comodel_name='subscription.order', inverse_name='partner_id')
+    # shares = fields.One2many(string='Acciones', comodel_name='account.share',
+    #                          inverse_name='shareholder', store=True, help='Acciones que le pertenecen a este acconista')
+    # integration_orders = fields.One2many(
+    #     string='Integraciones', comodel_name='integration.order', inverse_name='partner_id')
+    # subscription_orders = fields.One2many(
+    #     string='Subscripciones', comodel_name='subscription.order', inverse_name='partner_id')
     # contabilidad
-    # bank_account_id = fields.Many2one('res.partner.bank',
-    #                                   string="Bank Account",
-    #                                   ondelete='restrict', copy=False,
-    #                                   check_company=True,
-    #                                   domain="[('partner_id','=', company_partner_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
-    # bank_id = fields.Many2one(
-    #     'res.bank', related='bank_account_id.bank_id', readonly=False)
+
     
         # ACCOUNTS
 

@@ -1,17 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="view_partner_form" model="ir.ui.view">
+
+        <record id="view_partner_property_form" model="ir.ui.view">
             <field name="name">res.partner.form</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_form" />
             <field name="arch" type="xml">
                 <!-- find field description and add the field
                     new_field after it -->
-                <xpath expr="//field[@name='category_id']" position="after">
-                    <field name="specie_id" />
+                <xpath expr="//group[@name='accounting_entries']" position="after">
+                    <group string="Cuentas Financieras" name="financial_entries" groups="account.group_account_readonly">
+                        <field name="property_account_subscription_id"/>
+                        <field name="property_account_shareholding_id"/>
+                        <field name="property_account_integration_id"/>
+                        <field name="property_account_contribution_id"/>
+                        <field name="property_account_contribution_losses_id"/>
+                        <field name="property_account_contribution_credits_id"/>
+                        <field name="property_account_issue_discount_id"/>
+                        <field name="property_account_issue_premium_id"/>
+                        <field name="account_capital_adjustment"/>
+                        <field name="account_shareholders_for_redemption_of_shares"/>
+                    </group>
+                    <group string="Cuentas de Bonos" name="liability_entries" groups="account.group_account_readonly">
+                        <field name="account_cert_payable"/>
+                        <field name="account_receivable_cert"/>
+                    </group>
                 </xpath>
             </field>
         </record>
-    </data>
+        <record id="res_partner_view_search" model="ir.ui.view">
+            <field name="name">res.partner.search.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='inactive']" position="after">
+                   <filter string="Aportes de Accionistas" name="shareholder" domain="[('shareholder_rank','>', 0)]"/>
+                   <separator/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="res_partner_action_shareholder" model="ir.actions.act_window">
+            <field name="name">Accionistas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="context">{'search_default_shareholder': 1,'res_partner_search_mode': 'shareholder', 'default_is_company': True, 'default_shareholder_rank': 1}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a new shareholder in your address book
+              </p><p>
+                Odoo helps you easily track all activities related to a shareholder.
+              </p>
+            </field>
+        </record>
+
 </odoo>

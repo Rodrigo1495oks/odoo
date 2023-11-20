@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="view_partner_form" model="ir.ui.view">
-            <field name="name">res.partner.form</field>
-            <field name="model">res.partner</field>
-            <field name="inherit_id" ref="base.view_partner_form" />
-            <field name="arch" type="xml">
-                <!-- find field description and add the field
-                    new_field after it -->
-                <xpath expr="//field[@name='category_id']" position="after">
-                    <field name="specie_id" />
-                </xpath>
-            </field>
-        </record>
-    </data>
+    <record id="view_partner_property_form" model="ir.ui.view">
+        <field name="name">res.partner.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <!-- find field description and add the field
+                new_field after it -->
+            <xpath expr="//page[@name='accounting']" position="after">
+                <page id='shareholding' name='shareholding' string='Accionista' groups="top_management.top_management_group_manager, account.group_account_readonly">
+                    <field name='start_date'/>
+                    <field name='end_date'/>
+                    <field name='date_of_birth'/>
+                    <field name='post_code'/>
+                    <field name='priority'/>
+                </page>
+            </xpath>
+        </field>
+    </record>
 </odoo>

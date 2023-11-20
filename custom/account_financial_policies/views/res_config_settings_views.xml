@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
+
         <record id="res_config_settings_view_form" model="ir.ui.view">
-            <field name="name">res.config.settings.view.form.inherit.account</field>
+            <field name="name">res.config.settings.view.form.inherit.account.financial.policies</field>
             <field name="model">res.config.settings</field>
-            <field name="priority" eval="90" />
+            <field name="priority" eval="91" />
             <field name="inherit_id" ref="base.res_config_settings_view_form" />
             <field name="arch" type="xml">
                 <xpath expr="//div[hasclass('settings')]" position="inside">
-                    <div class="app_settings_block" data-string="Invoicing" string="Invoicing" data-key="account" groups="account.group_account_manager">
+                    <div class="app_settings_block" data-string="Administración Financiera" string="Financiera" data-key="account_financial_policies" groups="account.group_account_manager">
                         <field name="io_double_validation" invisible="1" />
                         <field name="io_lock" invisible="1" />
                         <h2>Administración de Mercado de Valores</h2>
                         <div class="row mt16 o_settings_container" id="main_settings_io">
                             <div class="col-12 col-lg-6 o_setting_box"
                                 id="automatic_lock_confirmed_orders">
-                                <div class="o_setting_left_pane">
-                                    <field name="lock_confirmed_io" />
-                                </div>
                                 <div class="o_setting_right_pane">
                                     <label for="lock_confirmed_io" />
+                                    <field name="lock_confirmed_io"/>
                                     <div class="text-muted">
                                         Automatically lock confirmed orders to prevent editing
                                     </div>
@@ -42,22 +40,10 @@
                                     <div class="content-group"
                                         attrs="{'invisible': [('io_order_approval', '=', False)]}">
                                         <div class="row mt16">
-                                            <label for="po_double_validation_amount"
+                                            <label for="io_double_validation_amount"
                                                 class="col-lg-4 o_light_label" />
-                                            <field name="po_double_validation_amount" />
+                                            <field name="io_double_validation_amount" />
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="automatic_lock_confirmed_orders">
-                                <div class="o_setting_left_pane">
-                                    <field name="lock_confirmed_io" />
-                                </div>
-                                <div class="o_setting_right_pane">
-                                    <label for="lock_confirmed_io" />
-                                    <div class="text-muted">
-                                        Automatically lock confirmed orders to prevent editing
                                     </div>
                                 </div>
                             </div>
@@ -294,32 +280,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- account_share_redemption_discount -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="account_share_redemption_discount"
-                                title="Esta cuenta será usada para las para registrar los saldos acreedores de accionistas a quienes se les ha reembolsado las acciones">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Descuentos por Rescates de
-                                        Acciones</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar los
-                                        Descuentos por Rescates de Acciones
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Descuentos por Rescates de Acciones"
-                                                for="account_share_redemption_discount"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="account_share_redemption_discount" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
                             <!-- account_share_redemption_discount -->
                             <div class="col-12 col-lg-6 o_setting_box"
                                 id="account_share_redemption_discount"
@@ -354,7 +315,7 @@
                                 <div class="o_setting_left_pane">
                                 </div>
                                 <div class="o_setting_right_pane">
-                                    <label string="Checks" for="percentage_redemption" />
+                                    <label string="Porcentaje de Pago Retiro Accionistas" for="percentage_redemption" />
                                     <span class="fa fa-lg fa-building-o"
                                         title="Values set here are company-specific."
                                         aria-label="Values set here are company-specific."
@@ -367,11 +328,11 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <h2>Operaciones Financieras</h2>
-                    <div class="row mt16 o_settings_container"
+
+                        <h2>Operaciones Financieras</h2>
+                        <div class="row mt16 o_settings_container"
                         name="financial_accounts_setting_container">
-                    <div class="col-12 col-lg-6 o_setting_box"
+                        <div class="col-12 col-lg-6 o_setting_box"
                         id="account_financial_expenses"
                         title="Cuenta de gasto para registrar las erogacion por emision de obligaciones negociables">
                         <div class="o_setting_left_pane" />
@@ -386,16 +347,16 @@
                             </div>
                             <div class="content-group">
                                 <div class="row mt16">
-                                    <label string="Gastos por emision oblñigaciones Negociables"
+                                    <label string="Gastos por emision obligaciones Negociables"
                                         for="account_financial_expenses"
                                         class="col-lg-3 o_light_label" />
                                     <field name="account_financial_expenses" />
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
+                        </div>
+                        <!--  -->
+                        <div class="col-12 col-lg-6 o_setting_box"
                         id="account_cert_payable"
                         title="Cuenta Bonos a pagar">
                         <div class="o_setting_left_pane" />
@@ -417,9 +378,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
+                        </div>
+                        <!--  -->
+                        <div class="col-12 col-lg-6 o_setting_box"
                         id="account_cert_interest"
                         title="Intereses de obligaciones y bonos">
                         <div class="o_setting_left_pane" />
@@ -431,27 +392,25 @@
                                 aria-label="Values set here are company-specific."
                                 groups="base.group_multi_company" role="img" />
                             <div class="text-muted">
-                                Cuenta de Resultado para registrar el acaecimiento de los interes
-                                periodicos
+                                Cuenta de Resultado
                             </div>
                             <div class="content-group">
                                 <div class="row mt16">
-                                    <label string="Cuenta Bonos a pagar"
+                                    <label string="Cuenta Intereses Negativos"
                                         for="account_cert_interest"
                                         class="col-lg-3 o_light_label" />
                                     <field name="account_cert_interest" />
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
+                        </div>
+                        <!--  -->
+                        <div class="col-12 col-lg-6 o_setting_box"
                         id="account_receivable_cert"
                         title="Créditos por Bonos">
                         <div class="o_setting_left_pane" />
                         <div class="o_setting_right_pane">
-                            <span class="o_form_label">Cuenta de Resultado para registrar el
-                                acaecimiento de los interes periodicos</span>
+                            <span class="o_form_label">Cuenta de Otros Créditos</span>
                             <span class="fa fa-lg fa-building-o"
                                 title="Values set here are company-specific."
                                 aria-label="Values set here are company-specific."
@@ -469,27 +428,29 @@
                             </div>
                         </div>
                         </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
+
+                        <!--  -->
+                        <div class="col-12 col-lg-6 o_setting_box"
                         id="account_cert_amortized"
                         title="Obligaciones Amortizadas">
                         <div class="o_setting_left_pane" />
                         <div class="o_setting_right_pane">
-                            <span class="o_form_label">Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar</span>
+                            <span class="o_form_label">Cuenta para registrar el saldo pendiente amortizado que el tenedor de bonos debe abonar</span>
                             <span class="fa fa-lg fa-building-o"
                                 title="Values set here are company-specific."
                                 aria-label="Values set here are company-specific."
                                 groups="base.group_multi_company" role="img" />
                             <div class="text-muted">
-                                Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar
+                                Cuenta para registrar el saldo pendiente amortizado
                             </div>
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label string="Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar"
+                                <div class="content-group">
+                                    <div class="row mt16">
+                                        <label string="Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar"
                                         for="account_cert_amortized"
                                         class="col-lg-3 o_light_label" />
-                                    <field name="account_cert_amortized" />
+                                        <field name="account_cert_amortized" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -498,18 +459,13 @@
             </field>
         </record>
 
-        <record id="higher_authority_config_settings_action" model="ir.actions.act_window">
+        <record id="account_financial_policies_config_settings_action" model="ir.actions.act_window">
             <field name="name">Settings</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">res.config.settings</field>
             <field name="view_mode">form</field>
             <field name="target">inline</field>
-            <field name="context">{'module' : 'higher_authority', 'bin_size': False}</field>
+            <field name="context">{'module' : 'account_financial_policies', 'bin_size': False}</field>
         </record>
 
-        <menuitem id="higher_authority_config_settings_menu" name="Settings"
-            parent="higher_authority.menu_configuration" sequence="0"
-            action="higher_authority_config_settings_action"
-            groups="base.group_system" />
-    </data>
 </odoo>

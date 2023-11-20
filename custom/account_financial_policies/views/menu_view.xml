@@ -1,67 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-
-
-        <!-- sistema de menus -->
+        <!-- Menú de Planificación Financiera -->
         <menuitem
-            id="shareholding_root_menu"
-            name="Gestion de Autoridad Superior"
-            sequence="11" />
-        <menuitem
-            id="shareholding_first_level_menu"
-            name="Registros"
-            parent="shareholding_root_menu">
-            <menuitem
-                id="shareholding_menu_action"
+            id="account_finance"
+            name="Finanzas"
+            parent="account.menu_finance"/>
+
+    <menuitem
+                id="menu_account_shareholder"
                 name="Accionistas"
-                action="account_shareholder_action"
-                parent="shareholding_first_level_menu"
+                action="res_partner_action_shareholder"
+                parent="account_finance"
                 sequence="1" />
 
+    <menuitem id="menu_account_stock_market" name="Mercado de Valores" sequence="2"
+                groups="account.group_account_readonly,account.group_account_invoice" parent="account_finance"/>
 
-        </menuitem>
+    <menuitem id="menu_account_financial_policies_config" name="Ajustes Finanzas" action="account_financial_policies_config_settings_action" groups="base.group_system" sequence="0" parent="account.menu_finance_configuration"/>
 
-        <!-- Incorporaciones -->
-        <menuitem
-            id="shareholding_inc_menu"
-            name="Incorporaciones"
-            parent="shareholding_root_menu">
-            <menuitem id="menu_action_subscription" name='Pedidos de Suscripción'
-                action="subscription_order_action" sequence="1" parent="shareholding_inc_menu" />
-            <menuitem id="menu_action_integration" name='Pedidos de Integración'
-                action="integration_rfq" sequence="2" parent="shareholding_inc_menu" />
-
-        </menuitem>
-
-        <menuitem
-            id="removing_shareholding_menu"
-            name="Reducciones"
-            parent="shareholding_root_menu">
-            <!-- Reducciones -->
-            <menuitem id="menu_action_reduction" name='Pedidos de Suscripción'
-                action="reduction_order_action" sequence="1" parent='removing_shareholding_menu' />
-            <!-- Ordenes de Cancelación -->
-            <menuitem id="menu_action_reduction" name='Pedidos de Suscripción'
-                action="reduction_list_action" sequence="2" parent='removing_shareholding_menu' />
-        </menuitem>
-
-        <!-- Acciones -->
-        <menuitem id="shares_menu"
-            name="Acciones"
-            parent="shareholding_root_menu">
-
-            <menuitem id="menu_action_shares" name='Acciones' action="account_share_action"
-                sequence="1" parent='shares_menu' />
-            <menuitem id="menu_action_share_cost" name='Costos de Emisión - (Solicitud)'
-                action="account_share_cost_rfq" sequence="2" parent='shares_menu' />
-            <menuitem id="menu_action_share_cost_confirmed" name='Costos de Emisión'
-                action="account_share_cost_form_action" sequence="3" parent='shares_menu' />
-
-
-        </menuitem>
-        <!-- Configuration -->
-        <menuitem id="menu_configuration" name="Configuración"
-            parent="shareholding_root_menu" />
-    </data>
 </odoo>
