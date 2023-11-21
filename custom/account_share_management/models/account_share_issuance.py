@@ -10,14 +10,10 @@ from odoo.exceptions import UserError, AccessError, ValidationError
 class SharesIssuance(models.Model):
     _name = 'account.share.issuance'
     _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
-    _description = 'Objeto Reunión de asamblea'
+    _description = 'Objeto Orden de Emisión de Acciones'
     _order = 'short_name desc, name desc'
     _rec_name = 'short_name'
 
-    def _compute_currency_rate(self):
-        for share in self:
-            share.currency_rate = self.env['res.currency']._get_conversion_rate(
-                share.company_id.currency_id, share.currency_id, share.company_id, share.date_share)
 
     @api.depends('nominal_value', 'price')
     # busca en el modelo relacionado e l campo precio total
@@ -29,7 +25,7 @@ class SharesIssuance(models.Model):
             nom_price = issuance.nominal_value
             price = issuance.price
             if nom_price > price:
-                issuance.update({  # actualizo loscampos de este modelo
+                issuance.update({  # actualizo los campos de este modelo
                     'issue_discount': currency.round(nom_price-price),
                     'issue_premium': 0
                 })
@@ -42,18 +38,15 @@ class SharesIssuance(models.Model):
     short_name = fields.Char(string='Referencia', default='New',
                              required=True, copy=False, readonly=True)
 
-    name = fields.Char(string='Nombre', )
+    name = fields.Char(string='Título', )
 
     makeup_date = fields.Datetime(string='Fecha de Confección', readonly=True,
                                   help='Fecha en que se ha creado esta orden, a partir del topico aprobado correspondiente')
     date_of_issue = fields.Datetime(
         string='Fecha de Emisión', help='Fecha en que se ha ejecutado esta orden y creado las acciones')
-    # campos relacionales
 
     # campos para crear las acciones
 
-    share_type = fields.Many2one(
-        string='Grupo de acciones', comodel_name='account.share.type', ondelete='restrict')
 
     votes_num = fields.Integer(string='Número de Votos',
                                related='share_type.number_of_votes', store=True)  # puede modificarse en la accion mientras sea "editable"
@@ -77,8 +70,7 @@ class SharesIssuance(models.Model):
     issue_discount = fields.Float(
         string='Descuento de Emisión', help='Descuento bajo la par', compute='_compute_price', readonly=True)
 
-    company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
-                                 default=lambda self: self.env.company.id, readonly=True)
+                                 
     state = fields.Selection(string='Estado', selection=[
         ('draft', 'Borrador'),
         ('new', 'Nuevo'),
@@ -87,21 +79,16 @@ class SharesIssuance(models.Model):
         ('cancel', 'Cancelado')
     ], default='draft')
 
+    # campos relacionales
+    company_id = fields.Many2one('res.company', 'Company', required=True, index=True,default=lambda self: self.env.company.id, readonly=True)
     share_type = fields.Many2one(
         string='Grupo de acciones', comodel_name='account.share.type', ondelete='restrict')
-    shares = fields.One2many(string='Acciones a emitir', help='Acciones creadas',
-                             comodel_name='account.share', inverse_name='share_issuance', index=True)
-    suscription_order = fields.Many2one(
-        string='Suscripción', help='Suscripcion de acciones creada', comodel_name='suscription.order', index=True)
-    integration_order = fields.Many2one(
-        string='Integración', help='Integración de acciones creada', comodel_name='integration.order', index=True)
+    
     share_cost = fields.One2many(
         string='Costos de Emisión', comodel_name='account.share.cost', inverse_name='share_issuance', readonly=True)
     topic = fields.Many2one(string='Tema de Reunión',
                             comodel_name='assembly.meeting.topic', ondelete='restrict')
 
-    irrevocable_contribution = fields.Many2one(
-        string='Aporte Irrevocable', comodel_name='irrevocable.contribution', index=True, copy=True, readonly=True)
 
     # def action_set_canceled(self):
     #     self.ensure_one()
@@ -149,15 +136,15 @@ class SharesIssuance(models.Model):
                 for share in issuance.shares:
                     share.state='integrated'
             else:
-                raise UserError('Acción no válida. LA emision no esta suscrita o el aporte irrevocable no esta Aprobado')
+                raise UserError('Acción no válida. La emision no esta suscrita o el aporte irrevocable no esta Aprobado')
 
     def action_confirm(self):
         self.ensure_one()
         for issue in self:
             if issue.state == 'draft':
                 issue.state = 'new'
-                # topic_vals = self._prepare_topic_values()
-                # self.env['assembly.meeting.topic'].create(topic_vals)
+                topic_vals = self._prepare_topic_values()
+                self.env['assembly.meeting.topic'].create(topic_vals)
                 return True
             else:
                 raise UserError(

@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-import base64
-import collections
-from functools import lru_cache
-import hashlib
 from itertools import groupby
-import re
+
 from time import time
 from dateutil import relativedelta
 from pytz import timezone, UTC
 from markupsafe import escape, Markup
-import requests
+
 from odoo.exceptions import UserError
-from werkzeug import urls
+
 
 from datetime import datetime, timedelta
 from werkzeug.urls import url_encode
@@ -21,21 +16,15 @@ from odoo.tools.float_utils import float_is_zero, float_compare, float_round
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT, format_amount, format_date, formatLang, get_lang, groupby
 from odoo import SUPERUSER_ID, models, fields, api, tools
 
-from odoo.osv.expression import get_unaccent_wrapper
 
 from odoo.exceptions import ValidationError
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import math
-import babel.dates
-import logging
 
-from odoo.addons.base.models.res_partner import _tz_get
-from odoo.addons.calendar.models.calendar_attendee import Attendee
-from odoo.addons.calendar.models.calendar_recurrence import weekday_to_field, RRULE_TYPE_SELECTION, END_TYPE_SELECTION, MONTH_BY_SELECTION, WEEKDAY_SELECTION, BYDAY_SELECTION
+
 from odoo.tools.translate import _
-from odoo.tools import pycompat
+
 from odoo.exceptions import UserError, AccessError
 
 
