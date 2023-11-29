@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-        <!-- Accion para crear la emisíon -->
-        <record id="assembly_meeting_action" model="ir.actions.act_window">
-            <field name="name">Crear Reunión</field>
-            <field name="res_model">assembly.meeting</field>
-            <field name="view_mode">tree,kanban,form</field>
-            <field name="view_id" ref="assembly_meeting_view_tree" />
-            <field name="domain">[]</field>
-            <field name="context">{}</field>
-        </record>
+
         <!-- vistas -->
         <record id="assembly_meeting_view_tree" model="ir.ui.view">
             <field name="name">assembly.meeting.tree</field>
@@ -19,14 +11,12 @@
                     decoration-bf='state=="new"' decoration-muted="state=='canceled'">
                     <field name="assembly_meet_type" class="mr-3" />
                     <field name="short_name" />
-                    <field name="shareholders" widget="many2one_avatar " />
                     <field name="activity_ids" widget="list_activity" optional="show" />
-
                     <field name="state" optional="show" widget="badge"
                         decoration-success="state == 'finished'"
                         decoration-warning="state == 'draft' or 'new'"
-                        decoration-info="state == 'draft' or state == 'new'"
                         decoration-muted="state=='canceled'" />
+                    <!-- decoration-info="state == 'draft' or state == 'new'" -->
                 </tree>
             </field>
         </record>
@@ -50,24 +40,51 @@
                             statusbar_visible="draft,new,finished,canceled" />
                     </header>
                     <sheet>
+                        <div class="oe_title">
+                            <span class="o_form_label"
+                                attrs="{'invisible': [('state','in',('draft'))]}">Reunión de
+                                Asamblea </span>
+                            <h1 class="d-flex mb32">
+                                <field name="short_name" readonly="1" />
+                            </h1>
+                        </div>
                         <group>
-                            <div class="oe_title">
-                                <span class="o_form_label"
-                                    attrs="{'invisible': [('state','in',('draft'))]}">Reunión de
-                                    Asamblea </span>
-                                <h1 class="d-flex mb32">
-                                    <field name="short_name" readonly="1" />
-                                </h1>
-                            </div>
-                            <field name='shareholders'
-                                attrs="{'readonly': [('state', '!=', 'draft')]}"
-                                widget="many2one_avatar " />
-                            <field name='assembly_meet_type'
-                                attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                            <field name='topics'
-                                attrs="{'readonly': [('state', '!=', 'draft')]}" options="{\'create_text\': \'Add Topic\'}" />
+                            <group id='header_left_group' name='inicio' string='Identificacion'>
+                                <field name="name" />
+                                <field name='assembly_meet_type' attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            </group>
+                            <group name='Datos' id='header_right_group' string='Duración'>
+                                <field name="date_start" />
+                                <field name="date_end" />
+                                <field name="duration" />
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page id='partner_ids' string='Accionistas'>
+                                <field name='partner_ids'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            </page>
+                            <page id='topics' string='Asuntos'>
+                                <field name='topics' attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            </page>
+                            <page id='assembly_vote' string='Votos'>
+                                <field name='assembly_vote' attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}" />
+                            </page>
+                            <page id='attendance' string='Asistencias'>
+                                <field name='attendance' attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}" />
+                            </page>
+                            <page id='events' string='Evento'>
+                                <field name='event_id'
+                                    attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}"/>
+                            </page>
+                           
+                        </notebook>
+                        <group>
+                            <field name='description' attrs="{'placeholder':'Ingrese la descripción de la Reunión'}"/>
                         </group>
                     </sheet>
+
                     <div class="oe_chatter">
                         <field name="message_follower_ids" />
                         <field name="activity_ids" />
@@ -90,8 +107,8 @@
                     <separator />
                     <group expand="1" string="Group By">
                         <filter string="Estado" name="state" context="{'group_by':'state'}" />
-                        <filter string="Accionistas" name="shareholders"
-                            context="{'group_by':'shareholders'}" />
+                        <filter string="Accionistas" name="partner_ids"
+                            context="{'group_by':'partner_ids'}" />
                         <filter string="Tipo de Acción" name="assembly_meet_type"
                             context="{'group_by':'assembly_meet_type'}" />
                     </group>
@@ -108,7 +125,7 @@
                 <kanban>
                     <field name="short_name" />
                     <field name="assembly_meet_type" readonly="1" />
-                    <field name="shareholders" />
+                    <field name="partner_ids" />
                     <field name="state" />
                     <field name="topics" />
 
@@ -122,7 +139,7 @@
                                     <div class="o_kanban_record_headings ml-1">
                                         <strong class="o_kanban_record_title">
                                             <span>
-                                                <t t-esc="record.shareholders.value" />
+                                                <t t-esc="record.partner_ids.value" />
                                             </span>
                                         </strong>
                                     </div>
@@ -141,7 +158,9 @@
                                     </div>
                                     <div class="oe_kanban_bottom_right">
                                         <field name="state" widget="label_selection"
-                                            options="{'classes': {'draft': 'default', 'new': 'default', 'approved': 'success', 'confirm': 'warning'}}" />
+                                        />
+                                        <!-- options="{'classes': {'draft': 'default', 'new':
+                                        'default', 'finished': 'success', 'canceled': 'warning'}}" -->
                                     </div>
                                 </div>
                             </div>
@@ -149,6 +168,15 @@
                     </templates>
                 </kanban>
             </field>
+        </record>
+        <!-- Accion para crear la emisíon -->
+        <record id="assembly_meeting_action" model="ir.actions.act_window">
+            <field name="name">Crear Reunión</field>
+            <field name="res_model">assembly.meeting</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="top_management.assembly_meeting_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
         </record>
     </data>
 </odoo>

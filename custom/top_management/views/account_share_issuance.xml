@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_share_issuance_view_form" model="ir.ui.view">
+        <field name="name">account.share.issuance.form</field>
+        <field name="model">account.share.issuance</field>
+        <field name="inherit_id" ref="account_share_management.account_share_issuance_view_form" />
+        <field name="arch" type="xml">
+            <!-- find field description and add the field
+                new_field after it -->
+            <xpath expr="//group[@id='header_right_group']" position="after">
+                <group id='topic' name='topic' string='Reuniones'>
+                    <field name='topic' attrs="{'invisible': [('topic', '=', 'False')]}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

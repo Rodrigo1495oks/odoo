@@ -64,6 +64,7 @@
                             </div>
                             <field name="auto_confirm"/>
                         </group>
+                        
                     </group>
                     <notebook>
                         <page string="Tickets" name="tickets">

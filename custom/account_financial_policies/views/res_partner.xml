@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
         <record id="view_partner_property_form" model="ir.ui.view">
             <field name="name">res.partner.form</field>
             <field name="model">res.partner</field>
@@ -9,7 +8,7 @@
                 <!-- find field description and add the field
                     new_field after it -->
                 <xpath expr="//group[@name='accounting_entries']" position="after">
-                    <group string="Cuentas Financieras" name="financial_entries" groups="account.group_account_readonly">
+                    <group string="Cuentas Financieras" name="financial_entries" groups="account.group_account_manager, .account_financial_policies.account_financial_policies_group_manager">
                         <field name="property_account_subscription_id"/>
                         <field name="property_account_shareholding_id"/>
                         <field name="property_account_integration_id"/>
@@ -21,11 +20,19 @@
                         <field name="account_capital_adjustment"/>
                         <field name="account_shareholders_for_redemption_of_shares"/>
                     </group>
-                    <group string="Cuentas de Bonos" name="liability_entries" groups="account.group_account_readonly">
+                    <group string="Cuentas de Bonos" name="liability_entries" groups="account.group_account_readonly, account_financial_policies.account_financial_policies_group_manager">
                         <field name="account_cert_payable"/>
                         <field name="account_receivable_cert"/>
                     </group>
                 </xpath>
+                <!-- <xpath expr="//field[@name='name']" position="after">
+                    <group string='Información Institucional' name='inst_info' id="header_left_group">
+                        <field name='business_name'/>
+                        <field name='initial_street'/>
+                        <field name='duration'/>
+                        <field name='registration_code'/>
+                    </group>
+                </xpath> -->
             </field>
         </record>
         <record id="res_partner_view_search" model="ir.ui.view">
@@ -54,5 +61,4 @@
               </p>
             </field>
         </record>
-
 </odoo>

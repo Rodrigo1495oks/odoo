@@ -31,7 +31,7 @@ class ResCompany(models.Model):
         help="Minimum amount for which a double validation is required")
     
     # ACCOUNTS
-
+    share_price=fields.Float(string='Precio de las Acciones', help='Valor Nominal para emitir acciones', company_dependent=True)
     
     property_account_subscription_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Acciones",
@@ -138,3 +138,9 @@ class ResCompany(models.Model):
                                            domain="[('account_type', '=', 'legal_reserve'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta Única para registrar el saldo de la Reserva Legal",
                                            )
+    
+    # business_name=fields.Char(string='Razón Social', help='Denominación Social de la Empresa', required=True)
+    # # Datos de Constitución
+    # initial_street=fields.Char(string='Domicilio de Constitución')
+    # duration=fields.Char(string='Duración')
+    # registration_code=fields.Integer(string='Número de Registro', help='Número de Registro Público')

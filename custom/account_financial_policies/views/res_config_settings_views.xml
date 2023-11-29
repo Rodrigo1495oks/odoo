@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
         <record id="res_config_settings_view_form" model="ir.ui.view">
             <field name="name">res.config.settings.view.form.inherit.account.financial.policies</field>
             <field name="model">res.config.settings</field>
@@ -11,6 +10,7 @@
                     <div class="app_settings_block" data-string="Administración Financiera" string="Financiera" data-key="account_financial_policies" groups="account.group_account_manager">
                         <field name="io_double_validation" invisible="1" />
                         <field name="io_lock" invisible="1" />
+                        <field name="share_price" invisible="1" />
                         <h2>Administración de Mercado de Valores</h2>
                         <div class="row mt16 o_settings_container" id="main_settings_io">
                             <div class="col-12 col-lg-6 o_setting_box"
@@ -45,8 +45,10 @@
                                             <field name="io_double_validation_amount" />
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
+
                         </div>
                         <h2>Equity Accounts</h2>
                         <div class="row mt16 o_settings_container"
@@ -310,7 +312,7 @@
                         </div>
                         <h2>Valor Patrimonial Proporcional</h2>
                         <div class="row mt16 o_settings_container" id="percentage_redemption">
-                            <div class="col-12 col-lg-6 o_setting_box" id="print_checks"
+                            <div class="col-12 col-lg-6 o_setting_box" id="vpp"
                                 groups="account.group_account_user">
                                 <div class="o_setting_left_pane">
                                 </div>
@@ -325,6 +327,22 @@
                                         por cancelación de acciones
                                     </div>
                                     <field name='percentage_redemption' />
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box" id="share_price"
+                                groups="account.group_account_user">
+                                <div class="o_setting_left_pane">
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label string="Precio" for="share_price" />
+                                    <span class="fa fa-lg fa-building-o"
+                                        title="Values set here are company-specific."
+                                        aria-label="Values set here are company-specific."
+                                        groups="base.group_multi_company" role="img" />
+                                    <div class="text-muted" id="share_price">
+                                        Precio del Valor Nominal de las acciones
+                                    </div>
+                                    <field name='share_price' />
                                 </div>
                             </div>
                         </div>

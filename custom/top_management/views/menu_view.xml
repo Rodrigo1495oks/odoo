@@ -1,67 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
+    <menuitem name="Gerencia"
+        id="menu_top_management"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        web_icon="top_management,static/description/icon.png"
+        sequence="56" />
 
-
-        <!-- sistema de menus -->
-        <menuitem
-            id="shareholding_root_menu"
-            name="Gestion de Autoridad Superior"
-            sequence="11" />
-        <menuitem
-            id="shareholding_first_level_menu"
-            name="Registros"
-            parent="shareholding_root_menu">
-            <menuitem
-                id="shareholding_menu_action"
-                name="Accionistas"
-                action="account_shareholder_action"
-                parent="shareholding_first_level_menu"
-                sequence="1" />
-
-
-        </menuitem>
-
-        <!-- Incorporaciones -->
-        <menuitem
-            id="shareholding_inc_menu"
-            name="Incorporaciones"
-            parent="shareholding_root_menu">
-            <menuitem id="menu_action_subscription" name='Pedidos de Suscripción'
-                action="subscription_order_action" sequence="1" parent="shareholding_inc_menu" />
-            <menuitem id="menu_action_integration" name='Pedidos de Integración'
-                action="integration_rfq" sequence="2" parent="shareholding_inc_menu" />
-
-        </menuitem>
-
-        <menuitem
-            id="removing_shareholding_menu"
-            name="Reducciones"
-            parent="shareholding_root_menu">
-            <!-- Reducciones -->
-            <menuitem id="menu_action_reduction" name='Pedidos de Suscripción'
-                action="reduction_order_action" sequence="1" parent='removing_shareholding_menu' />
-            <!-- Ordenes de Cancelación -->
-            <menuitem id="menu_action_reduction" name='Pedidos de Suscripción'
-                action="reduction_list_action" sequence="2" parent='removing_shareholding_menu' />
-        </menuitem>
-
-        <!-- Acciones -->
-        <menuitem id="shares_menu"
-            name="Acciones"
-            parent="shareholding_root_menu">
-
-            <menuitem id="menu_action_shares" name='Acciones' action="account_share_action"
-                sequence="1" parent='shares_menu' />
-            <menuitem id="menu_action_share_cost" name='Costos de Emisión - (Solicitud)'
-                action="account_share_cost_rfq" sequence="2" parent='shares_menu' />
-            <menuitem id="menu_action_share_cost_confirmed" name='Costos de Emisión'
-                action="account_share_cost_form_action" sequence="3" parent='shares_menu' />
-
-
-        </menuitem>
-        <!-- Configuration -->
-        <menuitem id="menu_configuration" name="Configuración"
-            parent="shareholding_root_menu" />
-    </data>
+    <menuitem id="menu_top_management_mngmt" name="Administración"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        sequence="1" parent='menu_top_management' />
+    <menuitem id="menu_top_management_meeting" name="Reuniones"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        sequence="1" parent='menu_top_management_mngmt' action='assembly_meeting_action' />
+    <menuitem id="menu_top_management_topic" name="Asuntos"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        sequence="1" parent='menu_top_management_mngmt' action='assembly_meeting_topic_action' />
+    <menuitem id="menu_top_management_vote" name="Votos"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        sequence="1" parent='menu_top_management_mngmt' action='assembly_vote_action' />
+    <!-- Configuracion -->
+    <menuitem id="menu_top_management_config" name="Configuración"
+        groups="top_management.top_management_group_manager" sequence="1"
+        parent='menu_top_management' />
+    <menuitem id="menu_top_management_position" name="Cargos"
+        groups="top_management.top_management_group_manager" sequence="1"
+        parent='menu_top_management_config' action='res_partner_position_action' />
+    <menuitem id="top_management_config_settings_menu" name="Ajustes"
+        parent="menu_top_management_config" sequence="1"
+        action="top_management_config_settings_action"
+        groups="base.group_system,top_management.top_management_group_manager" />
 </odoo>

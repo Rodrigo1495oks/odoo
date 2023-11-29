@@ -1,32 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="top_management_group_no_one" model="res.groups">
-        <field name="name">Usuario Nadie XD🤣</field>
-        <field name="category_id" ref="base.module_category_shareholding_shareholding" />
-        <field name="implied_ids"
-            eval="[(6, 0, [ref('base.group_private_addresses'), ref('base.group_no_one')])]" />
-        <field name="comment">The user will be able to approve document created by employees.</field>
-    </record>
     <!-- solo lectura -->
     <record id="group_top_management_readonly" model="res.groups">
-        <field name="name">Usuario Alta Gerencia/Directorio Mostrar todas las funciones - solo lectura</field>
+        <field name="name">Usuario Gerencia/Directorio Mostrar todas las funciones - solo lectura</field>
         <field name="category_id" ref="base.module_category_hidden"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
     <record id="top_management_group_user" model="res.groups">
-        <field name="name">Usuario Alta Gerencia/Directorio</field>
-        <field name="category_id" ref="base.module_category_shareholding_shareholding" />
+        <field name="name">Usuario Gerencia/Directorio</field>
+        <field name="category_id" ref="base.module_category_shareholding" />
         <field name="implied_ids"
             eval="[(6, 0, [ref('base.group_private_addresses'), ref('base.group_user')])]" />
         <field name="comment">The user will be able to approve document created by Manager an Shareholders.</field>
     </record>
-
     <record id="top_management_group_manager" model="res.groups">
-        <field name="name">Administrator</field>
-        <field name="comment">The user will have access to the estate property configuration as well as statistic reports.</field>
-        <field name="category_id" ref="base.module_category_shareholding_shareholding"/>
+        <field name="name">Gerencia General</field>
+        <field name="comment">El Usuario será el Gerente General de la Compania o el Presidente </field>
+        <field name="category_id" ref="base.module_category_shareholding"/>
         <field name="implied_ids" eval="[(4, ref('top_management_group_user')),(4, ref('base.group_private_addresses'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
-
 </odoo>

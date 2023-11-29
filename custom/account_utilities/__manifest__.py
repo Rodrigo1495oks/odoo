@@ -8,7 +8,7 @@
     'license': 'LGPL-3',
     'category': 'Account/Accounting',
     'depends': [
-        'base', 'account'
+        'base', 'account','l10n_ar'
     ],
     'data': [
 

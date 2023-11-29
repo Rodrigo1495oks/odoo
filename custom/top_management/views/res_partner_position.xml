@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-        <!-- Accion para crear la emisíon -->
-        <record id="res_partner_position_action" model="ir.actions.act_window">
-            <field name="name">Crear Tópico de Reunión</field>
-            <field name="res_model">res.partner.position</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="res_partner_position_view_tree" />
-            <field name="domain">[]</field>
-            <field name="context">{}</field>
-        </record>
+        
         <!-- vistas -->
         <record id="res_partner_position_view_tree" model="ir.ui.view">
             <field name="name">res.partner.position.tree</field>
@@ -64,6 +56,15 @@
                     </group>
                 </search>
             </field>
+        </record>
+        <!-- Accion para crear la emisíon -->
+        <record id="res_partner_position_action" model="ir.actions.act_window">
+            <field name="name">Crear Tópico de Reunión</field>
+            <field name="res_model">res.partner.position</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="res_partner_position_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
         </record>
     </data>
 </odoo>

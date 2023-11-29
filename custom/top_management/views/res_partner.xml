@@ -8,12 +8,72 @@
             <!-- find field description and add the field
                 new_field after it -->
             <xpath expr="//page[@name='accounting']" position="after">
-                <page id='shareholding' name='shareholding' string='Accionista' groups="top_management.top_management_group_manager">
-                    <field name='start_date'/>
-                    <field name='end_date'/>
-                    <field name='position'/>
+                <page id='shareholding' name='shareholding' string='Accionista'
+                    groups="top_management.top_management_group_manager">
+                    <field name='start_date' />
+                    <field name='end_date' />
+                    <field name='position' />
                 </page>
             </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_property_form" model="ir.ui.view">
+        <field name="name">res.partner.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <!-- find field description and add the field
+            new_field after it -->
+
+            <xpath expr="//sheet" position="inside">
+                <div name="button_box" position="inside">
+                    <button class="oe_stat_button"
+                        name="account_share_management.account_share_action" type="action"
+                        icon="fa-sharp fa-light fa-money-bill-trend-up">
+                        <field string="Acciones" name="account_share_count" widget="statinfo" />
+                    </button>
+                    <!-- <i class="fa-sharp fa-light fa-money-bill-trend-up"></i> -->
+                </div>
+                <div name="button_box" position="inside">
+                    <button type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                        name="action_view_partner_shares"
+                        groups='account_financial_policies.account_financial_policies_stock_market_group_manager,account_financial_policies.account_financial_policies_group_manager'
+                        context="{'default_partner_id': active_id}">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="currency_id" invisible="1" />
+                                <field name="total_shared" widget='monetary'
+                                    options="{'currency_field': 'currency_id'}" />
+                            </span>
+                            <span class="o_stat_text">Participación</span>
+                        </div>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="act_res_partner_account_share" model="ir.actions.act_window">
+        <field name="name">RFQs and Purchases</field>
+        <field name="res_model">account.share</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids"
+            eval="[(5, 0, 0),
+    (0, 0, {'view_mode': 'tree', 'view_id': ref('account_share_management.account_share_view_tree')})
+    ]" />
+        <field name="context">{'search_default_partner_id': active_id, 'default_partner_id':
+            active_id}</field>
+        <field name="groups_id"
+            eval="[(4, ref('account_financial_policies.account_financial_policies_stock_market_group_manager'))]" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                This vendor has no purchase order. Create a new RfQ
+            </p>
+            <p>
+                The request for quotation is the first step of the purchases flow. Once
+                converted into a purchase order, you will be able to control the receipt
+                of the products and the vendor bill.
+            </p>
         </field>
     </record>
 </odoo>

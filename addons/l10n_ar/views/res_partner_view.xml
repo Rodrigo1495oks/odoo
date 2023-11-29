@@ -31,7 +31,6 @@
                     <field name="l10n_ar_gross_income_number" placeholder="Number..." class="oe_inline" attrs="{'invisible': [('l10n_ar_gross_income_type', 'not in', ['multilateral', 'local'])], 'required': [('l10n_ar_gross_income_type', 'in', ['multilateral', 'local'])]}"/>
                 </div>
             </field>
-
         </field>
     </record>
 
@@ -48,5 +47,4 @@
             </filter>
         </field>
     </record>
-
 </odoo>

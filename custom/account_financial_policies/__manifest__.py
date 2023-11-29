@@ -12,8 +12,10 @@
     ],
     'data': [
         # Importamos las vistas y creamos el menu para Finanzas
+        'security/account_financial_policies_security.xml',
         'views/res_config_settings_views.xml',
         'views/res_partner.xml',
+        'views/res_company.xml',
         'views/menu_view.xml',
     ],
     'demo': [

@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <record id="account_financial_policies_stock_market_group_manager" model="res.groups">
-        <field name="name">Jefatura de Mercado de Valores</field>
+    <!-- aca voy creando los usuarios de cada aplicativo -->
+    <record id="account_financial_policies_stock_market_group_user" model="res.groups">
+        <field name="name">Operador Mercado de Valores</field>
         <field name="category_id" ref="base.module_category_finance" />
         <field name="implied_ids"
             eval="[(6, 0, [ref('base.group_private_addresses'), ref('base.group_user')])]" />
         <field name="comment">The user will be able to approve document created by employees.</field>
     </record>
-
+    <record id="account_financial_policies_stock_market_group_manager" model="res.groups">
+        <field name="name">Jefatura de Mercado de Valores</field>
+        <field name="category_id" ref="base.module_category_finance" />
+        <field name="implied_ids"
+            eval="[(6, 0, [ref('account_financial_policies_stock_market_group_user')])]" />
+        <field name="comment">The user will be able to approve document created by employees.</field>
+    </record>
     <record id="account_financial_policies_group_manager" model="res.groups">
         <field name="name">Jefatura Planificación Financiera</field>
         <field name="comment">Tendrá Acceso a todos los documentos de este menú, pero no las configuraciones.</field>
         <field name="category_id" ref="base.module_category_finance"/>
-        <field name="implied_ids" eval="[(4, ref('account_financial_policies_group_user'))]"/>
+        <field name="implied_ids" eval="[(4, ref('account_financial_policies_stock_market_group_manager'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- vistas -->
+        <record id="assembly_meeting_vote_view_tree" model="ir.ui.view">
+            <field name="name">assembly.meeting.vote.tree</field>
+            <field name="model">assembly.meeting.vote</field>
+            <field name="arch" type="xml">
+                <tree string="Voto" decoration-success="result=='finished'"
+                    decoration-bf='result=="new"' decoration-muted="result=='canceled'">
+                    <field name="name" />
+                    <field name="short_name" />
+                    <field name="partner_id" widget="many2one_avatar" />
+                    <field name="result" optional="show" widget="badge"
+                        decoration-success="result == 'positive'"
+                        decoration-warning="result == 'negative'"
+                        decoration-muted="result=='blank'" />
+                </tree>
+            </field>
+        </record>
+        <!-- formulario -->
+        <record id="assembly_meeting_vote_view_form" model="ir.ui.view">
+            <field name="name">assembly.meeting.vote.form</field>
+            <field name="model">assembly.meeting.vote</field>
+            <field name="arch" type="xml">
+                <form string="Voto de Asamblea">
+                    <header>
+                        <field name="result" widget="statusbar"
+                            statusbar_visible="positive,negative,blank" />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <span class="o_form_label"
+                            >Voto </span>
+                            <h1 class="d-flex mb32">
+                                <field name="short_name" readonly="1" />
+                            </h1>
+                        </div>
+                        <group id='header_right_group'>
+                            <field name="partner_id" widget="many2one_avatar" />
+                            <field name='result' />
+                            <field name='topic'
+                            />
+                            <field name='assembly_meeting'
+                            />
+                        </group>
+                        <!-- Referencai para reducciones, acciones en cartera, reservas, dividendos
+                        ect -->
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="assembly_meeting_vote_view_search" model="ir.ui.view">
+            <field name="name">assembly.meeting.vote.search</field>
+            <field name="model">assembly.meeting.vote</field>
+            <field name="arch" type="xml">
+                <search string="Temas de reunion">
+                    <field name="short_name" string="Nombre" />
+                    <separator />
+                    <separator />
+                    <group expand="1" string="Group By">
+                        <filter string="Resultado" name="result" context="{'group_by':'result'}" />
+                        <filter string="Tópico" name="topic" context="{'group_by':'topic'}" />
+                        <filter string="Con Reunión" name="assembly_meeting"
+                            context="{'group_by':'assembly_meeting'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+        <!-- Accion para crear la emisíon -->
+        <record id="assembly_vote_action" model="ir.actions.act_window">
+            <field name="name">Crear Voto de Reunión</field>
+            <field name="res_model">assembly.meeting.vote</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="assembly_meeting_vote_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+    </data>
+</odoo>

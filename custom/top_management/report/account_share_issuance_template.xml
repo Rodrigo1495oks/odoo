@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_account_share_issuance">
+        <t t-foreach="docs" t-as="asi">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <style>
+                        strong{
+                            text-decoration: underline;
+                            font-weight: bold;
+                        }
+                    </style>
+                    <t t-set='p' t-value="asi.partner_id" />
+                    <t t-set='c' t-value="asi.company_id" />
+                    <div class='d-flex bd-highlight' id='encabezado_documentos'
+                        style="border: 1px solid black;">
+                        <div class="col-md-6 p-2" style="border-right: 1px solid black;">
+                            <!-- Datos de la Empresa -->
+                            <div>
+                                <h2>
+                                    <span t-field="c.name" />
+                                </h2>
+                            </div>
+                            <p>
+                                <strong>Razón Social: </strong>
+                                <span t-field="c.name" />
+                            </p>
+                            <p class='back-red'>
+                                <strong>Dirección: </strong>
+                                <span t-field="c.street" /> - <span
+                                    t-field="c.city" /> - <span t-field="c.city" /> - <span
+                                    t-field="c.zip" /> - <span t-field="c.state_id" />
+                            </p>
+                            <p>
+                                <strong>Telefono/Móvil: </strong>
+                                <span t-field="c.phone" /> / <span
+                                    t-field="c.mobile" />
+                            </p>
+                            <p>
+                                <strong>Correo Electrónico: </strong>
+                                <span t-field="c.email" />
+                            </p>
+                            <p>
+                                <strong>Condición frente al IVA: </strong>
+                                <span t-field="c.l10n_ar_afip_responsibility_type_id" />
+                            </p>
+                        </div>
+                        <div class="col-md-6 p-2 ">
+                            <div class='mt-4'>
+                                <strong>
+                                    <h2 t-if="asi.state in ['draft','new']">Orden de Emisión </h2>
+                                    <h2 t-if="asi.state in ['approved','suscribed']">Orden de
+                                        Emisión Aprobada</h2>
+                                    <h2 t-if="asi.state in ['cancel']">Orden de Emisión Cancelada</h2>
+                                </strong>
+                            </div>
+                            <strong>Comp. Nro: </strong>
+                            <h2 t-field="asi.short_name" />
+                            <p class="text-end">
+                                <small>Documento no Válido como Factura</small>
+                            </p>
+                            <p class="text-end">
+                                <strong>Fecha de Emisión: </strong>
+                                <span t-field="asi.date_of_issue" />
+                            </p>
+                            <p class="text-end">
+                                <strong>CUIT: </strong>
+                                <span t-field="c.partner_id.l10n_ar_vat" />
+                            </p>
+                            <p class="text-end">
+                                <strong>Ingresos Brutos: </strong>
+                                <span t-field="c.l10n_ar_gross_income_number" />
+                            </p>
+                            <p class="text-end">
+                                <strong>Fecha Inicio Actividades: </strong>
+                                <span t-field="c.l10n_ar_afip_start_date" />
+                            </p>
+                        </div>
+                    </div>
+                    <div id="partner" class="container-fluid row my-4" style="border-right: 1px solid black;">
+                        <div class="partner-1 col-sm-6">
+                            <strong>CUIT:</strong>
+                            <span t-field="p.l10n_ar_vat" />
+                            <strong>Condición Frente al IVA:</strong>
+                            <span t-field="p.l10n_ar_afip_responsibility_type_id" />
+                        </div>
+                        <div class="partner-2 col-sm-6">
+                            <strong>Razón Social:</strong>
+                            <span t-field="p.name" />
+                        </div>
+                    </div>
+                    <div class="page">
+                        <div class="oe_structure" />
+                        <h3>
+                            <strong>Título: </strong>
+                            <span t-field="asi.name" />
+                        </h3>
+                        <div class='m-3 d-flex mb-2'>
+                            <div class="p-2" style="border-right: 2px solid cyan;">
+                                <strong>Accionista: </strong>
+                                <br/>   
+                                <span t-field="asi.partner_id" />
+                            </div>
+                            <div class="p-2" style="border-right: 2px solid cyan;">
+                                <strong>Cantidad de Acciones: </strong>
+                                <br/>   
+                                <span t-field="asi.shares_qty" />
+                            </div>
+                            <div class="p-2" style="border-right: 2px solid cyan;">
+                                <strong>Valor Nominal <i>(Fijado por la Compañía)</i>: </strong>
+                                <br/>   
+                                <span t-field="asi.nominal_value" />
+                            </div>
+                            <div class="p-2" style="border-right: 2px solid cyan;">
+                                <strong>Precio de Negociación: </strong>
+                                <br/>   
+                                <span t-field="asi.price" />
+                            </div>
+                            <div class="p-2" style="border-right: 2px solid cyan;">
+                                <strong>Prima de Emisión: </strong>
+                                <br/>   
+                                <span t-field="asi.issue_premium" />
+                            </div>
+                            <div class="p-2" style="border-right: 2px solid cyan;">
+                                <strong>Descuento de Emisión: </strong>
+                                <br/>   
+                                <span t-field="asi.issue_discount" />
+                            </div>
+                            <div class="p-2" style="border-right: 2px solid cyan;">
+                                <strong>Grupo de Accionista: </strong>
+                                <br/>   
+                                <span t-field="asi.share_type" />
+                            </div>
+                        </div>
+                        <table class="table table-sm o_main_table table-borderless mt-4">
+                            <thead style="display: table-row-group">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Estado</th>
+                                    <th>Fecha de Emisión</th>
+                                    <th>Votos</th>
+                                    <th>Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="shares" t-value="asi.mapped('shares')" />
+                                <tr t-foreach="shares" t-as="share">
+                                    <td>
+                                        <span t-field="share.short_name" />
+                                    </td>
+                                    <td>
+                                        <span t-field="share.state" />
+                                    </td>
+                                    <td>
+                                        <span t-field="share.date_of_issue" />
+                                    </td>
+                                    <td>
+                                        <span t-field="share.votes_num" />
+                                    </td>
+                                    <td>
+                                        <span t-field="share.price" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div id="total" class="row justify-content-end">
+                            <div class="col-4">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td>
+                                            <strong>Total Nominal</strong>
+                                        </td>
+                                        <td>
+                                            <span t-field="asi.total_nominal" />
+                                        </td>
+                                    </tr>
+                                    <hr/>
+                                    <tr>
+                                        <td>
+                                            <strong>Total Prima</strong>
+                                        </td>
+                                        <td>
+                                            <span t-field="asi.total_prime" />
+                                        </td>
+                                    </tr>
+                                    <hr/>
+                                    <tr>
+                                        <td>
+                                            <strong>Total Descuento</strong>
+                                        </td>
+                                        <td>
+                                            <span t-field="asi.total_discount" />
+                                        </td>
+                                    </tr>
+                                    <hr/>
+                                    <tr>
+                                        <td>
+                                            <strong>Total</strong>
+                                        </td>
+                                        <td>
+                                            <span t-field="asi.total" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <p t-field="asi.notes" class="mt-4" />
+                        <div class="oe_structure" />
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

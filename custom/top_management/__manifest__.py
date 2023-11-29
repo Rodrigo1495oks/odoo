@@ -1,27 +1,31 @@
 {
-    'name': 'Higher Authority',
+    'name': 'Top Management',
     'version': '16.0',
-    'description': 'Módulo que permite la gestion de Alta direccion',
+    'description': 'Módulo que permite la gestion de Gerencias y Asambleas de Accionsitas',
     'summary': 'Accionistas, Acciones, Suscripciones, integraciones, inversiones',
     'author': 'Rivas Rodrigo',
     'website': '',
     'license': 'LGPL-3',
     'category': 'Shareholding',
     'depends': [
-        'base', 'account','account_fiscal_year','account_lock_date_update', 'account_fiscal_year_auto_create'
+        'base', 'account','account_fiscal_year','account_share_management', 'hr_attendance',
+        'account_lock_date_update', 'account_fiscal_year_auto_create'
+
     ],
     'data': [
+        'security/top_management_security.xml',
         'security/ir.model.access.csv',
-        'security/higher_authority_security.xml',
         'data/data.xml',
-        'views/account_shareholder.xml',
-        'views/res_partner.xml',
-        'views/menu_view.xml',
         'views/res_config_settings_views.xml',
-        # 'views/res_users_view.xml',
-        # 'data/estate.property.type.csv',
-        # 'report/estate_report_templates.xml',
-        # 'report/estate_reports.xml'
+        'views/account_share_issuance.xml',
+        'views/event_view.xml',
+        'views/assembly_vote.xml',
+        'views/assembly_meeting.xml',
+        'views/assembly_meeting_topic.xml',
+        'views/hr_attendance_view.xml',
+        'views/res_partner_position.xml',
+        'views/res_partner.xml',
+        'views/menu_view.xml'
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

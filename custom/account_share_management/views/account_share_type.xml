@@ -4,7 +4,7 @@
     <!-- Accion para crear la accion -->
     <record id="account_share_type_action" model="ir.actions.act_window">
         <field name="name">Crear Tipo de Acción</field>
-        <field name="res_model">acount.share.type</field>
+        <field name="res_model">account.share.type</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[]</field>
         <field name="context">{}</field>
@@ -12,8 +12,8 @@
 
     <!-- vistas -->
     <record id="account_share_type_view_tree" model="ir.ui.view">
-        <field name="name">acount.share.type.tree</field>
-        <field name="model">acount.share.type</field>
+        <field name="name">account.share.type.tree</field>
+        <field name="model">account.share.type</field>
         <field name="arch" type="xml">
             <tree string="Share Type">
                 <field name="short_name" />
@@ -41,13 +41,15 @@
                         <h1 class="mb32">
                             <field name="short_name" class="mb16" />
                         </h1>
+                                        <field name="name" />
 
                     </div>
                     <group>
                         <group id="header_left_group" string='Datos Básicos'>
                             <field name="active" />
                             <field name="number_of_votes" options="{'type':'number'}" />
-                            <field name='share_ids' />
+                                                        <field name="type" />
+
                         </group>
                     </group>
                     <notebook id='shares' name='shares' groups="account.group_account_manager">

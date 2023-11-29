@@ -46,7 +46,8 @@ class ResConfigSettings(models.TransientModel):
     # VALIDATIONS
     # FOR INTEGRATION ORDERS
     # ACCOUNTS
-
+    share_price = fields.Float(string='Precio de las Acciones', help='Valor Nominal para emitir acciones',readonly=False,
+                               company_dependent=True, related='company_id.share_price',config_parameter='account_financial_policies.share_price')
     property_account_subscription_id = fields.Many2one('account.account', company_dependent=True,readonly=False,
                                                        string="Cuenta de Acciones",
                                                        domain="[('account_type', '=', 'asset_receivable_others'), ('deprecated', '=', False), ('company_id', '=', company_id)]",

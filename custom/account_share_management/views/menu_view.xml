@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Administración de Acciones -->
-    <menuitem id="menu_account_share_mngmt" name="Administración de Acciones" sequence="1"
-    groups="account.group_account_readonly,account.group_account_invoice" parent="menu_account_stock_market"/>
-        <!-- Costos de Emisión -->
-        <menuitem id="menu_account_share_cost" name="Costos de Emisión" sequence="1"
-        groups="account.group_account_readonly,account.group_account_invoice"   parent="menu_account_share_mngmt"/>
         <!-- Orden de Emisión de Acciones -->
-        <menuitem id="menu_account_share_issuance" name="Orden de Emisión"  sequence="1"
-        groups="account.group_account_readonly,account.group_account_invoice"   parent="menu_account_share_mngmt"/>
+        <menuitem
+                id="menu_account_share_issuance"
+                name="Orden de Emisión"
+                sequence="1"
+                groups="account_financial_policies.account_financial_policies_stock_market_group_user"
+                parent="account_financial_policies.menu_account_stock_market"
+                action='account_share_issuance_action'/>
         <!-- Acciones -->
-        <menuitem id="menu_account_share" name="Acciones" sequence="1"
-        groups="account.group_account_readonly,account.group_account_invoice" parent="menu_account_share_mngmt"/>
+        <menuitem
+                id="menu_account_share"
+                name="Acciones"
+                sequence="1"
+                groups="account_financial_policies.account_financial_policies_stock_market_group_user"
+                parent="account_financial_policies.menu_account_stock_market"
+                action='account_share_action'/>
     <!-- Configuracion -->
-    <menuitem id="menu_account_share" name="Acciones"  groups="base.group_system" sequence="1" parent="account.menu_finance_configuration"/>
+    <menuitem id="menu_account_share_config"
+              name="Config. Acciones"
+              groups="account_financial_policies.account_financial_policies_group_manager"
+              sequence="1"
+              parent="account.menu_finance_configuration"/>
         <!-- Tipos de Acciones -->
-        <menuitem id="menu_account_share_type" name="Grupos de Acciones" sequence="1"
-    groups="account.group_account_readonly,account.group_account_invoice" parent="menu_account_share" action="account_share_type_action"/>
+        <menuitem id="menu_account_share_type"
+                  name="Grupos de Acciones"
+                  sequence="1"
+                  groups="account_financial_policies.account_financial_policies_group_manager"
+                  parent="menu_account_share_config"
+                  action="account_share_type_action"/>
 </odoo>

@@ -1,31 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate='1'> <!-- para que no se reinicie la secuencia-->
-        <!-- sequences for suscription_order -->
-        <record id='seq_suscription_order' model='ir.sequence'>
-            <field name='name'>Suscription Order</field>
-            <field name='code'>suscription.order</field>
-            <field name='prefix'>SO</field>
-            <field name='suffix'>ACC</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- sequences for integration_order -->
-        <record id='seq_integration_order' model='ir.sequence'>
-            <field name='name'>Integration Order</field>
-            <field name='code'>integration.order</field>
-            <field name='prefix'>IO</field>
-            <field name='suffix'>ACC</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
         <!-- sequences for account_share_cost -->
         <record id='seq_account_share_cost' model='ir.sequence'>
             <field name='name'>Account Share Cost</field>
             <field name='code'>account.share.cost</field>
             <field name='prefix'>ASC</field>
             <field name='suffix'>Sha</field>
-            <field name='padding'>1</field>
+            <field name='padding'>5</field>
             <field name='company_id' eval='False' />
         </record>
         <!-- sequences for account_share -->
@@ -34,79 +16,25 @@
             <field name='code'>account.share</field>
             <field name='prefix'>AS</field>
             <field name='suffix'>S</field>
-            <field name='padding'>1</field>
+            <field name='padding'>5</field>
             <field name='company_id' eval='False' />
         </record>
         <!-- sequences for shares_issuance -->
-        <record id='seq_shares_issuance' model='ir.sequence'>
+        <record id='seq_account_share_issuance' model='ir.sequence'>
             <field name='name'>Account Share Issuance</field>
-            <field name='code'>shares.issuance</field>
+            <field name='code'>account.share.issuance</field>
             <field name='prefix'>SI</field>
             <field name='suffix'>Sh</field>
-            <field name='padding'>1</field>
+            <field name='padding'>5</field>
             <field name='company_id' eval='False' />
         </record>
-        <!-- sequences for shares_issuance -->
-        <record id='seq_assembly_meeting' model='ir.sequence'>
-            <field name='name'>Assembly Meeting</field>
-            <field name='code'>assembly.meeting</field>
-            <field name='prefix'>AM</field>
-            <field name='suffix'>F</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- sequences for topic -->
-        <record id='seq_assembly_meeting_topic' model='ir.sequence'>
-            <field name='name'>Assembly Meeting Topic</field>
-            <field name='code'>assembly.meeting.topic</field>
-            <field name='prefix'>TP</field>
-            <field name='suffix'>AM</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- sequences for irrevocable_contribution -->
-        <record id='seq_irrevocable_contribution' model='ir.sequence'>
-            <field name='name'>Assembly Meeting Topic</field>
-            <field name='code'>irrevocable.contribution</field>
-            <field name='prefix'>IC</field>
-            <field name='suffix'>IO</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- Portfolio share -->
-        <record id='seq_portfolio_share' model='ir.sequence'>
-            <field name='name'>Portfolio Share</field>
-            <field name='code'>portfolio.share</field>
-            <field name='prefix'>PS</field>
-            <field name='suffix'>ACC</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- Account Certificate -->
-        <record id='seq_account_certificate' model='ir.sequence'>
-            <field name='name'>Account Certificate</field>
-            <field name='code'>account.certificate</field>
-            <field name='prefix'>AC</field>
-            <field name='suffix'>BB</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- Capital Reduction -->
-        <record id='seq_account_certificate' model='ir.sequence'>
-            <field name='name'>Capital Reduction </field>
-            <field name='code'>capital.reduction</field>
-            <field name='prefix'>CR</field>
-            <field name='suffix'>N</field>
-            <field name='padding'>1</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- Reduction Cancelation -->
-        <record id='seq_account_certificate' model='ir.sequence'>
-            <field name='name'>Reduction Cancelation</field>
-            <field name='code'>capital.reduction.list</field>
-            <field name='prefix'>RC</field>
-            <field name='suffix'>N</field>
-            <field name='padding'>1</field>
+        <!-- sequences for account_shrae_type -->
+        <record id='seq_share_type' model='ir.sequence'>
+            <field name='name'>Account Share Type</field>
+            <field name='code'>account.share.type</field>
+            <field name='prefix'>ST</field>
+            <field name='suffix'>Sh</field>
+            <field name='padding'>5</field>
             <field name='company_id' eval='False' />
         </record>
     </data>

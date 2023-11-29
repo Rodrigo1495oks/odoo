@@ -18,8 +18,8 @@ class AccountShare(models.Model):
     _order = 'short_name desc'
     _rec_name = 'short_name'
 
-    name = fields.Char(string='Nombre', required=True, tracking=True)
-    short_name = fields.Char(string='Referencia', default='New',
+    name = fields.Char(string='Nombre', required=True)
+    short_name = fields.Char(string='Referencia', default=lambda self: _('New'), index='trigram',
                              required=True, copy=False, readonly=True)
     active = fields.Boolean(string='Activo', default=True)
 
@@ -33,12 +33,12 @@ class AccountShare(models.Model):
         ('canceled', 'Cancelado')
     ], help='Defina el estado de la acción', default='draft')
 
-    date_of_issue = fields.Datetime(string='Fecha de Emisión', readonly=True)
-    date_of_integration = fields.Datetime(
+    date_of_issue = fields.Date(string='Fecha de Emisión', readonly=True)
+    date_of_integration = fields.Date(
         string='Fecha de Emisión', readonly=True)
-    date_of_cancellation = fields.Datetime(
+    date_of_cancellation = fields.Date(
         string='Fecha de Cancelación', readonly=True)
-    date_of_redemption = fields.Datetime(
+    date_of_redemption = fields.Date(
         string='Fecha de Rescate', readonly=True)
 
     share_type = fields.Many2one(
@@ -52,24 +52,24 @@ class AccountShare(models.Model):
     # valores y cotizacion
 
     nominal_value = fields.Float(
-        string='Valor de Emisión', required=True, copy=True)
+        string='Valor de Emisión', required=True, copy=True, help='Precio de emision Fijado por la Companía')
     price = fields.Float(string='Valor pactado en la suscripción',
-                         help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True, compute='_compute_price')
-    adjusted_value = fields.Monetary(string='Valor Ajustado', readonly=True,
+                         help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True)
+    adjusted_value = fields.Float(string='Valor Ajustado', readonly=True,
                                      default=0.0, help='Valor obtenido a partir de una hoja de ajuste')
 
 
     issue_premium = fields.Float(
-        string='Prima de emision', help='Cotizacion sobre la par', compute='_compute_price')
+        string='Prima de emision', help='Cotizacion sobre la par', )
 
     issue_discount = fields.Float(
-        string='Descuento de Emisión', help='Descuento bajo la par', compute='_compute_price')
+        string='Descuento de Emisión', help='Descuento bajo la par', )
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id)
 
     share_issuance = fields.Many2one(
-        string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance')
+        string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='account.share.issuance')
     
     user_id = fields.Many2one('res.users', string='Usuario',
                               index=True, tracking=True, default=lambda self: self.env.user)
@@ -90,7 +90,7 @@ class AccountShare(models.Model):
         for share in self:
             if share.state == 'new':
                 share.state = 'subscribed'
-                share.date_of_issue = fields.Datetime.now()
+                share.date_of_issue = fields.Date.today()
             else:
                 raise UserError(
                     'La accion ya ha sido emitida o aun no esta \n autorizado para ello')
@@ -161,7 +161,7 @@ class AccountShare(models.Model):
         for share in self:
             if share.state in ['negotiation']:
                 share.state = 'integrated'
-                share.date_of_integration = fields.Datetime.now()
+                share.date_of_integration = fields.Date.today()
             else:
                 raise UserError(
                     'La accion ya ha sido emitida o aun no esta \n autorizado para ello')
@@ -180,8 +180,7 @@ class AccountShare(models.Model):
         if vals.get('short_name', _('New')) == _('New'):
             vals['short_name'] = self.env['ir.sequence'].next_by_code(
                 'account.share') or _('New')
-        res = super(AccountShare, self.create(vals))
-        return res
+        return super().create(vals)
 
 class Partner(models.Model):
     _inherit = 'res.partner'

@@ -19,7 +19,11 @@ class Partner(models.Model):
     _name = 'res.partner'
     # specie_id = fields.Many2one(string='Especie', comodel_name='species')
 
-
+    # business_name=fields.Char(string='Razón Social', help='Denominación Social de la Empresa', required=True)
+    # # Datos de Constitución
+    # initial_street=fields.Char(string='Domicilio de Constitución')
+    # duration=fields.Char(string='Duración')
+    # registration_code=fields.Integer(string='Número de Registro', help='Número de Registro Público')
 
     shareholder_rank = fields.Integer(default=0, copy=False)
     # priority = fields.Selection(
@@ -93,6 +97,7 @@ class Partner(models.Model):
                                            domain="[('account_type', '=', 'asset_receivable_others'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta para registrar el saldo pendiente que eel tenedor de bonos debe abonar",
                                            required=False )
+    
     # LOW LEVEL METHODS
     @api.model_create_multi
     def create(self, vals_list):

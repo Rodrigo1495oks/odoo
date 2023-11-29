@@ -5,7 +5,7 @@
         <!-- Accion para crear la accion -->
         <record id="account_share_action" model="ir.actions.act_window">
             <field name="name">Crear Acción</field>
-            <field name="res_model">acount.share</field>
+            <field name="res_model">account.share</field>
             <field name="view_mode">tree,kanban,form</field>
             <field name="domain">[]</field>
             <field name="context">{}</field>
@@ -14,8 +14,8 @@
         <!-- vistas -->
 
         <record id="account_share_view_tree" model="ir.ui.view">
-            <field name="name">acount.share.tree</field>
-            <field name="model">acount.share</field>
+            <field name="name">account.share.tree</field>
+            <field name="model">account.share</field>
             <field name="arch" type="xml">
                 <tree string="Share" decoration-success="state=='subscribed' or state=='portfolio'"
                     decoration-bf='state=="new"' decoration-muted="state=='canceled'">
@@ -29,7 +29,7 @@
                         decoration-success="state == 'subscribed' or state == 'portfolio'"
                         decoration-warning="state == 'canceled'"
                         decoration-info="state == 'draft' or state == 'new' or state=='negotiation'" />
-                    <field name="shareholder" widget="many2one_avatar_user " />
+                    <field name="partner_id" widget="many2one_avatar_user " />
                 </tree>
             </field>
         </record>
@@ -41,6 +41,8 @@
             <field name="arch" type="xml">
                 <form string="Account Share">
                     <header>
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,new,suscribed,integrated,portfolio,negotiation,canceled" />
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -48,14 +50,19 @@
                                 <label for="short_name" />
                             </div>
                             <h1 class="mb32">
-                                <field name="short_name" class="mb16" invisible='1'/>
+                                <field name="short_name" class="mb16" readonly='1'/>
                             </h1>
-
+                            
                         </div>
                         <group>
+                            <field name="share_type"
+                            options="{'no_create': True, 'no_open': True, 'no_quick_create': True}" />
+                            <field name="name"
+                            options="{'no_create': True, 'no_open': True, 'no_quick_create': True}" />
+                        </group>
+                        <group>
                             <group id="header_left_group" string='Fechas'>
-                                <field name="share_type"
-                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}" />
+                                
                                 <field name="date_of_issue" widget='date' />
                                 <field name="date_of_integration" widget='date' />
                                 <field name="date_of_cancellation" widget='date' />
@@ -63,7 +70,7 @@
                                 <field name='votes_num' options="{'type':'number'}" />
                             </group>
                             <group id="header_right_group" string='Campos Solo Lectura'>
-                                <field name="shareholder"
+                                <field name="partner_id"
                                     options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
                                     readonly='1' />
                                 <field name="company_id"
@@ -72,16 +79,12 @@
                                 <field name="share_issuance"
                                     options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
                                     readonly='1' />
-                                <field name="suscription_order"
-                                    options="{'no_create': True, 'no_open': True, 'no_quick_create': True}"
-                                    readonly='1' />
                             </group>
                             <!-- campos monetarios -->
                             <group string='Campos monetarios' id='header_right_group'>
                                 <field name="nominal_value" widget="monetary" />
                                 <field name="price" widget="monetary" />
                                 <field name="adjusted_value" widget="monetary" />
-                                <field name="capital_adjust"/>
                                 <field name="issue_premium" widget="monetary" />
                                 <field name="issue_discount" widget="monetary" />
                                 <field name="issue_discount" widget="monetary" />
@@ -109,7 +112,7 @@
                     <field name="date_of_cancellation" string="Fecha de Cancelación - " />
                     <field name="date_of_redemption" string="Fecha de Rescate - " />
                     <field name="share_type" string="Tipo de Acción" />
-                    <field name="shareholder" string="Accionista" />
+                    <field name="partner_id" string="Accionista" />
 
                     <separator />
                     <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
@@ -120,103 +123,10 @@
                         <filter string="Estado" name="state"
                             context="{'group_by':'state'}" />
                         <filter string="Estado" name="state" context="{'group_by':'date_of_issue'}" />
-                        <filter string="Suscripción" name="suscription_order"
-                            context="{'group_by':'suscription_order'}" />
                         <filter string="Emisión de Acciones" name="share_issuance"
                             context="{'group_by':'share_issuance'}" />
                     </group>
                 </search>
-            </field>
-        </record>
-
-        <!-- Estate Property Kanban View  -->
-        <record model="ir.ui.view" id="view_estate_property_kanban">
-            <field name="name">estate.property.kanban</field>
-            <field name="model">estate.property</field>
-            <field name="arch" type="xml">
-                <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
-                <kanban>
-                    <field name="name" />
-                    <field name="buyer" readonly="1" />
-                    <field name="state" />
-                    <field name="date_availability" />
-                    <field name="priority" widget="priority" class="mr-3" />
-                    <field name="expected_price"
-                        attrs="{'invisible': [('state', '!=', 'accept'), ('state', '!=', 'sold')]}" />
-                    <field name="best_price" attrs="{'invisible': [('state', '!=', 'offer')]}" />
-                    <field name="tags_ids" widget="many2many_tags"
-                        options="{'color_field': 'color'}" />
-                    <field name="selling_price"
-                        attrs="{'invisible': [('state', '=', 'offer'),('state', '=', 'accept'), ('state', '=', 'sold') ]}" />
-                    <!-- ('draft', 'Borrador'),
-                ('new', 'Nuevo'),
-                ('offer', 'Oferta Recibida'),
-                ('accept', 'Oferta Aceptada'),
-                ('sold', 'Vendido'),
-                ('canceled', 'Cancelado') -->
-                    <progressbar field="state"
-                        colors='{"sold": "success", "today": "offer", "overdue": "canceled"}' />
-                    <templates>
-                        <t t-name="kanban-box">
-                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
-                                <div class="o_kanban_record_top mb16">
-                                    <field name="priority" widget="priority" />
-                                    <div class="o_kanban_record_headings ml-1">
-                                        <strong class="o_kanban_record_title">
-                                            <span>
-                                                <t t-esc="record.buyer.value" />
-                                            </span>
-                                        </strong>
-                                    </div>
-                                    <strong>
-                                        <field name="expected_price" widget="monetary" />
-                                    </strong>
-                                </div>
-                                <div class="o_kanban_record_bottom">
-                                    <div class="oe_kanban_bottom_left">
-                                        <span>
-                                            <t t-esc="record.name.value" />
-                                            <t
-                                                t-esc="record.date_availability.value and record.date_availability.value.split(' ')[0] or False" />
-                                        </span>
-                                        <!-- <field name="activity_ids" widget="kanban_activity" /> -->
-                                    </div>
-                                    <div class="oe_kanban_bottom_right">
-                                        <field name="state" widget="label_selection"
-                                            options="{'classes': {'draft': 'default', 'new': 'default', 'sold': 'success', 'accept': 'warning'}}" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <p t-if="record.state.raw_value == 'accept'">
-                                        <strong>
-                                            <field name="selling_price" widget="monetary" />
-                                        </strong>
-                                    </p>
-                                    <p t-elif="record.state.raw_value == 'offer'">
-                                        <strong>
-                                            <field name="best_price" widget="monetary" />
-                                        </strong>
-                                    </p>
-                                    <p t-else="">
-                                        <strong>
-                                            <field name="expected_price" />
-                                        </strong>
-                                    </p>
-                                </div>
-                                <div class="o_kanban_record_bottom">
-                                    <div class="oe_kanban_bottom_left">
-                                        <field name="tags_ids" widget="many2many_tags"
-                                            options="{'color_field': 'color'}" />
-                                    </div>
-                                    <div class="oe_kanban_bottom_right">
-                                        <field name="user_id" widget="many2one_avatar_user" />
-                                    </div>
-                                </div>
-                            </div>
-
-                        </t>
-                    </templates>
-                </kanban>
             </field>
         </record>
     </data>

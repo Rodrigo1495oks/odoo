@@ -2,496 +2,62 @@
 <odoo>
     <data>
         <record id="res_config_settings_view_form" model="ir.ui.view">
-            <field name="name">res.config.settings.view.form.inherit.higher.authority</field>
+            <field name="name">res.config.settings.view.form.inherit.top.management</field>
             <field name="model">res.config.settings</field>
             <field name="priority" eval="90" />
             <field name="inherit_id" ref="base.res_config_settings_view_form" />
             <field name="arch" type="xml">
                 <xpath expr="//div[hasclass('settings')]" position="inside">
-                    <div class="app_settings_block" data-string="Higher_authority"
-                        id="higher_authority" string="Autoridad Superior"
-                        data-key="higher_authority">
-                        <field name="io_double_validation" invisible="1" />
-                        <field name="io_lock" invisible="1" />
-                        <h2>Higher Authority Management</h2>
-                        <div class="row mt16 o_settings_container" id="main_settings_io">
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="automatic_lock_confirmed_orders">
-                                <div class="o_setting_left_pane">
-                                    <field name="lock_confirmed_io" />
-                                </div>
-                                <div class="o_setting_right_pane">
-                                    <label for="lock_confirmed_io" />
-                                    <div class="text-muted">
-                                        Automatically lock confirmed orders to prevent editing
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-lg-6 o_setting_box" id="io_order_approval">
-                                <div class="o_setting_left_pane">
-                                    <field name="io_order_approval" />
-                                </div>
-                                <div class="o_setting_right_pane">
-                                    <label for="io_order_approval" />
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Request managers to approve orders above a minimum amount
-                                    </div>
-                                    <div class="content-group"
-                                        attrs="{'invisible': [('io_order_approval', '=', False)]}">
-                                        <div class="row mt16">
-                                            <label for="po_double_validation_amount"
-                                                class="col-lg-4 o_light_label" />
-                                            <field name="po_double_validation_amount" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="automatic_lock_confirmed_orders">
-                                <div class="o_setting_left_pane">
-                                    <field name="lock_confirmed_io" />
-                                </div>
-                                <div class="o_setting_right_pane">
-                                    <label for="lock_confirmed_io" />
-                                    <div class="text-muted">
-                                        Automatically lock confirmed orders to prevent editing
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <h2>Equity Accounts</h2>
+                    <div class="app_settings_block" data-string="Gerencia"
+                        string="Gerencia" data-key="top_management"
+                        groups="top_management.top_management_group_manager">
+                        <h2>Asambleas de Accionistas</h2>
                         <div class="row mt16 o_settings_container"
-                            name="default_equity_accounts_setting_container">
+                            name="top_management_setting_container">
                             <div class="col-12 col-lg-6 o_setting_box"
-                                id="property_account_subscription_id"
-                                title="Esta cuenta es utilizada para diversos calculos y para registrar distribucion de resultados o constitucion de reservas">
+                                id="quorum"
+                                title="Establezca los porcentajes de quórum para asistencias">
                                 <div class="o_setting_left_pane" />
                                 <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Otros Créditos - Acciones</span>
+                                    <span class="o_form_label">Porcentaje Asambleas Ordinarias</span>
                                     <span class="fa fa-lg fa-building-o"
                                         title="Values set here are company-specific."
                                         aria-label="Values set here are company-specific."
                                         groups="base.group_multi_company" role="img" />
                                     <div class="text-muted">
-                                        Esta cuenta será usada para registrar los saldos de
-                                        subscripción del accionista, cuenta que puede ser modificada
-                                        en el partner
+                                        Porcentajes de quórum Asambleas Ordinarias
                                     </div>
                                     <div class="content-group">
                                         <div class="row mt16">
-                                            <label string="Cuenta de Acciones"
-                                                for="property_account_subscription_id"
+                                            <label string="Quórum Ord."
+                                                for="quorum_ord"
                                                 class="col-lg-3 o_light_label" />
-                                            <field name="property_account_subscription_id" />
+                                            <field name="quorum_ord" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-6 o_setting_box"
-                                id="property_account_shareholding_id"
-                                title="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner">
+                                id="quorum"
+                                title="Establezca los porcentajes de quórum para asistencias">
                                 <div class="o_setting_left_pane" />
                                 <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Capital Suscripto</span>
+                                    <span class="o_form_label">Porcentaje Asambleas Extraordinarias</span>
                                     <span class="fa fa-lg fa-building-o"
                                         title="Values set here are company-specific."
                                         aria-label="Values set here are company-specific."
                                         groups="base.group_multi_company" role="img" />
                                     <div class="text-muted">
-                                        Esta cuenta será usada para registrar los saldos de
-                                        Integración del accionista, cuenta que puede ser modificada
-                                        en el partner
+                                        Porcentajes de quórum Asambleas Extraordinarias
                                     </div>
                                     <div class="content-group">
                                         <div class="row mt16">
-                                            <label string="Capital Suscripto"
-                                                for="property_account_shareholding_id"
+                                            <label string="Quórum Ord."
+                                                for="quorum_ext"
                                                 class="col-lg-3 o_light_label" />
-                                            <field name="property_account_shareholding_id" />
+                                            <field name="quorum_ext" />
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <!--  -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="property_account_integration_id"
-                                title="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Capital Integrado</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar las acciones
-                                        en una cuenta de capital, a pesar que sea establecida una
-                                        cuenta por defecto diferente en el partner
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Capital Integrado"
-                                                for="property_account_integration_id"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="property_account_integration_id" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--  -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="property_account_contribution_id"
-                                title="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Aportes</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar los partes
-                                        pendientes de aprobación, a pesar que sea establecida una
-                                        cuenta por defecto diferente
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Capital Suscripto"
-                                                for="property_account_contribution_id"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="property_account_contribution_id" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--  -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="property_account_issue_discount_id"
-                                title="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital, a pesar que sea establecida una cuenta por defecto diferente en el partner">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Descuentos de Emisión</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar los
-                                        Descuentos de Emisión
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Descuentos de Emisión"
-                                                for="property_account_issue_discount_id"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="property_account_issue_discount_id" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--  -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="property_account_issue_premium_id"
-                                title="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Primas de Emisión</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar las Primas de
-                                        Emisión
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Primas de Emisión"
-                                                for="property_account_issue_discount_id"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="property_account_issue_discount_id" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--  -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="property_account_portfolio_shares"
-                                title="Esta cuenta será usada para las para registrar las acciones en una cuenta de capital">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Acciones en Cartera</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar las Acciones
-                                        en Cartera
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Acciones en Cartera"
-                                                for="property_account_portfolio_shares"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="property_account_portfolio_shares" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!--  -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="account_capital_adjustment"
-                                title="Esta cuenta será usada para las para registrar los ajustes de capital">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Ajustes de Capital</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar los Ajustes
-                                        de Capital
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Ajustes de Capital"
-                                                for="account_capital_adjustment"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="account_capital_adjustment" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- account_shareholders_for_redemption_of_shares -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="account_shareholders_for_redemption_of_shares"
-                                title="Esta cuenta será usada para las para registrar los saldos acreedores de acconistas a quienes se les ha reembolsado las acciones">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Accionistas por rescates de
-                                        acciones</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar las deudas
-                                        por Accionistas por rescates de acciones
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Accionistas por rescates de acciones"
-                                                for="account_capital_adjustment"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="account_capital_adjustment" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- account_share_redemption_discount -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="account_share_redemption_discount"
-                                title="Esta cuenta será usada para las para registrar los saldos acreedores de accionistas a quienes se les ha reembolsado las acciones">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Descuentos por Rescates de
-                                        Acciones</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar los
-                                        Descuentos por Rescates de Acciones
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Descuentos por Rescates de Acciones"
-                                                for="account_share_redemption_discount"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="account_share_redemption_discount" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- account_share_redemption_discount -->
-                            <div class="col-12 col-lg-6 o_setting_box"
-                                id="account_share_redemption_discount"
-                                title="Esta cuenta será usada para las para registrar los saldos acreedores de accionistas a quienes se les ha reembolsado las acciones">
-                                <div class="o_setting_left_pane" />
-                                <div class="o_setting_right_pane">
-                                    <span class="o_form_label">Cuenta de Descuentos por Rescates de
-                                        Acciones</span>
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted">
-                                        Esta cuenta será usada para las para registrar los
-                                        Descuentos por Rescates de Acciones
-                                    </div>
-                                    <div class="content-group">
-                                        <div class="row mt16">
-                                            <label string="Descuentos por Rescates de Acciones"
-                                                for="account_share_redemption_discount"
-                                                class="col-lg-3 o_light_label" />
-                                            <field name="account_share_redemption_discount" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <h2>Valor Patrimonial Proporcional</h2>
-                        <div class="row mt16 o_settings_container" id="percentage_redemption">
-                            <div class="col-12 col-lg-6 o_setting_box" id="print_checks"
-                                groups="account.group_account_user">
-                                <div class="o_setting_left_pane">
-                                </div>
-                                <div class="o_setting_right_pane">
-                                    <label string="Checks" for="percentage_redemption" />
-                                    <span class="fa fa-lg fa-building-o"
-                                        title="Values set here are company-specific."
-                                        aria-label="Values set here are company-specific."
-                                        groups="base.group_multi_company" role="img" />
-                                    <div class="text-muted" id="percentage_redemption_ss">
-                                        Porcentaje fijado por la Gerencia para el pago en efectivo
-                                        por cancelación de acciones
-                                    </div>
-                                    <field name='percentage_redemption' />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <h2>Operaciones Financieras</h2>
-                    <div class="row mt16 o_settings_container"
-                        name="financial_accounts_setting_container">
-                    <div class="col-12 col-lg-6 o_setting_box"
-                        id="account_financial_expenses"
-                        title="Cuenta de gasto para registrar las erogacion por emision de obligaciones negociables">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Cuenta gastos operaciones financieras</span>
-                            <span class="fa fa-lg fa-building-o"
-                                title="Values set here are company-specific."
-                                aria-label="Values set here are company-specific."
-                                groups="base.group_multi_company" role="img" />
-                            <div class="text-muted">
-                                Cuenta por defecto para registrar gastos por operaciones financieras
-                            </div>
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label string="Gastos por emision oblñigaciones Negociables"
-                                        for="account_financial_expenses"
-                                        class="col-lg-3 o_light_label" />
-                                    <field name="account_financial_expenses" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
-                        id="account_cert_payable"
-                        title="Cuenta Bonos a pagar">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Cuenta Bonos a pagar</span>
-                            <span class="fa fa-lg fa-building-o"
-                                title="Values set here are company-specific."
-                                aria-label="Values set here are company-specific."
-                                groups="base.group_multi_company" role="img" />
-                            <div class="text-muted">
-                                Cuenta Bonos a pagar
-                            </div>
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label string="Cuenta Bonos a pagar"
-                                        for="account_cert_payable"
-                                        class="col-lg-3 o_light_label" />
-                                    <field name="account_cert_payable" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
-                        id="account_cert_interest"
-                        title="Intereses de obligaciones y bonos">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Cuenta de Resultado para registrar el
-                                acaecimiento de los interes periodicos</span>
-                            <span class="fa fa-lg fa-building-o"
-                                title="Values set here are company-specific."
-                                aria-label="Values set here are company-specific."
-                                groups="base.group_multi_company" role="img" />
-                            <div class="text-muted">
-                                Cuenta de Resultado para registrar el acaecimiento de los interes
-                                periodicos
-                            </div>
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label string="Cuenta Bonos a pagar"
-                                        for="account_cert_interest"
-                                        class="col-lg-3 o_light_label" />
-                                    <field name="account_cert_interest" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
-                        id="account_receivable_cert"
-                        title="Créditos por Bonos">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Cuenta de Resultado para registrar el
-                                acaecimiento de los interes periodicos</span>
-                            <span class="fa fa-lg fa-building-o"
-                                title="Values set here are company-specific."
-                                aria-label="Values set here are company-specific."
-                                groups="base.group_multi_company" role="img" />
-                            <div class="text-muted">
-                                Cuenta para registrar el saldo pendiente que el tenedor de bonos debe abonar
-                            </div>
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label string="Cuenta para registrar el saldo pendiente que el tenedor de bonos debe abonar"
-                                        for="account_receivable_cert"
-                                        class="col-lg-3 o_light_label" />
-                                    <field name="account_receivable_cert" />
-                                </div>
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-                    <!--  -->
-                    <div class="col-12 col-lg-6 o_setting_box"
-                        id="account_cert_amortized"
-                        title="Obligaciones Amortizadas">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar</span>
-                            <span class="fa fa-lg fa-building-o"
-                                title="Values set here are company-specific."
-                                aria-label="Values set here are company-specific."
-                                groups="base.group_multi_company" role="img" />
-                            <div class="text-muted">
-                                Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar
-                            </div>
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label string="Cuenta para registrar el saldo pendiente que amortizado que el tenedor de bonos debe abonar"
-                                        for="account_cert_amortized"
-                                        class="col-lg-3 o_light_label" />
-                                    <field name="account_cert_amortized" />
                                 </div>
                             </div>
                         </div>
@@ -500,18 +66,15 @@
             </field>
         </record>
 
-        <record id="higher_authority_config_settings_action" model="ir.actions.act_window">
-            <field name="name">Settings</field>
+        <record id="top_management_config_settings_action" model="ir.actions.act_window">
+            <field name="name">Configuraciones</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">res.config.settings</field>
             <field name="view_mode">form</field>
             <field name="target">inline</field>
-            <field name="context">{'module' : 'higher_authority', 'bin_size': False}</field>
+            <field name="context">{'module' : 'top_management', 'bin_size': False}</field>
         </record>
 
-        <menuitem id="higher_authority_config_settings_menu" name="Settings"
-            parent="higher_authority.menu_configuration" sequence="0"
-            action="higher_authority_config_settings_action"
-            groups="base.group_system" />
+
     </data>
 </odoo>

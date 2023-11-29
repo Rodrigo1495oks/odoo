@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-        <!-- Accion para crear la emisíon -->
-        <record id="account_share_issuance_action" model="ir.actions.act_window">
-            <field name="name">Crear Orden de Emisión</field>
-            <field name="res_model">account.share.issuance</field>
-            <field name="view_mode">tree,kanban,form</field>
-            <field name="view_id" ref="account_share_issuance_view_tree" />
-            <field name="domain">[]</field>
-            <field name="context">{}</field>
-        </record>
+
         <!-- vistas -->
         <record id="account_share_issuance_view_tree" model="ir.ui.view">
             <field name="name">account.share.issuance.tree</field>
@@ -44,7 +36,7 @@
                         <button name="action_approve" string="Aprobar" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', 'not in', 'new')]}" />
-                        <button name="action_set_canceled" string="Cancelar" type="object"
+                        <button name="action_cancel" string="Cancelar" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '=', 'cancel')]}" />
                         <button name="action_confirm" string="Confirmar Alta" type="object"
@@ -54,7 +46,7 @@
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '=', 'draft')]}" />
                         <field name="state" widget="statusbar"
-                            statusbar_visible="draft,new,approved,confirm,cancel" />
+                            statusbar_visible="draft,new,approved,suscribed,cancel" />
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -65,24 +57,16 @@
                                 <field name="short_name" readonly="1" />
                             </h1>
                         </div>
-                        <field name='name'
-                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                        <field name='makeup_date'
-                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                        <field name='date_of_issue'
-                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                        <field name='share_type'
-                            attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                        <field name='partner_id'
-                            attrs="{'readonly': [('state', '!=', 'draft')]}"
-                            widget="many2one_avatar " />
+
                         <group>
                             <group id="header_left_group">
                                 <field name='short_name' />
                                 <field name="votes_num" options='{"type": "number"}' />
-                                <field name="shares_qty" options='{"type": "number"}' />
+                                <field name="shares_qty" options='{"type": "number"}'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
                                 <field name="price"
-                                    widget='monetary' />
+                                    widget='monetary'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
                                 <field name="nominal_value"
                                     widget='monetary' />
                                 <field
@@ -93,32 +77,44 @@
                                     widget='monetary' />
                                 <!-- <field name="tags_ids" widget="many2many_tags"
                                     options="{'color_field': 'color'}" /> -->
-                                <field name="shares" />
-                                <!-- <field name="pending" widget='boolean_toggle' /> -->
-                                <field name="company_id" />
                             </group>
                             <group id="header_right_group">
                                 <field name="company_id" />
-                                <field name='share_cost' />
-                                <field name='topic' />
+                                <field name='name'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='makeup_date'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='date_of_issue'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='share_type'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='partner_id'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                    widget="many2one_avatar " />
                             </group>
                         </group>
-
                         <notebook>
                             <page id="shares" string="Acciones">
                                 <group>
-                                    <group>
-                                        <field name="shares" />
-                                    </group>
+                                    <field name="shares" />
                                 </group>
                             </page>
                         </notebook>
+                        <group>
+                            <field colspan="2" name="notes" nolabel="1" placeholder="Define tus Términos y Condiciones ..."/>
+                        </group>
+                        <group class='oe_subtotal_footer oe_right'>
+                            <strong><field name='total_nominal'/></strong>
+                            <field name='total_prime'/>
+                            <field name='total_discount'/>
+                            <field name='total'/>
+                        </group>
+                        <div class="oe_chatter">
+                            <field name="message_follower_ids" />
+                            <field name="activity_ids" />
+                            <field name="message_ids" />
+                        </div>
                     </sheet>
-                    <div class="oe_chatter">
-                        <field name="message_follower_ids" />
-                        <field name="activity_ids" />
-                        <field name="message_ids" />
-                    </div>
                 </form>
             </field>
         </record>
@@ -167,7 +163,7 @@
                     <field name="partner_id" readonly="1" />
                     <field name="state" />
                     <field name="date_of_issue" />
-                    <field name="shares_qty"/>
+                    <field name="shares_qty" />
                     <field name="price" />
                     <field name="nominal_value" />
 
@@ -220,15 +216,21 @@
                                     <div class="oe_kanban_bottom_left">
                                         <field name="shares_qty" />
                                     </div>
-                                    <div class="oe_kanban_bottom_right">
-                                        <field name="suscription_order" />
-                                    </div>
                                 </div>
                             </div>
                         </t>
                     </templates>
                 </kanban>
             </field>
+        </record>
+        <!-- Accion para crear la emisíon -->
+        <record id="account_share_issuance_action" model="ir.actions.act_window">
+            <field name="name">Crear Orden de Emisión</field>
+            <field name="res_model">account.share.issuance</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="account_share_issuance_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
         </record>
     </data>
 </odoo>
