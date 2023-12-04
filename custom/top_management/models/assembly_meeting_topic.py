@@ -18,14 +18,24 @@ class AssemblyMeetingTopic(models.Model):
     _rec_name = 'short_name'
 
     # campos computados
-    @api.depends('assembly_meeting')
+    @api.depends('assembly_meeting_line')
     def _compute_meeting_assigned(self):
         for record in self:
-            if record.assembly_meeting:
+            if record.assembly_meeting_line:
                 record.meeting_assigned = True
             else:
                 record.meeting_assigned = False
-
+    @api.depends('')
+    def _compute_num_votes(self):
+        for topic in self:
+            for vote in topic.assembly_vote:
+                if vote.result=='positive':
+                    topic.num_votes_plus+=1
+                elif vote.result=='negative':
+                    topic.num_votes_minus+=1
+                else:
+                    topic.num_votes_blank+=1
+    
     short_name = fields.Char(
         string='Referencia', required=True, index='trigram', copy=False, default='New')
     name = fields.Char(string='Título')
@@ -47,14 +57,25 @@ class AssemblyMeetingTopic(models.Model):
         ('redemption', 'Acciones en Cartera'),
         ('share_sale', 'Venta de Acciones'),
     ], required=True)
-
+    num_votes_plus=fields.Integer(string='Votos Positivos', 
+                             help='Número de votos que este tópico ha recibido', 
+                             compute='_compute_num_votes', 
+                             default=0.0)
+    num_votes_minus=fields.Integer(string='Votos Negativos', 
+                             help='Número de votos que este tópico ha recibido', 
+                             compute='_compute_num_votes', 
+                             default=0.0)
+    num_votes_blank=fields.Integer(string='Votos Neutros', 
+                             help='Número de votos que este tópico ha recibido', 
+                             compute='_compute_num_votes', 
+                             default=0.0)
     # secuencia numerica
     # emision de acciones
     share_issuance=fields.One2many(string='Emisión de Acciónes', comodel_name='account.share.issuance', readonly=True, inverse_name='topic')
 
     def action_confirm(self):
         for topic in self:
-            if topic.state not in ['new'] and topic.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+            if topic.state not in ['new'] and topic.assembly_meeting_line.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
                 topic.state = 'new'
             else:
                 raise UserError('topico ya tratado o reunion no establecida')
@@ -67,16 +88,17 @@ class AssemblyMeetingTopic(models.Model):
             result.append((topic.id, name))
             return result
 
-    def action_approve_topic(self):
+    def _action_approve_topic(self):
         for topic in self:
-            if topic.state == 'new' and topic.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+            """Para aprobar el topico necesito computar las mayorias"""
+            if topic.state == 'new' and topic.assembly_meeting_line.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
                 topic.state = 'aproved'
             else:
                 raise UserError('No puede aprobarse este tópico')
 
-    def action_refuse_topic(self):
+    def _action_refuse_topic(self):
         for topic in self:
-            if topic.state not in ['draft', 'aproved', 'refused'] and topic.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+            if topic.state not in ['draft', 'approved', 'refused','cancel'] and topic.assembly_meeting_line.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
                 topic.state = 'refused'
             else:
                 raise UserError('No puede rechazarse este tópico')
@@ -87,7 +109,6 @@ class AssemblyMeetingTopic(models.Model):
                 meet.state = 'draft'
 
     def action_set_canceled(self):
-        self.ensure_one()
         for topic in self:
             if topic.state in ['new']:
                 topic.state = 'cancel'

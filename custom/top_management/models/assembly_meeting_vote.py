@@ -58,6 +58,7 @@ class AssemblyVote(models.Model):
     assembly_meeting = fields.Many2one(
         string='Reunion Tratante', 
         comodel_name='assembly.meeting', readonly=True)
+    
     # low level methods
 
     @api.model

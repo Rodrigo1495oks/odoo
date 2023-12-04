@@ -14,10 +14,13 @@
         sequence="1" parent='menu_top_management_mngmt' action='assembly_meeting_action' />
     <menuitem id="menu_top_management_topic" name="Asuntos"
         groups="top_management.top_management_group_user,top_management.top_management_group_manager"
-        sequence="1" parent='menu_top_management_mngmt' action='assembly_meeting_topic_action' />
+        sequence="2" parent='menu_top_management_mngmt' action='assembly_meeting_topic_action' />
     <menuitem id="menu_top_management_vote" name="Votos"
         groups="top_management.top_management_group_user,top_management.top_management_group_manager"
-        sequence="1" parent='menu_top_management_mngmt' action='assembly_vote_action' />
+        sequence="3" parent='menu_top_management_mngmt' action='assembly_vote_action' />
+    <menuitem id="menu_top_management_wizard" name="Crear Votos"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        sequence="4" parent='menu_top_management_mngmt' action='action_create_assembly_vote' />
     <!-- Configuracion -->
     <menuitem id="menu_top_management_config" name="Configuración"
         groups="top_management.top_management_group_manager" sequence="1"

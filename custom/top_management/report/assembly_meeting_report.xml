@@ -15,16 +15,16 @@
         <field name="header_spacing">0</field>
         <field name="dpi">80</field>
     </record>
-    <record id="account_share_issuance" model="ir.actions.report">
+    <record id="assembly_meeting" model="ir.actions.report">
         <field name="name">Emisión de Acciones</field>
-        <field name="model">account.share.issuance</field>
+        <field name="model">assembly.meeting</field>
         <field name="report_type">qweb-html</field>
-        <field name="report_name">account_share_management.report_account_share_issuance</field>
-        <field name="print_report_name">'Órden de Emisión - %s' % (object.name or 'Acciones').replace('/','')</field>
-        <field name="report_file">account_share_management.account_share_issuance_template</field>
-        <field name="paperformat_id" ref="account_share_management.paperformat_euro_lowmargin"/>
+        <field name="report_name">top_management.assembly_meeting_report</field>
+        <field name="print_report_name">'Acta de Asamblea - %s' % (object.name or 'Reunión').replace('/','')</field>
+        <field name="report_file">top_management.assembly_meeting_template</field>
+        <field name="paperformat_id" ref="top_management.paperformat_euro_lowmargin"/>
         <!-- <field name="attachment_use" eval="True"/> -->
-        <field name="binding_model_id" ref="model_account_share_issuance"/>
+        <field name="binding_model_id" ref="model_assembly_meeting"/>
         <field name="binding_type">report</field>
     </record>
 </odoo>

@@ -32,8 +32,11 @@ class AssemblyMeeting(models.Model):
     @api.depends('partner_ids')
     def _compute_quorum(self):
         for ass in self:
-            ass.quorum=len(ass.partner_ids)/(ass.env['res.partner'].filtered(lambda p: len(p.shares)>0)) if len(ass.partner_ids)>0.0 else 0.0
-        
+            shares=self.env['account.share'].search()
+            total_votes=sum([share.votes_num for share in shares])
+            present_votes=sum([share.votes_num for share in [partner.shares for partner in ass.partner_ids]]) # probemos!!
+            ass.quorum=(present_votes/total_votes) if total_votes>0.0 else 0.0
+
     def name_get(self):
         result = []
         for ast in self:
@@ -57,11 +60,14 @@ class AssemblyMeeting(models.Model):
         """
         Consigue todos los partner que posean al menos 1 accion.
         """
-        partner = self.env['res.partner'].search([])
-        for am in self:
-            am.partner_ids = partner.filtered(
-                lambda p: p.shares.ids != []
-                )
+        if self.state=='draft':
+            partner = self.env['res.partner'].search([])
+            for am in self:
+                am.partner_ids = partner.filtered(
+                    lambda p: p.shares.ids != []
+                    )
+        else:
+            am.partner_ids=False
         
     date_start=fields.Datetime(string='Hora de Inicio', help='Hora de inicio de la reunion')
     date_end=fields.Datetime(string='Hora de Finalización', help='Hora de inicio de la reunion')
@@ -102,11 +108,11 @@ class AssemblyMeeting(models.Model):
     ], default='draft')
 
     topics = fields.One2many(string='Temas a Tratar', 
-                             comodel_name='assembly.meeting.topic',
+                             comodel_name='assembly.meeting.line',
                              inverse_name='assembly_meeting', 
                              store=True, 
                              index=True, 
-                             domain="[('state','in','new')]")
+                             )
 
     partner_ids = fields.Many2many(string='Accionistas Presentes', 
                                    comodel_name='res.partner',
@@ -128,15 +134,20 @@ class AssemblyMeeting(models.Model):
             if meet.state not in ['canceled', 'finished']:
                 meet.state = 'draft'
             else:
-                return UserWarning('No se puede establcer a borrador')
+                return UserWarning('No se puede establecer a borrador')
 
     def action_confirm(self):
         for meet in self:
-            if meet.state in ['draft']:
+           quorum_per_type={
+               'ordinary': self.env.company.quorum_ord,
+               'extraordinary': self.env.company.quorum_ext,
+           }
+           is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
+        if meet.state in ['draft'] and is_quorum:
                 meet.state = 'new' 
                 meet._create_event()
-            else:
-                return UserWarning('Ya ha sido confirmada previamente')
+        else:
+            return UserWarning('Ya ha sido confirmada previamente o no reune el quorum necesario')
 
     def action_finish(self):
         for meet in self:
@@ -145,7 +156,19 @@ class AssemblyMeeting(models.Model):
                 meet.date_end=fields.Datetime.now()
             else:
                 return UserWarning('No se puede finalizar la reunion')
-    
+    def action_cancel(self):
+        for meet in self:
+           quorum_per_type={
+               'ordinary': self.env.company.quorum_ord,
+               'extraordinary': self.env.company.quorum_ext,
+           }
+           is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
+        if meet.state in ['draft','new'] and not is_quorum:
+                meet.state = 'canceled' 
+                for line in meet.assembly_meeting_line:
+                    for topic in line.topic:
+                        topic.action_set_canceled()
+            
     def _create_event(self):
         # Creamos los tickets
         event_vals=self._prepare_event_values()
@@ -174,6 +197,7 @@ class AssemblyMeeting(models.Model):
             vals['short_name'] = self.env['ir.sequence'].next_by_code(
                 'assembly.meeting') or _('New')
         return super().create(vals)
+    
     def _prepare_event_values(self):
         self.ensure_one()
         return{
@@ -244,13 +268,23 @@ class AssemblyMeeting(models.Model):
             result = {'type': 'ir.actions.act_window_close'}
 
         return result
-class AssemblyMeetingTopic(models.Model):
-    _inherit = 'assembly.meeting.topic'
-    # campos relacionales
-    assembly_meeting = fields.Many2one(
-        string='Reunion Tratante', 
-        comodel_name='assembly.meeting')
 
+    def action_register_vote(self):
+        ''' Open the account.payment.register wizard to pay the selected journal entries.
+        :return: An action opening the account.payment.register wizard.
+        '''
+        return {
+            'name': _('Registrar Voto'),
+            'res_model': 'wizard.create.vote',
+            'view_mode': 'form',
+            'context': {
+                'active_model': 'assembly.meeting',
+                'active_ids': self.ids,
+            },
+            'target': 'new',
+            'type': 'ir.actions.act_window',
+        }
+    
 class HrAttendance(models.Model):
     _inherit = "hr.attendance"
     assembly_meeting = fields.Many2one(

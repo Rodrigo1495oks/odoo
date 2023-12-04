@@ -13,10 +13,10 @@
                     <field name="short_name" />
                     <field name="share_issuance" />
                     <field name="topic_type" />
-                    <button name="action_approve_topic" string="Aprobar"
+                    <!-- <button name="action_approve_topic" string="Aprobar"
                         type="object" icon="fa-check" />
                     <button name="action_refuse_topic" string="Rechazar"
-                        type="object" icon="fa-times" />
+                        type="object" icon="fa-times" /> -->
                     <field name="activity_ids" widget="list_activity" optional="show" />
 
                     <field name="state" optional="show" widget="badge"

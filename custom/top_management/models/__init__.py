@@ -6,5 +6,6 @@ from . import res_partner
 from . import res_partner_position
 from . import assembly_meeting_topic
 from . import assembly_meeting
+from . import assembly_meeting_line
 from . import assembly_meeting_vote
 from . import event_event

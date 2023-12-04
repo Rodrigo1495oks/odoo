@@ -69,6 +69,11 @@
                                 <field name='topics' attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             </page>
                             <page id='assembly_vote' string='Votos'>
+                                <group>
+                                    <button name="action_register_vote" string="Crear Votos" type="object"
+                                    class="oe_highlight"
+                                    attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                                </group>
                                 <field name='assembly_vote' attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}" />
                             </page>
                             <page id='attendance' string='Asistencias'>
