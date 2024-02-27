@@ -12,7 +12,6 @@ from odoo.tests.common import tagged, TransactionCase
 @tagged('attendance_process')
 class TestHrAttendance(TransactionCase):
     """Test for presence validity"""
-
     @classmethod
     def setUpClass(cls):
         super(TestHrAttendance, cls).setUpClass()

@@ -9,7 +9,7 @@
     'category': 'Shareholding',
     'depends': [
         'base', 'account','account_fiscal_year','account_share_management', 'hr_attendance',
-        'account_lock_date_update', 'account_fiscal_year_auto_create'
+        'account_lock_date_update', 'account_fiscal_year_auto_create', 'event'
     ],
     'data': [
         'security/top_management_security.xml',
@@ -25,9 +25,10 @@
         'views/hr_attendance_view.xml',
         'views/res_partner_position.xml',
         'views/res_partner.xml',
+        'views/hr_employee.xml',
         'report/assembly_meeting_template.xml',
         'report/assembly_meeting_report.xml',
-        'wizard/wizard_create_vote.xml'
+        'wizard/wizard_create_vote.xml',
         'views/menu_view.xml',
     ],
     'demo': [
@@ -36,6 +37,9 @@
     'auto_install': False,
     'application': False,
     'assets': {
-        
+        'web.assets_backend': [
+            'top_management/static/src/**/*',
+            'top_management/static/src/xml/**/*',
+        ],
     }
 }

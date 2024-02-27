@@ -8,5 +8,5 @@ class ResCompany(models.Model):
     _name = "res.company"
     _inherit = 'res.company'
 
-    quorum_ext=fields.Float(string='Quórum R. Ext.', help='Fije el Porcentaje de Asistencia para asambleas extraordinarias', readonly=False)
-    quorum_ord=fields.Float(string='Quórum R. Ord.', help='Fije el Porcentaje de Asistencia para asambleas ordinarias', readonly=False)
+    quorum_ext=fields.Float(string='Quórum R. Ext.', help='Fije el Porcentaje de Asistencia para asambleas extraordinarias', readonly=False, default=0.50)
+    quorum_ord=fields.Float(string='Quórum R. Ord.', help='Fije el Porcentaje de Asistencia para asambleas ordinarias', readonly=False, default=0.50)

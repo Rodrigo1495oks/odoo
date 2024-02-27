@@ -18,6 +18,15 @@ class AccountShare(models.Model):
     _order = 'short_name desc'
     _rec_name = 'short_name'
 
+    @api.depends('nominal_value','price')
+    def _compute_issue_discount(self):
+        for share in self:
+            if share.nominal_value>share.price:
+                share.issue_discount=share.nominal_value-share.price
+            if share.nominal_value<share.price:
+                share.issue_discount=0
+            if share.nominal_value==share.price:
+                share.issue_discount=0
     name = fields.Char(string='Nombre', required=True)
     short_name = fields.Char(string='Referencia', default=lambda self: _('New'), index='trigram',
                              required=True, copy=False, readonly=True)
@@ -63,7 +72,7 @@ class AccountShare(models.Model):
         string='Prima de emision', help='Cotizacion sobre la par', )
 
     issue_discount = fields.Float(
-        string='Descuento de Emisión', help='Descuento bajo la par', )
+        string='Descuento de Emisión', help='Descuento bajo la par', compute='_compute_issue_discount')
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id)
@@ -185,4 +194,4 @@ class AccountShare(models.Model):
 class Partner(models.Model):
     _inherit = 'res.partner'
 
-    shares=fields.One2many(string='Acciones',help='Acciones que posee el accionista', comodel_name='account.share',     inverse_name='partner_id', readonly=True)
+    shares=fields.One2many(string='Acciones',help='Acciones que posee el accionista', comodel_name='account.share', inverse_name='partner_id', readonly=True)

@@ -7,16 +7,17 @@
             <field name="name">assembly.meeting.line.tree</field>
             <field name="model">assembly.meeting.line</field>
             <field name="arch" type="xml">
-                <tree string="Reunión" decoration-success="state=='finished'"
-                    decoration-bf='state=="new"' decoration-muted="state=='canceled'">
+                <tree string="Reunión" decoration-success="priority=='low'"
+                    decoration-bf='priority=="urgent"' decoration-muted="priority=='normal'">
                     <field name="name" />
                     <field name="topic" />
-                    <field name="priority" />
                     <button name="action_approve_topic" string="Aprobar"
                         type="object" icon="fa-check" />
                     <button name="action_refuse_topic" string="Rechazar"
                         type="object" icon="fa-times" />
-
+                    <button name="action_add_vote" string="Desempatar"
+                        type="object" icon="fa-brands fa-vimeo" groups='top_management.top_management_group_president'/>
+                        
                     <field name="priority" optional="show" widget="badge"
                         decoration-success="priority == 'urgent'"
                         decoration-warning="priority == 'normal'"
@@ -33,15 +34,17 @@
                     <header>
                         <button name="action_approve_topic" string="Aprobar" type="object"
                             class="oe_highlight"
-                            attrs="{'invisible': [('state', '!=', 'new')]}" />
+                            />
                         <button name="action_refuse_topic" string="Rechazar" type="object"
                             class="oe_highlight"
-                            attrs="{'invisible': [('state', '!=', 'new')]}" />
+                             />
+                        <button name="action_add_vote" string="Desempatar"
+                            type="object" groups='top_management.top_management_group_president'/>
                     </header>
                     <sheet>
                         <group>
                             <group id='header_right_group'>
-                                <field name='topic' />
+                                <field name='topic' force_save="1" />
                                 <field name='name' />
                                 <field name='priority' />
                                 <field name='assembly_meeting' />
@@ -64,7 +67,7 @@
                     <separator />
                     <group expand="1" string="Group By">
                         <filter string="Prioridad" name="priority" context="{'group_by':'priority'}" />
-                        <filter string="Asunto" name="topic" context="{'group_by':'topic_type'}" />
+                        <filter string="Asunto" name="topic" context="{'group_by':'topic'}" />
                         <filter string="Con Reunión" name="assembly_meeting"
                             context="{'group_by':'assembly_meeting'}" />
                     </group>

@@ -34,12 +34,12 @@
                 <form string="Orden de Emisión de Acciones">
                     <header>
                         <button name="action_approve" string="Aprobar" type="object"
-                            class="oe_highlight"
+                            class="oe_highlight" groups="account_financial_policies.account_financial_policies_group_manager"
                             attrs="{'invisible': [('state', 'not in', 'new')]}" />
                         <button name="action_cancel" string="Cancelar" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '=', 'cancel')]}" />
-                        <button name="action_confirm" string="Confirmar Alta" type="object"
+                        <button name="action_confirm" string="Confirmar Alta" type="object" groups="account_financial_policies.account_financial_policies_stock_market_group_manager"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'draft')]}" />
                         <button name="action_draft" string="Cambiar a borrador" type="object"

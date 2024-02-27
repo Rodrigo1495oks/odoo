@@ -20,7 +20,7 @@ class Partner(models.Model):
     start_date = fields.Date(
         string='Fecha Inicio del cargo', readonly=False)
     end_date = fields.Date(string='Fecha de Finalización cargo', readonly=False)
-
+    employee_ids = fields.One2many(inverse_name='partner_id')
         # business_name=fields.Char(string='Razón Social', help='Denominación Social de la Empresa', required=True)
     # # Datos de Constitución
     # initial_street=fields.Char(string='Domicilio de Constitución')
@@ -30,7 +30,6 @@ class Partner(models.Model):
         # retrieve all children partners and prefetch 'parent_id' on them
         all_partners = self.with_context(active_test=False).search([('id', 'child_of', self.ids)])
         all_partners.read(['parent_id'])
-        
         purchase_order_groups = self.env['account.share']._read_group(
             domain=[('partner_id', 'in', all_partners.ids)],
             fields=['partner_id'], groupby=['partner_id']
@@ -45,11 +44,11 @@ class Partner(models.Model):
                 partner = partner.parent_id
         (self - partners).account_share_count = 0
 
+    @api.depends('shares')
     def _shared_total(self):
-        self.total_invoiced = 0
+        self.total_shared = 0
         if not self.ids:
             return True
-
         all_partners_and_children = {}
         all_partner_ids = []
         for partner in self.filtered('id'):

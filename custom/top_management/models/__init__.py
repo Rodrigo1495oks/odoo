@@ -9,3 +9,4 @@ from . import assembly_meeting
 from . import assembly_meeting_line
 from . import assembly_meeting_vote
 from . import event_event
+from . import hr_employee

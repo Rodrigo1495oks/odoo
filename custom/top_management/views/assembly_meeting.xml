@@ -66,7 +66,7 @@
                                     attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             </page>
                             <page id='topics' string='Asuntos'>
-                                <field name='topics' attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='assembly_meeting_line' attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             </page>
                             <page id='assembly_vote' string='Votos'>
                                 <group>
@@ -132,7 +132,7 @@
                     <field name="assembly_meet_type" readonly="1" />
                     <field name="partner_ids" />
                     <field name="state" />
-                    <field name="topics" />
+                    <field name="assembly_meeting_line" />
 
                     <progressbar field="state"
                         colors='{"new": "success", "today": "finished", "overdue": "canceled"}' />

@@ -31,7 +31,7 @@ class ResCompany(models.Model):
         help="Minimum amount for which a double validation is required")
     
     # ACCOUNTS
-    share_price=fields.Float(string='Precio de las Acciones', help='Valor Nominal para emitir acciones', company_dependent=True)
+    share_price=fields.Float(string='Precio de las Acciones', help='Valor Nominal para emitir acciones', company_dependent=True, default=100.0)
     
     property_account_subscription_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Acciones",

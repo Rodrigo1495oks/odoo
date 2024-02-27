@@ -17,7 +17,7 @@ class AccountShareType(models.Model):
         for ast in self:
             name = '%s - (%s)' % (ast.name, ast.short_name)
             result.append((ast.id, name))
-            return result
+        return result
     @api.depends('type')
     def _compute_number_of_votes(self):
         for type in self:

@@ -4,17 +4,28 @@
         <t t-foreach="docs" t-as="am">
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
-                    <header class='container-fluid row my-4 p-2'>
-                        <h1 class='text-center'>Acta Junta de Accionistas N° <span
+                    <t t-set='p' t-value="am.company_id.partner_id" />
+                    <t t-set='cpn' t-value="am.company_id" />
+                    <div>
+                        <header class='my-4 p-2'>
+                            <h1 class='text-center'>Acta Junta de Accionistas N° <span
                                 t-field="am.short_name" /></h1>
-                        <h2 class='text-center'>Asamblea <span t-field="am.assembly_meet_type" /> de <span
-                                t-field="c.name" /></h2>
+                                <h2 class='text-center'>Asamblea <t t-if="am.assembly_meet_type=='ordinary'">
+                                    <strong>Ordinaria</strong>
+                                </t> 
+                                <t
+                                t-elif="am.assembly_meet_type=='extraordinary'">
+                                <strong>Extraordinaria</strong> | </t><t
+                                t-elif="am.assembly_meet_type=='directory'">
+                                <strong> de Directorio</strong> | </t>de <span
+                                t-field="cpn.name" />
+                        </h2>
                         <h3 class='text-center'>De Fecha <span t-field="am.date_start" /></h3>
                     </header>
-                    <div id="partner" class="container-fluid row my-4"
-                        style="border-right: 1px solid black;">
+                    <div id="partner" class="my-4 container-fluid row"
+                    style="border-right: 1px solid black;">
                         <div class="partner-1 col-sm-6">
-                            <strong>CUIT:</strong>
+                        <strong>CUIT:</strong>
                             <span t-field="p.l10n_ar_vat" />
                             <strong>Condición Frente al IVA:</strong>
                             <span t-field="p.l10n_ar_afip_responsibility_type_id" />
@@ -24,15 +35,15 @@
                             <span t-field="p.name" />
                         </div>
                     </div>
+                </div>
                     <div class="page">
                         <div class="oe_structure" />
-
                         <section class='container-fluid row'>
                             <p class='col-md-12'>
                                 <span t-field="am.description" />
                             </p>
                         </section>
-                        <section class='container-fluid row'>
+                        <section class=''>
                             <h2 class='text-center'>Convocatoria</h2>
                             <h3 class='text-center'>De Fecha <span t-field="am.date_start" /></h3>
                             <p>La Junta de Accionista de la Coorporación Imperal SACIFACETI, en
@@ -45,31 +56,41 @@
                                     <strong>CONVOCA</strong>
                                 </span>
                                 a los accionsitas a la Asamblea a realizarse en las intalaciones de
-                                la Companía <span class="text-success" t-field="c.street" /> - <span
-                                    t-field="c.city" /> - <span class="text-success"
-                                    t-field="c.city" /> - <span
-                                    class="text-success" t-field="c.zip" /> - <span
-                                    class="text-success" t-field="c.state_id" /> República de
+                                la Companía <span class="text-success" t-field="cpn.street" /> - <span
+                                    t-field="cpn.city" /> - <span class="text-success"
+                                    t-field="cpn.city" /> - <span
+                                    class="text-success" t-field="cpn.zip" /> - <span
+                                    class="text-success" t-field="cpn.state_id" /> República de
                                 Argentina. En la Sala de Reuniones del cuarto piso, sito en calle
                                 Av. Berrondo 1255, el Presidente del Directorio con el objeto de
                                 tratar el
                                 siguiente.......................................................................................</p>
                         </section>
-                        <section class='container-fluid row'>
+                        <section class=''>
                             <h3 class='text-center'>Orden del Día</h3>
                             <br />
                             <table class="table table-sm o_main_table table-borderless mt-4">
                                 <thead style="display: table-row-group">
                                     <tr>
-                                        <th>Asunto</th>
-                                        <th>Título</th>
-                                        <th>Prioridad</th>
-                                        <th>Tipo</th>
-                                        <th>Estado</th>
+                                        <th>
+                                            <p class="fw-bolder"> Asunto</p>
+                                        </th>
+                                        <th>
+                                            <p class="fw-bolder"> Título</p>
+                                        </th>
+                                        <th>
+                                            <p class="fw-bolder"> Prioridad</p>
+                                        </th>
+                                        <th>
+                                            <p class="fw-bolder"> Tipo</p>
+                                        </th>
+                                        <th>
+                                            <p class="fw-bolder"> Estado</p>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <t t-set='topics' t-value="am.mapped('topics')" />
+                                    <t t-set='topics' t-value="am.mapped('assembly_meeting_line')" />
                                     <tr t-foreach="topics" t-as="lns">
                                         <td>
                                             <span t-field="lns.topic.short_name" />
@@ -78,7 +99,23 @@
                                             <span t-field="lns.name" />
                                         </td>
                                         <td>
-                                            <span t-field="lns.priority" />
+                                            <t t-if="lns.priority=='normal'">
+                                                <p>
+                                                    <button type="button" class="btn btn-success">
+                                                        Normal</button>
+                                                </p>
+                                            </t>
+                                            <t t-elif="lns.priority=='low'">
+                                                <p>
+                                                    <button type="button" class="btn btn-info">Baja</button>
+                                                </p>
+                                            </t>
+                                            <t t-else="lns.priority=='urgent'">
+                                                <p>
+                                                    <button type="button" class="btn btn-danger">
+                                                        Urgente</button>
+                                                </p>
+                                            </t>
                                         </td>
                                         <td>
                                             <span t-field="lns.topic.topic_type" />
@@ -90,7 +127,8 @@
                                 </tbody>
                             </table>
                         </section>
-                        <p t-field="am.notes" class="mt-4" />
+                        <!-- <p t-field="am.description" class="mt-4" /> -->
+                        <br />
                         <div class="oe_structure" />
                     </div>
                 </t>

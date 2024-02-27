@@ -10,40 +10,26 @@ class WizardCreateVote(models.TransientModel):
     _name = 'wizard.create.vote'
     _description = 'Crear Votos'
 
-    @api.depends('assembly_meeting')
-    def _compute_topics_availables(self):
-        """Si para este asunto, de esta reunion, el accionista seleccinado, ya
-            ha emitido un voto, entonces desabilito el topico, ya no lo muestro en la lista desplegable.
-        """
-        topics=[]
-        if self.assembly_meeting:
-             for topic in self.env['assembly.meeting.topic'].search([('state','in',['draft','new']),('assembly_meeting_line.assembly_meeting','=','assembly_meeting')]):
-                 if topic.assembly_vote:
-                    available=True
-                    for vote in topic.assembly_vote:
-                        if vote.partner_id ==self.partner_id:
-                            available=False
-                            break
-                        if available:
-                            topics.append(topic)
-        self.topic= topics
                             
-    partner_id = fields.Many2one(string='Accionista', comodel_name='res.partner',readonly=False)
     assembly_meeting = fields.Many2one(
         string='Reunion Tratante', 
-        comodel_name='assembly.meeting', readonly=False, domain=[('state','in',['draft','new'])])
+        comodel_name='assembly.meeting', readonly=False, domain=[('state','in',['draft','new'])]) # si creo el voto
+    # a partir de una reunion, este campo se pasa por el contexto, si accedo al 
     
     topic=fields.Many2one(string='Asuntos', 
                           comodel_name='assembly.meeting.topic', 
                           readonly=False, 
                           store=True,
-                          compute='_compute_topics_availables')
+                            domain=[('state','in',['draft','new']),('assembly_meeting_line.assembly_meeting','=','assembly_meeting')])
     result=fields.Selection(string='Resultado', 
                             selection=[
         ('positive','Positivo'),
         ('negative','Negativo'),
         ('blank','Neutral'),
     ])
+    partner_id = fields.Many2one(string='Accionista', 
+                                 comodel_name='res.partner',
+                                 readonly=False, domain=[('')])
 
     
     # Actions

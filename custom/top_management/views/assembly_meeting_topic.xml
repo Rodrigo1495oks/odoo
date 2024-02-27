@@ -39,12 +39,12 @@
                         <button name="action_confirm" string="Confirmar Alta" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'draft')]}" />
-                        <button name="action_approve_topic" string="Aprobar" type="object"
+                        <!-- <button name="action_approve_topic" string="Aprobar" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'new')]}" />
                         <button name="action_refuse_topic" string="Rechazar" type="object"
                             class="oe_highlight"
-                            attrs="{'invisible': [('state', '!=', 'new')]}" />
+                            attrs="{'invisible': [('state', '!=', 'new')]}" /> -->
                         <button name="action_set_canceled" string="Cancelar" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'new')]}" />
@@ -74,7 +74,8 @@
                                 <field name='topic_type'
                                     attrs="{'readonly': [('state', '!=', 'draft')]}"
                                 />
-                                <field name='assembly_meeting' attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='topic_meet' attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <!-- <field name='assembly_meeting' attrs="{'readonly': [('state', '!=', 'draft')]}" /> -->
                             </group>
                         </group>
                         <!-- Referencai para reducciones, acciones en cartera, reservas, dividendos

@@ -12,6 +12,7 @@ from odoo import models, fields, api, tools
 
 
 from odoo.exceptions import ValidationError
+from odoo.osv import expression
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
@@ -28,22 +29,54 @@ class AssemblyMeeting(models.Model):
     _order = 'short_name desc'
     _rec_name = 'short_name'
     
+    company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
+                                 default=lambda self: self.env.company.id)
     # Compute methods
     @api.depends('partner_ids')
     def _compute_quorum(self):
         for ass in self:
-            shares=self.env['account.share'].search()
-            total_votes=sum([share.votes_num for share in shares])
-            present_votes=sum([share.votes_num for share in [partner.shares for partner in ass.partner_ids]]) # probemos!!
-            ass.quorum=(present_votes/total_votes) if total_votes>0.0 else 0.0
+            if ass.assembly_meet_type!='directory':
+                shares=self.env['account.share'].search([])
+                total_votes=sum([share.votes_num for share in shares])
+                print("_________________________")
+                print(total_votes)
+                # present_votes=sum([share['votes_num'] for share in [shares for shares in [partner['shares'] for partner in ass.partner_ids]]]) # probemos!!
+                nueva_lista=[partner['shares'] for partner in ass.partner_ids]
+                present_votes=0
+                for shares in nueva_lista:
+                    for share in shares:
+                        present_votes+=share['votes_num']
+                print(present_votes)
+                ass.quorum=(present_votes/total_votes) if total_votes>0.0 else 0.0
+                
+            else:
+                present_votes=0
+
+                shares=self.env['account.share'].search([('partner_id.position.type','=','director')])
+                total_votes=sum([share.votes_num for share in shares])
+                nueva_lista=[partner['shares'] for partner in ass.partner_ids]
+                present_votes=0
+                for shares in nueva_lista:
+                    for share in shares:
+                        present_votes+=share['votes_num']
+                print(present_votes)
+                ass.quorum=(present_votes/total_votes) if total_votes>0.0 else 0.0
 
     def name_get(self):
         result = []
         for ast in self:
             name = '%s - (%s)' % (ast.name, ast.short_name)
             result.append((ast.id, name))
-            return result
-        
+        return result
+    # campos computados
+    @api.model
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
+            args = args or []
+            domain = [('state','=','new')]
+            return self.search(expression.AND([domain, args]), limit=limit).name_get()
+    
+        return super(AssemblyMeeting, self).name_search(name=name, args=args, operator=operator, limit=limit)
     @api.depends("date_start", "date_end")
     def _compute_duration(self):
         for rec in self:
@@ -55,22 +88,28 @@ class AssemblyMeeting(models.Model):
                 duration = delta.total_seconds() / 3600
             rec.duration = duration
     
-    @api.depends('state')
+    @api.depends('assembly_meet_type')
     def _compute_available_partner_ids(self):
         """
         Consigue todos los partner que posean al menos 1 accion.
         """
-        if self.state=='draft':
-            partner = self.env['res.partner'].search([])
-            for am in self:
-                am.partner_ids = partner.filtered(
-                    lambda p: p.shares.ids != []
-                    )
-        else:
-            am.partner_ids=False
+        for asm in self:
+            if asm.state=='draft':
+                partners = asm.env['res.partner'].search([])
+                if asm.assembly_meet_type!='directory':
+                    for am in asm:
+                        am.partner_ids = partners.filtered(
+                            lambda p: p.shares.ids != []
+                            )
+                elif asm.assembly_meet_type=='directory':
+                    asm.env['res.partner'].search([])
+                    for am in asm:
+                        am.partner_ids=partners.search([('position.type','=',   'director')])
+                else:
+                    asm.partner_ids=[]
         
-    date_start=fields.Datetime(string='Hora de Inicio', help='Hora de inicio de la reunion')
-    date_end=fields.Datetime(string='Hora de Finalización', help='Hora de inicio de la reunion')
+    date_start=fields.Datetime(string='Hora de Inicio', help='Hora de inicio de la reunion', required=True)
+    date_end=fields.Datetime(string='Hora de Finalización', help='Hora de inicio de la reunion', required=True)
     duration = fields.Float(
         string="Actual duration",
         compute=_compute_duration,
@@ -92,10 +131,12 @@ class AssemblyMeeting(models.Model):
                              required=True, 
                              copy=False, 
                              readonly=True)
+    
     assembly_meet_type = fields.Selection(string='Tipo de Asamblea', 
                                           selection=[
         ('ordinary', 'Asamblea Ordinaria'),
-        ('extraordinary', 'Asamblea Extraordinaria')
+        ('extraordinary', 'Asamblea Extraordinaria'),
+        ('directory','Directorio')
     ])
     description=fields.Text(string='Descripción', 
                             help='Rellene la descripción de la Reunión')
@@ -107,18 +148,13 @@ class AssemblyMeeting(models.Model):
         ('canceled', 'Cancelada')
     ], default='draft')
 
-    topics = fields.One2many(string='Temas a Tratar', 
-                             comodel_name='assembly.meeting.line',
-                             inverse_name='assembly_meeting', 
-                             store=True, 
-                             index=True, 
-                             )
-
     partner_ids = fields.Many2many(string='Accionistas Presentes', 
                                    comodel_name='res.partner',
                                    column1='assembly_meeting', 
                                    column2='partner_id', 
-                                   relation='assembly_meeting_partner', compute='_compute_available_partner_ids')
+                                   relation='assembly_meeting_partner', 
+                                   compute='_compute_available_partner_ids',
+                                   store=True)
     attendance=fields.One2many(string='Asistencias', 
                                comodel_name='hr.attendance', 
                                help='Control de Asistencias a Reuniones', 
@@ -139,8 +175,9 @@ class AssemblyMeeting(models.Model):
     def action_confirm(self):
         for meet in self:
            quorum_per_type={
-               'ordinary': self.env.company.quorum_ord,
-               'extraordinary': self.env.company.quorum_ext,
+                'ordinary': self.env.company.quorum_ord,
+                'extraordinary': self.env.company.quorum_ext,
+                'directory': self.env.company.quorum_ord,
            }
            is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
         if meet.state in ['draft'] and is_quorum:
@@ -154,13 +191,27 @@ class AssemblyMeeting(models.Model):
             if meet.state in ['new']:
                 meet.state = 'finished' 
                 meet.date_end=fields.Datetime.now()
+            # calculo y registro las asistencias
+            for event in meet.event_id:
+                for registration in event.registration_ids:
+                    reg_values={
+                        "employee_id":registration.partner_id.employee_ids[0].id if registration.partner_id.employee_ids else False,
+                        "check_in":meet.date_start,
+                        "check_out":fields.datetime.now(),
+                        "assembly_meeting": meet.id,
+                    }
+                    # partner=>empleado
+
+                    self.env['hr.attendance'].create(reg_values)
             else:
                 return UserWarning('No se puede finalizar la reunion')
+            
     def action_cancel(self):
         for meet in self:
            quorum_per_type={
-               'ordinary': self.env.company.quorum_ord,
-               'extraordinary': self.env.company.quorum_ext,
+                'ordinary': self.env.company.quorum_ord,
+                'extraordinary': self.env.company.quorum_ext,
+                'directory': self.env.company.quorum_ord,
            }
            is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
         if meet.state in ['draft','new'] and not is_quorum:
@@ -168,7 +219,7 @@ class AssemblyMeeting(models.Model):
                 for line in meet.assembly_meeting_line:
                     for topic in line.topic:
                         topic.action_set_canceled()
-            
+    
     def _create_event(self):
         # Creamos los tickets
         event_vals=self._prepare_event_values()
@@ -176,8 +227,8 @@ class AssemblyMeeting(models.Model):
         ticket_vals=self._prepare_ticket_values()
         event_vals['event_ticket_ids'].append((0,0,ticket_vals))
         # Creamos una registración por cada partner
-        reg_vals=self._prepare_reg_values()
         for partner in self.partner_ids:
+            reg_vals=self._prepare_reg_values()
             reg_vals.update({
                 'name':'Accionista: %s' %(partner.name),
                 'partner_id': partner.id,
@@ -186,7 +237,7 @@ class AssemblyMeeting(models.Model):
                 'phone':partner.phone,
                 })
             event_vals['registration_ids'].append((0,0, reg_vals))
-            new_event= self.env['event.event'].create(event_vals)
+        new_event= self.env['event.event'].create(event_vals)
         return self.action_view_event(new_event)
 
     # low level methods

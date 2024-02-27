@@ -16,7 +16,7 @@
         <field name="dpi">80</field>
     </record>
     <record id="assembly_meeting" model="ir.actions.report">
-        <field name="name">Emisión de Acciones</field>
+        <field name="name">Acta de Reunión - Asamblea</field>
         <field name="model">assembly.meeting</field>
         <field name="report_type">qweb-html</field>
         <field name="report_name">top_management.assembly_meeting_report</field>

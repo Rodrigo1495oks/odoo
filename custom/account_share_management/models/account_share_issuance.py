@@ -30,7 +30,6 @@ class SharesIssuance(models.Model):
         # presupuesto/pedido de compra
         currency = self.env.company.currency_id
         for issuance in self:
-            
             nom_price = issuance.nominal_value
             if nom_price > issuance.price:
                 issuance.update({  # actualizo los campos de este modelo
@@ -41,6 +40,11 @@ class SharesIssuance(models.Model):
                 issuance.update({  # actualizo loscampos de este modelo
                     'issue_discount': 0,
                     'issue_premium': currency.round(issuance.price-nom_price),
+                })
+            else:
+                issuance.update({  # actualizo loscampos de este modelo
+                    'issue_discount': 0,
+                    'issue_premium': 0,
                 })
 
     short_name = fields.Char(string='Referencia', 
@@ -153,7 +157,7 @@ class SharesIssuance(models.Model):
                                compute='_amount_all')
     def action_approve(self):
         for issuance in self:
-            if issuance.state not in ['draft', 'cancel', 'suscribed', 'approved']: # and issuance.topic.id.state == 'approved':
+            if issuance.state not in ['draft', 'cancel', 'suscribed', 'approved'] and self.user_has_groups('account_financial_policies.account_financial_policies_group_manager'): # and issuance.topic.id.state == 'approved':
                 issuance.state = 'approved'
                 # creo las acciones
                 for i in range(self.shares_qty):
@@ -190,7 +194,7 @@ class SharesIssuance(models.Model):
     def action_confirm(self):
         self.ensure_one()
         for issue in self:
-            if issue.state == 'draft':
+            if issue.state == 'draft' and self.user_has_groups('account_financial_policies.account_financial_policies_stock_market_group_manager'):
                 issue.state = 'new'
                 # topic_vals = self._prepare_topic_values()
                 # self.env['assembly.meeting.topic'].create(topic_vals)

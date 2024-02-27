@@ -313,7 +313,7 @@
                         <h2>Valor Patrimonial Proporcional</h2>
                         <div class="row mt16 o_settings_container" id="percentage_redemption">
                             <div class="col-12 col-lg-6 o_setting_box" id="vpp"
-                                groups="account.group_account_user">
+                                groups="account.group_account_user,account_financial_policies.account_financial_policies_stock_market_group_manager">
                                 <div class="o_setting_left_pane">
                                 </div>
                                 <div class="o_setting_right_pane">
@@ -330,7 +330,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-lg-6 o_setting_box" id="share_price"
-                                groups="account.group_account_user">
+                                groups="account.group_account_user,account_financial_policies.account_financial_policies_stock_market_group_manager">
                                 <div class="o_setting_left_pane">
                                 </div>
                                 <div class="o_setting_right_pane">

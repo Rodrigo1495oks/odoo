@@ -18,9 +18,12 @@
     <menuitem id="menu_top_management_vote" name="Votos"
         groups="top_management.top_management_group_user,top_management.top_management_group_manager"
         sequence="3" parent='menu_top_management_mngmt' action='assembly_vote_action' />
+    <menuitem id="menu_top_management_partner" name="Accionistas"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        sequence="4" parent='menu_top_management_mngmt' action='account_financial_policies.res_partner_action_shareholder' />
     <menuitem id="menu_top_management_wizard" name="Crear Votos"
         groups="top_management.top_management_group_user,top_management.top_management_group_manager"
-        sequence="4" parent='menu_top_management_mngmt' action='action_create_assembly_vote' />
+        sequence="5" parent='menu_top_management_mngmt' action='action_create_assembly_vote' />
     <!-- Configuracion -->
     <menuitem id="menu_top_management_config" name="Configuración"
         groups="top_management.top_management_group_manager" sequence="1"
