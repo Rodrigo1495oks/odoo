@@ -59,7 +59,7 @@ class AssemblyMeetingLine(models.Model):
             # COMO APRUEBO EL TOPICO?
             # SI HAY QUORUM?
             # SI HAY MAYORIA DE VOTOS?
-            if topic.state == 'new' and self.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+            if topic.state == 'new' and self.assembly_meeting.state=='count':
                 quorum_per_type={
                     'ordinary': self.env.company.quorum_ord,
                     'extraordinary': self.env.company.quorum_ext,
@@ -85,7 +85,7 @@ class AssemblyMeetingLine(models.Model):
                    raise UserError(_('El quorum no se completo o no recibio los votos suficientes'))
                 
             else: 
-                raise UserError(_('Ya fue rechazado o aprobado'))
+                raise UserError(_('El asunto ya se trató o el cómputo aún no ha comenzado 😎'))
 
     def action_refuse_topic(self):
         self.ensure_one()
@@ -93,7 +93,7 @@ class AssemblyMeetingLine(models.Model):
             # COMO APRUEBO EL TOPICO?
             # SI HAY QUORUM?
             # SI HAY MAYORIA DE VOTOS?
-            if topic.state == 'new' and self.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+            if topic.state == 'new' and self.assembly_meeting.state =='count':
                 quorum_per_type={
                     'ordinary': self.env.company.quorum_ord,
                     'extraordinary': self.env.company.quorum_ext,
@@ -115,20 +115,43 @@ class AssemblyMeetingLine(models.Model):
                 if (present_votes / total_votes) >= quorum_per_type[self.assembly_meeting.assembly_meet_type] and (topic.num_votes_minus/present_votes)>0.5:
                     topic._action_refuse_topic()
                 else:
-                    raise UserError(_('El quorum no se completo o recibio votos de mayoria absoluta de acciones presentes con derecho a voto'))
+                   raise UserError(_('El quorum no se completo o no recibio los votos suficientes'))
+                
             else: 
-                raise UserError(_('Ya fue rechazado o aprobado'))
+                raise UserError(_('El asunto ya se trató o el cómputo aún no ha comenzado 😎'))
+            
     def action_add_vote(self):
         """Accion auxiliar que tendra disponible el presidente del directorio
             para desempatar la votación
         """
-        if self.user_has_groups('top_management.top_management_group_president'):
+        if self.user_has_groups('top_management.top_management_group_president') and self.topic.state == 'new' and self.assembly_meeting.state =='count':
             for line in self:
                 if line.topic.num_votes_plus==line.topic.num_votes_minus:
-                    line.topic.num_votes_plus+=1
-        else:
-            return UserWarning('No se puede Desempatar')
+                    vote=line.env['assembly.meeting.vote'].search_count([('type','=','breaker'),('assembly_meeting','=',line.assembly_meeting.id)],limit=1)<0
+                    if vote:
+                        line.action_register_vote()
+                    else:
+                        return UserWarning('Ya existe un voto de Desempate en esta reunión 😁')
             
+        else:
+            return UserWarning('No se puede Desempatar, no tiene los permisos necesarios')
+        
+    def action_register_vote(self):
+        ''' Open the account.payment.register wizard to pay the selected journal entries.
+        :return: An action opening the account.payment.register wizard.
+        '''
+        return {
+            'name': _('Registrar Voto Desempate'),
+            'res_model': 'wizard.create.vote',
+            'view_mode': 'form',
+            'context': {
+                'active_model': 'assembly.meeting.line',
+                'active_ids': self.ids,
+                'type':'breaker',
+            },
+            'target': 'new',
+            'type': 'ir.actions.act_window',
+        }
 class AssemblyMeetingTopic(models.Model):
     _inherit = 'assembly.meeting.topic'
     # campos relacionales

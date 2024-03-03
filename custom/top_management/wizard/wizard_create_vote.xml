@@ -8,10 +8,11 @@
                 <form string="Registrar Voto">
                     <!-- Invisible fields -->
                     <group string='Seleccione los datos pertinentes'>
+                        <field name='assembly_meeting'/>
+                        <field name='topic'/>
                         <field name='partner_id'/>
                         <field name='result'/>
-                        <field name='topic'/>
-                        <field name='assembly_meeting'/>
+                        <field name='type' readonly='1'/>
                     </group>
                     <br/>
                     <footer>

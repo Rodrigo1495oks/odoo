@@ -49,5 +49,5 @@
     </record>
 
     <!-- menu -->
-    <menuitem id="menu_hr_attendance_my_attendances_meeting" name="Entrada y Salida Reuniones" parent="menu_hr_attendance_root" sequence="2" groups="hr_attendance.group_hr_attendance" action="hr_attendance_action_my_attendances_meeting"/>
+    <menuitem id="menu_hr_attendance_my_attendances_meeting" name="Entrada y Salida Reuniones" parent="hr_attendance.menu_hr_attendance_root" sequence="2" groups="hr_attendance.group_hr_attendance" action="hr_attendance_action_my_attendances_meeting"/>
 </odoo>

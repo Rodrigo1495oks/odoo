@@ -17,9 +17,6 @@ from odoo.exceptions import ValidationError
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import math
-import babel.dates
-import logging
 
 from odoo.addons.base.models.res_partner import _tz_get
 from odoo.addons.calendar.models.calendar_attendee import Attendee
@@ -43,7 +40,7 @@ class AssemblyVote(models.Model):
                              required=True, 
                              copy=False, 
                              readonly=True)
-    
+    date=fields.Datetime(string='Fecha y Hora', default=fields.datetime.now())
     result=fields.Selection(string='Resultado', selection=[
         ('positive','Positivo'),
         ('negative','Negativo'),
@@ -58,7 +55,7 @@ class AssemblyVote(models.Model):
     assembly_meeting = fields.Many2one(
         string='Reunion Tratante', 
         comodel_name='assembly.meeting', readonly=True)
-    
+    type=fields.Selection(string='Tipo', selection=[('normal','Normal'),('breaker','Desempate')])
     # low level methods
 
     @api.model

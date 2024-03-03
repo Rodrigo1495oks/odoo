@@ -30,14 +30,20 @@
                         <button name="action_draft" string="A Borrador" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                        <button name="action_start" string="Comenzar" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'in', ('canceled','finished','draft','progress','count'))]}" />
+                        <button name="action_start_count" string="Comenzar Cómputo" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'progress')]}" />
                         <button name="action_finish" string="Finalizar" type="object"
                             class="oe_highlight"
-                            attrs="{'invisible': [('state', 'in', ('canceled','finished'))]}" />
+                            attrs="{'invisible': [('state', '!=', 'count')]}" />
                         <button name="action_confirm" string="Confirmar Alta" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'draft')]}" />
                         <field name="state" widget="statusbar"
-                            statusbar_visible="draft,new,finished,canceled" />
+                            statusbar_visible="draft,new,progress,count,finished,canceled" />
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -51,7 +57,8 @@
                         <group>
                             <group id='header_left_group' name='inicio' string='Identificacion'>
                                 <field name="name" />
-                                <field name='assembly_meet_type' attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='assembly_meet_type'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             </group>
                             <group name='Datos' id='header_right_group' string='Duración'>
                                 <field name="date_start" />
@@ -62,31 +69,41 @@
 
                         <notebook>
                             <page id='partner_ids' string='Accionistas'>
+                                <group>
+                                    <button name="action_check_partners" string="Comprobar Asistencias"
+                                        type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('state', '!=','progress')]}" />
+                                </group>
                                 <field name='partner_ids'
                                     attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             </page>
                             <page id='topics' string='Asuntos'>
-                                <field name='assembly_meeting_line' attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                <field name='assembly_meeting_line'
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             </page>
                             <page id='assembly_vote' string='Votos'>
                                 <group>
-                                    <button name="action_register_vote" string="Crear Votos" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                                    <button name="action_register_vote" string="Crear Votos"
+                                        type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('state', '!=', 'progress')]}" />
                                 </group>
-                                <field name='assembly_vote' attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}" />
+                                <field name='assembly_vote'
+                                    attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}" />
                             </page>
                             <page id='attendance' string='Asistencias'>
-                                <field name='attendance' attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}" />
+                                <field name='attendance'
+                                    attrs="{'readonly': [('state', 'in', ['finished','canceled','progress','count'])]}" />
                             </page>
                             <page id='events' string='Evento'>
                                 <field name='event_id'
-                                    attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}"/>
+                                    attrs="{'readonly': [('state', 'not in', ['draft','new'])]}" />
                             </page>
-                           
                         </notebook>
                         <group>
-                            <field name='description' attrs="{'placeholder':'Ingrese la descripción de la Reunión'}"/>
+                            <field name='description'
+                                attrs="{'placeholder':'Ingrese la descripción de la Reunión'}" />
                         </group>
                     </sheet>
 

@@ -30,19 +30,26 @@
                             statusbar_visible="positive,negative,blank" />
                     </header>
                     <sheet>
-                        <div class="oe_title">
-                            <span class="o_form_label"
-                            >Voto </span>
-                            <h1 class="d-flex mb32">
-                                <field name="short_name" readonly="1" />
-                            </h1>
-                        </div>
+                        <group>
+
+                            <div class="oe_title">
+                                <span class="o_form_label"
+                                >Voto </span>
+                                <h1 class="d-flex mb32">
+                                    <field name="short_name" readonly="1" />
+                                </h1>
+                            </div>
+                        </group>
                         <group id='header_right_group'>
                             <field name="partner_id" widget="many2one_avatar" />
                             <field name='result' />
                             <field name='topic'
                             />
                             <field name='assembly_meeting'
+                            />
+                            <field name='date' readonly="1"
+                            />
+                            <field name='type' readonly="1"
                             />
                         </group>
                         <!-- Referencai para reducciones, acciones en cartera, reservas, dividendos

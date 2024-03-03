@@ -18,7 +18,7 @@
     </t>
 
     <t t-name="HrAttendanceUserBadge">
-        <div class="o_hr_attendance_user_badge o_home_menu_background d-flex align-items-end justify-content-center flex-grow-1 pt-5 pt-md-4 bg-odoo">
+        <div class="o_hr_attendance_user_badge o_home_menu_background new_back d-flex align-items-end justify-content-center flex-grow-1 pt-5 pt-md-4 bg-odoo">
             <img class="img rounded-circle mb-n5" t-attf-src="/web/image?model=hr.employee.public&amp;field=avatar_128&amp;id=#{userId}" t-att-title="userName" height="80" t-att-alt="userName"/>
         </div>
     </t>
@@ -73,6 +73,7 @@
                     <div class="flex-grow-1">
                         <h1 class="mt-5" t-esc="widget.employee.name"/>
                         <h3><t t-if="!checked_in">Welcome to meeting!</t><t t-else="">Want to check out?</t></h3>
+                        <p>Selecciona la reunión del día</p>
                         <h4 class="mt0 mb0 text-muted" t-if="checked_in">Today's work hours: <span t-esc="widget.hours_today"/></h4>
                     </div>
 

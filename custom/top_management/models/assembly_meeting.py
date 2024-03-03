@@ -144,6 +144,8 @@ class AssemblyMeeting(models.Model):
     state = fields.Selection(string='Estado', selection=[
         ('draft', 'Borrador'),
         ('new', 'Nuevo'),
+        ('progress','En Curso'),
+        ('count','Conteo de Votos'),
         ('finished', 'Finalizada'),
         ('canceled', 'Cancelada')
     ], default='draft')
@@ -185,24 +187,51 @@ class AssemblyMeeting(models.Model):
                 meet._create_event()
         else:
             return UserWarning('Ya ha sido confirmada previamente o no reune el quorum necesario')
-
-    def action_finish(self):
+    def action_start(self):
+        """Comenzar reunion"""
         for meet in self:
             if meet.state in ['new']:
-                meet.state = 'finished' 
-                meet.date_end=fields.Datetime.now()
+                meet.state = 'progress' 
+                meet.date_start=fields.Datetime.now()
             # calculo y registro las asistencias
             for event in meet.event_id:
                 for registration in event.registration_ids:
-                    reg_values={
-                        "employee_id":registration.partner_id.employee_ids[0].id if registration.partner_id.employee_ids else False,
-                        "check_in":meet.date_start,
-                        "check_out":fields.datetime.now(),
-                        "assembly_meeting": meet.id,
-                    }
-                    # partner=>empleado
+                    if registration.state=='open' : 
+                        # si realmente confirmo la asistencia
+                        if registration.partner_id.employee_ids:
+                            reg_values={
+                                "employee_id":registration.partner_id.employee_ids[0].id,
+                                "check_in":meet.date_start,
+                                "check_out":fields.datetime.now(),
+                                "assembly_meeting": meet.id,
+                            }
+                        # partner=>empleado
+                            self.env['hr.attendance'].create(reg_values)
+                            registration.state='done'
+                        # else: 
+                        #     return UserWarning('Algunos asistentes no tienen la configuración \n correcta en el módulo de RR.HH')
+            else:
+                return UserWarning('No se puede finalizar la reunion')
 
-                    self.env['hr.attendance'].create(reg_values)
+    def action_start_count(self):
+        """Comenzar Conteo de votos"""
+        quorum_per_type={
+                'ordinary': self.env.company.quorum_ord,
+                'extraordinary': self.env.company.quorum_ext,
+                'directory': self.env.company.quorum_ord,
+           }
+        is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
+        for meet in self:
+            if meet.state in ['progress'] and is_quorum:
+                meet.state = 'count' 
+            else:
+                return UserWarning('La Reunión aún no esta en marcha')
+            
+    def action_finish(self):
+        for meet in self:
+            if meet.state in ['count']:
+                meet.state = 'finished' 
+                meet.date_end=fields.Datetime.now()
             else:
                 return UserWarning('No se puede finalizar la reunion')
             
@@ -214,12 +243,23 @@ class AssemblyMeeting(models.Model):
                 'directory': self.env.company.quorum_ord,
            }
            is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
-        if meet.state in ['draft','new'] and not is_quorum:
+        if meet.state in ['draft','new'] or not is_quorum:
                 meet.state = 'canceled' 
                 for line in meet.assembly_meeting_line:
                     for topic in line.topic:
                         topic.action_set_canceled()
-    
+                        
+    def action_check_partners(self):
+        """Este helper comprueba la asistencia de accionsitas una vez que la reunion este en marcha"""
+        for meet in self:
+            if meet.state=='progress':
+                update_partners=[]
+                attendances=meet.env['hr.attendance'].search([('assembly_meeting','=',meet.id)])
+                for hratt in attendances:
+                    update_partners.append(hratt.employee_id.partner_id.id)
+
+                meet.partner_ids=update_partners
+            
     def _create_event(self):
         # Creamos los tickets
         event_vals=self._prepare_event_values()
@@ -235,6 +275,7 @@ class AssemblyMeeting(models.Model):
                 'email':partner.email,
                 'mobile':partner.mobile,
                 'phone':partner.phone,
+                'state': 'draft',
                 })
             event_vals['registration_ids'].append((0,0, reg_vals))
         new_event= self.env['event.event'].create(event_vals)
@@ -277,6 +318,7 @@ class AssemblyMeeting(models.Model):
             'email':'',
             'mobile':'',
             'phone':'',
+            'state':'',
             }
     def _prepare_ticket_values(self):
         self.ensure_one()
@@ -331,6 +373,8 @@ class AssemblyMeeting(models.Model):
             'context': {
                 'active_model': 'assembly.meeting',
                 'active_ids': self.ids,
+                'meeting':self.id,
+                'type':'normal',
             },
             'target': 'new',
             'type': 'ir.actions.act_window',

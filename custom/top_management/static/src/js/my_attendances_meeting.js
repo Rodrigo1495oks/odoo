@@ -1,4 +1,4 @@
-odoo.define('hr_attendance.my_attendances', function (require) {
+odoo.define('top_management.my_attendances_meeting', function (require) {
 "use strict";
 
 var AbstractAction = require('web.AbstractAction');
@@ -52,7 +52,7 @@ var MyAttendancesMeeting = AbstractAction.extend({
     },
 });
 
-core.action_registry.add('hr_attendance_my_attendances_meeting', MyAttendancesMeeting);
+core.action_registry.add('top_management_my_attendances_meeting', MyAttendancesMeeting);
 
 return MyAttendancesMeeting;
 

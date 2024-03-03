@@ -1,0 +1,1 @@
+crear un boton que compruebe las asistencias para corregir en el formulario de reunion los accionistas presentes y el quorum de forma automática

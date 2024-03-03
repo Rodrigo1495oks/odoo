@@ -6,7 +6,7 @@ from odoo.exceptions import UserError
 from odoo.tools.translate import _
 
 from datetime import timedelta
-
+from odoo.osv import expression
 from odoo.tools.float_utils import float_is_zero, float_compare
 
 from odoo import models, fields, api
@@ -26,6 +26,7 @@ class Partner(models.Model):
     # initial_street=fields.Char(string='Domicilio de Constitución')
     # duration=fields.Char(string='Duración')
     # registration_code=fields.Integer(string='Número de Registro', help='Número de Registro Público')
+     # campos computados
     def _compute_account_share_count(self):
         # retrieve all children partners and prefetch 'parent_id' on them
         all_partners = self.with_context(active_test=False).search([('id', 'child_of', self.ids)])
