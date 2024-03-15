@@ -15,3 +15,11 @@ for shares in nueva_lista:
         votos_presentes+=share['num_votes']
 
 # print(votos_presentes)
+
+
+vote=0
+
+if vote:
+    print('mayor a cero')
+else:
+    print('Es cero')

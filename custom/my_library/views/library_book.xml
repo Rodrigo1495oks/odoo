@@ -9,8 +9,10 @@
   </record>
   <!-- Luego creo los elementos del menu su estrcura y jerarqia, guiarme por los IDs -->
 
-  <menuitem name="My Library" id="library_base_menu" web_icon="library_book, static/description/book.png"/>
-  <menuitem name="Books" id="library_book_menu" parent="library_base_menu" action="library_book_action" />
+  <menuitem name="My Library" id="library_base_menu"
+    web_icon="library_book, static/description/book.png" />
+  <menuitem name="Books" id="library_book_menu" parent="library_base_menu"
+    action="library_book_action" />
 
   <!-- Luego creo el formulario personalizado con los campos que voy a ingresar -->
 
@@ -24,7 +26,7 @@
             <field name="name" />
             <field name="author_ids" widget="many2many_tags" />
             <field name="state" />
-            <field name="pages"/>
+            <field name="pages" />
             <field name="notes" />
 
           </group>
@@ -36,17 +38,20 @@
             <field name="reader_rating" />
             <field name="currency_id"></field>
             <field name="retail_price" />
-            <field name="publisher_city"/>
-            <field name="ref_doc_id"/>
+            <field name="publisher_city" />
+            <field name="ref_doc_id" />
           </group>
           <group>
             <field name="publisher_id" />
             <field name="category_id" />
-            <field name="age_days"/>
-            <field name="manager_remarks"/>
-            <field name="old_edition"/>
+            <field name="age_days" />
+            <field name="manager_remarks" />
+            <field name="old_edition" />
           </group>
-
+          <group string='Campos Restringidos' id='restricted_fields'>
+            <field name="is_public" />
+            <field name="private_notes" />
+          </group>
         </group>
         <group>
           <field name="description" />
@@ -54,13 +59,14 @@
           <field name="out_of_print" />
           <field name="cost_price" />
         </group>
-         <button name="make_available" string="Make Available" type="object"/>
-        <button name="make_borrowed" string="Make Borrowed" type="object"/>
-        <button name="make_lost" string="Make Lost" type="object"/>
-        <field name="state" widget="statusbar"/>
+        <button name="make_available" string="Make Available" type="object" />
+        <button name="make_borrowed" string="Make Borrowed" type="object" />
+        <button name="make_lost" string="Make Lost" type="object" />
+        <field name="state" widget="statusbar" />
 
-        <button name="change_release_date" string="Update Date" type="object"/>
-        <button name="books_with_multiple_authors" string="Books with multiple authors" type="object"/>
+        <button name="change_release_date" string="Update Date" type="object" />
+        <button name="books_with_multiple_authors" string="Books with multiple authors"
+          type="object" />
       </form>
     </field>
   </record>

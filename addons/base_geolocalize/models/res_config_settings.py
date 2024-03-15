@@ -8,7 +8,7 @@ class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
     geoloc_provider_id = fields.Many2one(
-        'base.geo_provider',
+        comodel_name='base.geo_provider',
         string='API',
         config_parameter='base_geolocalize.geo_provider',
         default=lambda x: x.env['base.geocoder']._get_provider()

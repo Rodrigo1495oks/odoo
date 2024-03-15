@@ -32,7 +32,7 @@ class AssemblyVote(models.Model):
     _description = 'Objeto Reunión de asamblea'
     _order = 'short_name desc'
     _rec_name = 'short_name'
-    
+
     name = fields.Char(string='Título', 
                        required=True)
     short_name = fields.Char(string='Referencia', 
@@ -63,6 +63,15 @@ class AssemblyVote(models.Model):
         if vals.get('short_name', _('New')) == _('New'):
             vals['short_name'] = self.env['ir.sequence'].next_by_code(
                 'assembly.meeting.vote') or _('New')
+        check_vals={
+            'name':'',
+            'result':'',
+            'topic':'',
+            'partner_id':'',
+            'assembly_meeting':'',
+            'type':'',
+        }
+        
         res = super().create(vals)
         return res
 

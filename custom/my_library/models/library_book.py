@@ -27,10 +27,10 @@ class LibraryBook(models.Model):
             return result
 
     @api.model
-    def _name_search(self, name='', args=None, operator='ilike',
+    def name_search(self, name='', args=None, operator='ilike',
                      limit=100, name_get_uid=None
                      ):
-
+        
         if args is None:
             args = []
         else:
@@ -253,12 +253,14 @@ class LibraryBook(models.Model):
             book.date_release = d
 
     manager_remarks = fields.Text('Manager Remarks')
-
+    # restricciones de grupo de usuarios 
+    is_public = fields.Boolean(groups='my_library.librarian_group_manager')
+    private_notes = fields.Text(groups='my_library.librarian_group_manager')
     # agregando restricciones para que solo un grupo de usuarios pueda modificar el campo  manager remarks
 
     @api.model
     def create(self, values):
-        if not self.user_has_groups('my_library.librarian'):
+        if not self.user_has_groups('my_library.librarian_group_manager'):
             if 'manager_remarks' in values:
                 raise UserError(
                     'You are not allowed to modify '

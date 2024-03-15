@@ -31,7 +31,7 @@ class AssemblyMeetingLine(models.Model):
     topic=fields.Many2one(string='Asunto',
                           comodel_name='assembly.meeting.topic',
                           change_default=True,
-                          domain=[('state','=','new'),('meeting_assigned','=',False)],
+                          domain=[('state','=','new')],
                           store=True,
                           index=True)
     # domain=[('state','=','new'), ('meeting_assigned','=',False)],
@@ -40,6 +40,10 @@ class AssemblyMeetingLine(models.Model):
         ('normal','Normal'),
         ('low','Baja')
     ], default='normal')
+    state=fields.Selection(string='Estado',
+                            selection=[('approved','Aprobado'),
+                                        ('refused','Rechazado'),
+                                        ('no_treating','Sin Tratar')], default='no_treating', readonly=True)
     assembly_meeting = fields.Many2one(
         string='Reunion Tratante', 
         comodel_name='assembly.meeting', index=True, required=True, ondelete='cascade')
@@ -77,12 +81,32 @@ class AssemblyMeetingLine(models.Model):
                 for partner in self.assembly_meeting.partner_ids:
                     for share in partner.shares:
                         present_votes+=share.votes_num
-                # sum([share.votes_num for share in [partner.shares for partner in line.assembly_meeting.partner_ids]]) # probemos!!
-
-                if (present_votes / total_votes) >= quorum_per_type[self.assembly_meeting.assembly_meet_type] and (topic.num_votes_plus/present_votes)>0.5:
-                    topic._action_approve_topic()
+                
+                if (present_votes / total_votes) >= quorum_per_type[self.assembly_meeting.assembly_meet_type]:
+                    minus_votes=topic.env['assembly.meeting.vote'].search_count([('assembly_meeting','=',self.assembly_meeting.id),
+                                                                                ('result','=','negative'),
+                                                                                ('topic','=',topic.id)])
+                
+                    plus_votes=topic.env['assembly.meeting.vote'].search_count([('assembly_meeting','=',self.assembly_meeting.id),
+                                                                                ('result','=','positive'),
+                                                                                ('topic','=',topic.id)])
+                    if plus_votes>minus_votes:
+                        topic._action_approve_topic() 
+                        self.state='approved'
+                        message_id = self.env['message.wizard'].create({'message': _("El tema de Reunión fue:  \n <strong> ❤ Aprobado existosamente </strong>")})
+                        return {
+                                'name': _('Tema de Reunión Aprobado! 👍'),
+                                'type': 'ir.actions.act_window',
+                                'view_mode': 'form',
+                                'res_model': 'message.wizard',
+                                # pass the id
+                                'res_id': message_id.id,
+                                'target': 'new'
+                                }
+                    else: 
+                        raise UserError('Este Tema, no ha reunido los votos suficientes para aprobarse')
                 else:
-                   raise UserError(_('El quorum no se completo o no recibio los votos suficientes'))
+                   raise UserError(_('El quorum no se completo'))
                 
             else: 
                 raise UserError(_('El asunto ya se trató o el cómputo aún no ha comenzado 😎'))
@@ -90,9 +114,6 @@ class AssemblyMeetingLine(models.Model):
     def action_refuse_topic(self):
         self.ensure_one()
         for topic in self.topic:
-            # COMO APRUEBO EL TOPICO?
-            # SI HAY QUORUM?
-            # SI HAY MAYORIA DE VOTOS?
             if topic.state == 'new' and self.assembly_meeting.state =='count':
                 quorum_per_type={
                     'ordinary': self.env.company.quorum_ord,
@@ -112,11 +133,32 @@ class AssemblyMeetingLine(models.Model):
                     for share in partner.shares:
                         present_votes+=share.votes_num
 
-                if (present_votes / total_votes) >= quorum_per_type[self.assembly_meeting.assembly_meet_type] and (topic.num_votes_minus/present_votes)>0.5:
-                    topic._action_refuse_topic()
+                if (present_votes / total_votes) >= quorum_per_type[self.assembly_meeting.assembly_meet_type]:
+                    minus_votes=topic.env['assembly.meeting.vote'].search_count([('assembly_meeting','=',self.assembly_meeting.id),
+                                                                                ('result','=','negative'),
+                                                                                ('topic','=',topic.id)])
+                
+                    plus_votes=topic.env['assembly.meeting.vote'].search_count([('assembly_meeting','=',self.assembly_meeting.id),
+                                                                                ('result','=','positive'),
+                                                                                ('topic','=',topic.id)])
+
+                    if minus_votes>plus_votes:
+                        topic._action_refuse_topic() 
+                        self.state='refused'
+                        message_id = self.env['message.wizard'].create({'message': _("El tema de Reunión fue:  \n <strong>Rechazado existosamente 🤷‍♀️</strong>")})
+                        return {
+                                'name': _('Tema de Reunión Rechazado! ❌'),
+                                'type': 'ir.actions.act_window',
+                                'view_mode': 'form',
+                                'res_model': 'message.wizard',
+                                # pass the id
+                                'res_id': message_id.id,
+                                'target': 'new'
+                                }
+                    else: 
+                        raise UserError('Este Tema, no ha reunido los votos suficientes para rechazarse')
                 else:
                    raise UserError(_('El quorum no se completo o no recibio los votos suficientes'))
-                
             else: 
                 raise UserError(_('El asunto ya se trató o el cómputo aún no ha comenzado 😎'))
             
@@ -126,15 +168,62 @@ class AssemblyMeetingLine(models.Model):
         """
         if self.user_has_groups('top_management.top_management_group_president') and self.topic.state == 'new' and self.assembly_meeting.state =='count':
             for line in self:
-                if line.topic.num_votes_plus==line.topic.num_votes_minus:
-                    vote=line.env['assembly.meeting.vote'].search_count([('type','=','breaker'),('assembly_meeting','=',line.assembly_meeting.id)],limit=1)<0
-                    if vote:
-                        line.action_register_vote()
+                if line.topic.state == 'new':
+                    quorum_per_type={
+                        'ordinary': self.env.company.quorum_ord,
+                        'extraordinary': self.env.company.quorum_ext,
+                        'directory': self.env.company.quorum_ord,
+                    }
+                if self.assembly_meeting.assembly_meet_type!='directory': 
+                    shares=self.env['account.share'].search([])
+                else:
+                    shares=self.env['account.share'].search([('partner_id.position.type','=','director')])
+                total_votes=sum([share.votes_num for share in shares])
+                if total_votes<=0.0:
+                    raise UserError(_('No hay acciones registradas'))
+
+                present_votes=0
+                for partner in self.assembly_meeting.partner_ids:
+                    for share in partner.shares:
+                        present_votes+=share.votes_num
+
+                if (present_votes / total_votes) >= quorum_per_type[self.assembly_meeting.assembly_meet_type] :
+                    vote=line.env['assembly.meeting.vote'].search_count([('type','=','breaker'),('assembly_meeting','=',line.   assembly_meeting.id), ('topic','=',line.topic.id)],limit=1)
+                    
+                    if not vote:
+                        minus_votes=line.topic.env['assembly.meeting.vote'].search_count([('assembly_meeting','=',self.assembly_meeting.id),
+                                                                                ('result','=','negative'),
+                                                                                ('topic','=',line.topic.id)])
+                        plus_votes=line.topic.env['assembly.meeting.vote'].search_count([('assembly_meeting','=',self.assembly_meeting.id),
+                                                                                ('result','=','positive'),
+                                                                                ('topic','=',line.topic.id)])
+                        if minus_votes==plus_votes:
+                            # line.action_register_vote() Creo el voto manualmente dado que no funciona el wizard aqui
+                            vote_vals={
+                                    'name':'Voto (%s) - Reunión (%s) - Asunto (%s)'%('Positivo', self.assembly_meeting.short_name, self.topic.short_name),
+                                    'result':'positive',
+                                    'topic':self.topic.id,
+                                    'partner_id':self.env.user.partner_id.id,
+                                    'assembly_meeting':self.assembly_meeting.id,
+                                    'date': fields.datetime.now(),
+                                    'type':'breaker',
+                                        }
+                            self.env['assembly.meeting.vote'].create(vote_vals)
+
+                            message_id = self.env['message.wizard'].create({'message': _("El voto de desempate fue exitosamente \n <strong>registrado</strong>")})
+                            return {
+                                'name': _('Muy Bien!'),
+                                'type': 'ir.actions.act_window',
+                                'view_mode': 'form',
+                                'res_model': 'message.wizard',
+                                # pass the id
+                                'res_id': message_id.id,
+                                'target': 'new'
+                                }
                     else:
-                        return UserWarning('Ya existe un voto de Desempate en esta reunión 😁')
-            
+                        raise UserError('Ya existe un voto de Desempate en esta reunión 😁')
         else:
-            return UserWarning('No se puede Desempatar, no tiene los permisos necesarios')
+            raise UserError('No se puede Desempatar, no tiene los permisos necesarios')
         
     def action_register_vote(self):
         ''' Open the account.payment.register wizard to pay the selected journal entries.
@@ -147,6 +236,7 @@ class AssemblyMeetingLine(models.Model):
             'context': {
                 'active_model': 'assembly.meeting.line',
                 'active_ids': self.ids,
+                'meeting':self.assembly_meeting.id,
                 'type':'breaker',
             },
             'target': 'new',

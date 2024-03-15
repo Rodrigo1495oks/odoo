@@ -29,6 +29,7 @@
         'report/assembly_meeting_template.xml',
         'report/assembly_meeting_report.xml',
         'wizard/wizard_create_vote.xml',
+        'wizard/message_wizard.xml',
         'views/menu_view.xml',
     ],
     'demo': [
@@ -40,6 +41,9 @@
         'web.assets_backend': [
             'top_management/static/src/**/*',
             'top_management/static/src/xml/**/*',
+        ],
+        'web.report_assets_pdf': [
+            '/top_management/static/src/scss/assembly_meeting_report.scss',
         ],
     }
 }

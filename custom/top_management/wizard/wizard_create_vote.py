@@ -66,7 +66,7 @@ class WizardCreateVote(models.TransientModel):
     ], required=True)
     partner_id = fields.Many2one(string='Accionista', 
                                  comodel_name='res.partner',
-                                 readonly=False, onchange='_onchange_all_partner_ids') # hay que programar la logica para no elegir un accionista que ya haya
+                                 readonly=False, onchange='_onchange_all_partner_ids', required=True) # hay que programar la logica para no elegir un accionista que ya haya
     # emitido los votos, es decir accionistas que aún no tenga ningun voto emitido en esta reunion, posiblemente un compute o onchange
     type=fields.Selection(string='Tipo', selection=[('normal','Normal'),('breaker','Desempate')], required=True)
     # Actions
@@ -92,6 +92,9 @@ class WizardCreateVote(models.TransientModel):
                 'date': fields.datetime.now(),
                 'type':self.type,
             })
+            # corroboro que los valores están asignados
+            if '' in new_vote.values():
+                raise UserError(_('Para emitir los votos, todos los campos deben ser completados'))
             self.env['assembly.meeting.vote'].create(new_vote)
 
     def _prepare_vote_values(self):

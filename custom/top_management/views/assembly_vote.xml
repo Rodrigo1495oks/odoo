@@ -7,11 +7,12 @@
             <field name="name">assembly.meeting.vote.tree</field>
             <field name="model">assembly.meeting.vote</field>
             <field name="arch" type="xml">
-                <tree string="Voto" decoration-success="result=='finished'"
-                    decoration-bf='result=="new"' decoration-muted="result=='canceled'">
+                <tree string="Voto" decoration-success="result=='positive'"
+                    decoration-bf='result=="negative"' decoration-muted="result=='blank'">
                     <field name="name" />
                     <field name="short_name" />
                     <field name="partner_id" widget="many2one_avatar" />
+                    <field name='type'/>
                     <field name="result" optional="show" widget="badge"
                         decoration-success="result == 'positive'"
                         decoration-warning="result == 'negative'"

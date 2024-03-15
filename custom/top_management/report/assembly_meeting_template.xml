@@ -6,50 +6,81 @@
                 <t t-call="web.external_layout">
                     <t t-set='p' t-value="am.company_id.partner_id" />
                     <t t-set='cpn' t-value="am.company_id" />
-                    <div>
+                    <div class='mx-3'>
                         <header class='my-4 p-2'>
                             <h1 class='text-center'>Acta Junta de Accionistas N° <span
-                                t-field="am.short_name" /></h1>
-                                <h2 class='text-center'>Asamblea <t t-if="am.assembly_meet_type=='ordinary'">
+                                    t-field="am.short_name" /></h1>
+                            <h2 class='text-center'>Asamblea <t
+                                    t-if="am.assembly_meet_type=='ordinary'">
                                     <strong>Ordinaria</strong>
                                 </t> 
                                 <t
-                                t-elif="am.assembly_meet_type=='extraordinary'">
-                                <strong>Extraordinaria</strong> | </t><t
-                                t-elif="am.assembly_meet_type=='directory'">
-                                <strong> de Directorio</strong> | </t>de <span
-                                t-field="cpn.name" />
-                        </h2>
-                        <h3 class='text-center'>De Fecha <span t-field="am.date_start" /></h3>
-                    </header>
-                    <div id="partner" class="my-4 container-fluid row"
-                    style="border-right: 1px solid black;">
-                        <div class="partner-1 col-sm-6">
-                        <strong>CUIT:</strong>
-                            <span t-field="p.l10n_ar_vat" />
-                            <strong>Condición Frente al IVA:</strong>
-                            <span t-field="p.l10n_ar_afip_responsibility_type_id" />
-                        </div>
-                        <div class="partner-2 col-sm-6">
-                            <strong>Razón Social:</strong>
-                            <span t-field="p.name" />
+                                    t-elif="am.assembly_meet_type=='extraordinary'">
+                                    <strong>Extraordinaria</strong> | </t><t
+                                    t-elif="am.assembly_meet_type=='directory'">
+                                    <strong> de Directorio</strong> | </t>de <span
+                                    t-field="cpn.name" />
+                            </h2>
+                            <h3 class='text-center my-3'>De Fecha <span t-field="am.date_start" /></h3>
+                        </header>
+                        <div id="partner" class="my-4 container-fluid row"
+                            style="border-right: 1px solid black;">
+                            <div class="partner-1 col-6">
+                                <div class="cuit-field">
+                                    <strong>CUIT: </strong>
+                                    <span t-field="p.l10n_ar_vat" />
+                                </div>
+                                <div class="vat-field">
+                                    <strong>Condición Frente al IVA: </strong>
+                                    <span t-field="p.l10n_ar_afip_responsibility_type_id" />
+                                </div>
+                            </div>
+                            <div class="partner-field col-6">
+                                <div class="field-3">
+                                    <strong>Razón Social: </strong>
+                                    <span t-field="p.name" />
+                                </div>
+                                <div class="state-field font-weight-bold">
+                                    <strong>Estado: </strong>
+                                    <span t-field="am.state" />
+                                    <div class="state-box">
+                                        <t t-if="am.state=='draft'">
+                                            <p class='font-italic bg-secondary text-white'> Reunión
+                                                en Organización</p>
+                                        </t>
+                                        <t t-elif="am.state=='new'">
+                                            <p class='font-italic bg-secondary text-white'>
+                                                Próximamente</p>
+                                        </t>
+                                        <t t-elif="am.state=='progress'">
+                                            <p class='font-weight-bold bg-success text-white'>
+                                                Reunión En Curso</p>
+                                        </t>
+                                    </div>
+
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                    <div class="page">
+                    <div class="page mx-3">
                         <div class="oe_structure" />
                         <section class='container-fluid row'>
-                            <p class='col-md-12'>
+                            <t t-if="am.description">
+                                <p class='col-md-10 alert alert-info font-weight-bold description_meet'
+                                role='alert'>
                                 <span t-field="am.description" />
                             </p>
+                        </t>
                         </section>
-                        <section class=''>
+                        <section>
                             <h2 class='text-center'>Convocatoria</h2>
-                            <h3 class='text-center'>De Fecha <span t-field="am.date_start" /></h3>
-                            <p>La Junta de Accionista de la Coorporación Imperal SACIFACETI, en
-                                sesión de tipo <span class='text-info'
+                            <h3 class='text-center' id='date-span'>De Fecha <span
+                                    t-field="am.date_start" /></h3>
+                            <p class='body-text'>La Junta de Accionista de la Coorporación Imperal
+                                SACIFACETI, en sesión de tipo <span class='text-info'
                                     t-field="am.assembly_meet_type" /> de fecha <span
-                                    class='text-info' t-field="am.date_start" />, Acta N° <span
+                                    class='text-info' t-field="am.date_start"/>,
+                                Acta N° <span
                                     class='text-info' t-field="am.short_name" />, de Conformidad a
                                 las disposiciones de la ley, concordantes y del Estatuto Social, <span
                                     class="text-danger">
@@ -66,11 +97,12 @@
                                 tratar el
                                 siguiente.......................................................................................</p>
                         </section>
-                        <section class=''>
+                        <section class='main-table'>
                             <h3 class='text-center'>Orden del Día</h3>
                             <br />
-                            <table class="table table-sm o_main_table table-borderless mt-4">
-                                <thead style="display: table-row-group">
+                            <table
+                                class="table table-sm o_main_table table-borderless mt-4 table-responsive">
+                                <thead style="display: table-row-group" class="thead-dark">
                                     <tr>
                                         <th>
                                             <p class="fw-bolder"> Asunto</p>
@@ -91,39 +123,48 @@
                                 </thead>
                                 <tbody>
                                     <t t-set='topics' t-value="am.mapped('assembly_meeting_line')" />
-                                    <tr t-foreach="topics" t-as="lns">
-                                        <td>
-                                            <span t-field="lns.topic.short_name" />
-                                        </td>
-                                        <td>
-                                            <span t-field="lns.name" />
-                                        </td>
-                                        <td>
-                                            <t t-if="lns.priority=='normal'">
-                                                <p>
-                                                    <button type="button" class="btn btn-success">
-                                                        Normal</button>
-                                                </p>
-                                            </t>
-                                            <t t-elif="lns.priority=='low'">
-                                                <p>
-                                                    <button type="button" class="btn btn-info">Baja</button>
-                                                </p>
-                                            </t>
-                                            <t t-else="lns.priority=='urgent'">
-                                                <p>
-                                                    <button type="button" class="btn btn-danger">
-                                                        Urgente</button>
-                                                </p>
-                                            </t>
-                                        </td>
-                                        <td>
-                                            <span t-field="lns.topic.topic_type" />
-                                        </td>
-                                        <td>
-                                            <span t-field="lns.topic.state" />
-                                        </td>
-                                    </tr>
+                                    <t t-if="am.assembly_meeting_line">
+                                        <tr t-foreach="topics" t-as="lns">
+                                            <td>
+                                                <strong>
+                                                    <span t-field="lns.topic.short_name" />
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <span t-field="lns.name" />
+                                            </td>
+                                            <td>
+                                                <t t-if="lns.priority=='normal'">
+                                                    <p>
+                                                        <button type="button"
+                                                            class="btn btn-success">
+                                                            Normal</button>
+                                                    </p>
+                                                </t>
+                                                <t t-elif="lns.priority=='low'">
+                                                    <p>
+                                                        <button type="button" class="btn btn-info">
+                                                            Baja</button>
+                                                    </p>
+                                                </t>
+                                                <t t-else="lns.priority=='urgent'">
+                                                    <p>
+                                                        <button type="button" class="btn btn-danger">
+                                                            Urgente</button>
+                                                    </p>
+                                                </t>
+                                            </td>
+                                            <td>
+                                                <span t-field="lns.topic.topic_type" />
+                                            </td>
+                                            <td>
+                                                <span t-field="lns.topic.state" />
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-else=''>
+                                        <p id='table-notification'>No hay Registros asignados a Esta Reunión</p>
+                                    </t>
                                 </tbody>
                             </table>
                         </section>

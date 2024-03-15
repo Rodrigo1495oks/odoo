@@ -15,13 +15,18 @@
                         type="object" icon="fa-check" />
                     <button name="action_refuse_topic" string="Rechazar" 
                         type="object" icon="fa-times" />
-                    <button name="action_add_vote" string="Desempatar"
+                    <button name="action_add_vote" string="Desempatar" default_focus="1"
                         type="object" icon="fa-brands fa-vimeo" groups='top_management.top_management_group_president' />
                         
                     <field name="priority" optional="show" widget="badge"
                         decoration-success="priority == 'urgent'"
                         decoration-warning="priority == 'normal'"
                         decoration-muted="priority=='low'" />
+
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state == 'refused'"
+                        decoration-warning="state == 'approved'"
+                        decoration-muted="state=='no_treating'" />
                 </tree>
             </field>
         </record>
@@ -38,7 +43,7 @@
                         <button name="action_refuse_topic" string="Rechazar" type="object"
                             class="oe_highlight"
                              />
-                        <button name="action_add_vote" string="Desempatar"
+                        <button name="action_add_vote" string="Desempatar" default_focus="1"
                             type="object" groups='top_management.top_management_group_president'/>
                     </header>
                     <sheet>
@@ -48,6 +53,7 @@
                                 <field name='name' />
                                 <field name='priority' />
                                 <field name='assembly_meeting' />
+                                <field name='state'/>
                             </group>
                         </group>
                     </sheet>

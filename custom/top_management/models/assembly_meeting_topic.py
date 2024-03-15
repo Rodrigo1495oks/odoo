@@ -129,7 +129,7 @@ class AssemblyMeetingTopic(models.Model):
     #     return res
     def action_confirm(self):
         for topic in self:
-            if topic.state not in ['new'] and topic.assembly_meeting_line.assembly_meeting.state not in ['draft', 'finished', 'canceled']:
+            if topic.state not in ['new']:
                 topic.state = 'new'
             else:
                 raise UserError('topico ya tratado o reunion no establecida')
@@ -145,14 +145,14 @@ class AssemblyMeetingTopic(models.Model):
     def _action_approve_topic(self):
         for topic in self:
             """Para aprobar el topico necesito computar las mayorias"""
-            if topic.state == 'new' and topic.assembly_meeting_line.assembly_meeting.state == "progress":
-                topic.state = 'aproved'
+            if topic.state == 'new':
+                topic.state = 'approved'
             else:
                 raise UserError('No puede aprobarse este tópico')
 
     def _action_refuse_topic(self):
         for topic in self:
-            if topic.state not in ['draft', 'approved', 'refused','cancel'] and topic.assembly_meeting_line.assembly_meeting.state == "progress":
+            if topic.state not in ['draft', 'approved', 'refused','cancel']:
                 topic.state = 'refused'
             else:
                 raise UserError('No puede rechazarse este tópico')

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from odoo import models, fields, api, tools
 
-
+ 
 from odoo.exceptions import ValidationError
 from odoo.osv import expression
 # -*- coding: utf-8 -*-
@@ -31,6 +31,12 @@ class AssemblyMeeting(models.Model):
     
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id)
+    # Traversing methods
+    @api.model
+    def _get_partner_names(self):
+        partner_ids=self.env['res.partner'].search([]).sorted(key='name', reversed=True)
+        self.partner_text=''.join([partner.name] for partner in partner_ids) 
+
     # Compute methods
     @api.depends('partner_ids')
     def _compute_quorum(self):
@@ -38,8 +44,7 @@ class AssemblyMeeting(models.Model):
             if ass.assembly_meet_type!='directory':
                 shares=self.env['account.share'].search([])
                 total_votes=sum([share.votes_num for share in shares])
-                print("_________________________")
-                print(total_votes)
+
                 # present_votes=sum([share['votes_num'] for share in [shares for shares in [partner['shares'] for partner in ass.partner_ids]]]) # probemos!!
                 nueva_lista=[partner['shares'] for partner in ass.partner_ids]
                 present_votes=0
@@ -88,11 +93,18 @@ class AssemblyMeeting(models.Model):
                 duration = delta.total_seconds() / 3600
             rec.duration = duration
     
+    def print_assemblies(self):
+        meetings=self.read_group(['|', '&', ('assembly_meet_type','=','ordinary'),
+                                  ('assembly_meet_type','=','directory'),
+                                  ('state','=','new')], ['company_id','duration:avg','name'],['quorum'],['name','date_start'], limit=10)
+        print(meetings)
+        
     @api.depends('assembly_meet_type')
     def _compute_available_partner_ids(self):
         """
         Consigue todos los partner que posean al menos 1 accion.
         """
+        
         for asm in self:
             if asm.state=='draft':
                 partners = asm.env['res.partner'].search([])
@@ -149,6 +161,7 @@ class AssemblyMeeting(models.Model):
         ('finished', 'Finalizada'),
         ('canceled', 'Cancelada')
     ], default='draft')
+    blocked=fields.Boolean(string='Bloqueado', default=False, required=True, help='Campo que establece la posibilidad de editarlo por parte de los usuarios comunes', groups='top_management.top_management_group_manager')
 
     partner_ids = fields.Many2many(string='Accionistas Presentes', 
                                    comodel_name='res.partner',
@@ -166,13 +179,15 @@ class AssemblyMeeting(models.Model):
                          readonly=True, 
                          help='Porcentaje de Asistencia a la Reunión', 
                          compute='_compute_quorum')
+    
+    partner_text=fields.Text(string='Texto de Prueba')
 
     def action_draft(self):
         for meet in self:
             if meet.state not in ['canceled', 'finished']:
                 meet.state = 'draft'
             else:
-                return UserWarning('No se puede establecer a borrador')
+                raise UserError('No se puede establecer a borrador')
 
     def action_confirm(self):
         for meet in self:
@@ -186,32 +201,32 @@ class AssemblyMeeting(models.Model):
                 meet.state = 'new' 
                 meet._create_event()
         else:
-            return UserWarning('Ya ha sido confirmada previamente o no reune el quorum necesario')
+            raise UserError('Ya ha sido confirmada previamente o no reune el quorum necesario')
     def action_start(self):
         """Comenzar reunion"""
         for meet in self:
             if meet.state in ['new']:
                 meet.state = 'progress' 
                 meet.date_start=fields.Datetime.now()
-            # calculo y registro las asistencias
-            for event in meet.event_id:
-                for registration in event.registration_ids:
-                    if registration.state=='open' : 
-                        # si realmente confirmo la asistencia
-                        if registration.partner_id.employee_ids:
-                            reg_values={
-                                "employee_id":registration.partner_id.employee_ids[0].id,
-                                "check_in":meet.date_start,
-                                "check_out":fields.datetime.now(),
-                                "assembly_meeting": meet.id,
-                            }
-                        # partner=>empleado
-                            self.env['hr.attendance'].create(reg_values)
-                            registration.state='done'
-                        # else: 
-                        #     return UserWarning('Algunos asistentes no tienen la configuración \n correcta en el módulo de RR.HH')
+                # calculo y registro las asistencias
+                for event in meet.event_id:
+                    for registration in event.registration_ids:
+                        if registration.state=='open' : 
+                            # si realmente confirmo la asistencia
+                            if registration.partner_id.employee_ids:
+                                reg_values={
+                                    "employee_id":registration.partner_id.employee_ids[0].id,
+                                    "check_in":meet.date_start,
+                                    "check_out":fields.datetime.now(),
+                                    "assembly_meeting": meet.id,
+                                }
+                            # partner=>empleado
+                                self.env['hr.attendance'].create(reg_values)
+                                registration.state='done'
+                            # else: 
+                            #     raise UserError('Algunos asistentes no tienen la configuración \n correcta en el módulo de RR.HH')
             else:
-                return UserWarning('No se puede finalizar la reunion')
+                raise UserError('No se puede Comenzar la reunion')
 
     def action_start_count(self):
         """Comenzar Conteo de votos"""
@@ -225,15 +240,15 @@ class AssemblyMeeting(models.Model):
             if meet.state in ['progress'] and is_quorum:
                 meet.state = 'count' 
             else:
-                return UserWarning('La Reunión aún no esta en marcha')
-            
+                raise UserError('La Reunión aún no esta en marcha')
+
     def action_finish(self):
         for meet in self:
             if meet.state in ['count']:
                 meet.state = 'finished' 
                 meet.date_end=fields.Datetime.now()
             else:
-                return UserWarning('No se puede finalizar la reunion')
+                raise UserError('No se puede finalizar la reunion')
             
     def action_cancel(self):
         for meet in self:
