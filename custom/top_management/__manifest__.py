@@ -13,6 +13,7 @@
     ],
     'data': [
         'security/top_management_security.xml',
+        'security/security_rules.xml',
         'security/ir.model.access.csv',
         'data/data.xml',
         'views/res_config_settings_views.xml',
@@ -27,6 +28,7 @@
         'views/res_partner.xml',
         'views/hr_employee.xml',
         'report/assembly_meeting_template.xml',
+        'report/assembly_meeting_vote_template.xml',
         'report/assembly_meeting_report.xml',
         'wizard/wizard_create_vote.xml',
         'wizard/message_wizard.xml',
@@ -43,7 +45,9 @@
             'top_management/static/src/xml/**/*',
         ],
         'web.report_assets_pdf': [
+            '/top_management/static/src/scss/normalize.scss',
             '/top_management/static/src/scss/assembly_meeting_report.scss',
+            '/top_management/static/src/scss/assembly_meeting_vote_report.scss',
         ],
     }
 }

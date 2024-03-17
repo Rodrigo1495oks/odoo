@@ -8,12 +8,13 @@
     'license': 'LGPL-3',
     'category': 'Accounting',
     'depends': [
-        'account_financial_policies','purchase'
+        'account_financial_policies','purchase','l10n_ar'
     ],
     'data': [
         'security/ir.model.access.csv',
         'data/data.xml',
         'report/account_share_issuance_template.xml',
+        'report/account_share_issuance_template_l10n_ar.xml',
         'report/account_share_issuance_report.xml',
         'report/account_share_template.xml',
         'report/account_share_report.xml',
@@ -30,6 +31,8 @@
     'auto_install': False,
     'application': False,
     'assets': {
-        
+        'web.report_assets_pdf': [
+            '/account_share_management/static/src/scss/account_share_issuance_report.scss',
+        ],
     }
 }

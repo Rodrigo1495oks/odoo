@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_account_share_issuance_l10n_ar">
+        <t t-foreach="docs" t-as="asi">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <t t-set='p' t-value="asi.partner_id" />
+                    <t t-set='c' t-value="asi.company_id" />
+                    <header id='main-header'>
+                        <div class="row">
+                            <div name="left-upper-side" class="col-5">
+                                <img t-if="c.logo"
+                                    t-att-src="image_data_uri(c.logo)"
+                                    style="max-height: 45px;" alt="Logo" />
+                            </div>
+                            <div name="center-upper" class="col-2 text-center"
+                                t-att-style="'color: %s;' % c.primary_color">
+                                <span
+                                    style="display: inline-block; text-align: center; line-height: 8px;">
+                                    <h1 style="line-height: 35px;">
+                                        <strong>
+                                            <p>X</p>
+                                        </strong>
+                                    </h1>
+                                    <span style="font-size: x-small;">
+                                        Documento no válido como factura
+                                    </span>
+                                </span>
+                            </div>
+                            <div name="right-upper-side" class="col-5 text-end"
+                                style="padding-left: 0px;">
+
+                                <!-- (6) Titulo de Documento -->
+                                <h4 t-att-style="'color: %s;' % c.primary_color">
+                                    <strong>
+                                        <span>Orden de Emisión</span>
+                                    </strong>
+                                </h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6" style="padding-right: 0px;">
+                                <!-- (1) Nombre de Fantasia -->
+                                <!-- (2) Apellido y Nombre o Razon Social -->
+                                <span t-field="c.partner_id.name" />
+
+                                <!-- (3) Domicilio Comercial (Domicilio Fiscal is the same) -->
+                                <br />
+                                <div></div>
+                                <!-- we dont use the address widget as it adds a new line on
+                            the phone and we want to reduce at maximum lines qty -->
+                                <span t-field="c.partner_id.street" />
+                                <!-- <span t-field="c.partner_id.street" /> -->
+                            </div>
+                            <div class="col-6 text-end" style="padding-left: 0px;">
+                                <!-- (7) Numero punto venta - (8) numero de documento -->
+                                <span
+                                    t-att-style="'color: %s;' % c.secondary_color">
+                                    Nro: </span>
+                                <span t-field="asi.short_name" />
+                                <br />
+
+                                <!-- (9) Fecha -->
+                                <span t-att-style="'color: %s;' % c.secondary_color">
+                                    Fecha: </span>
+                                <span t-esc="asi.makeup_date" t-options='{"widget": "date"}' />
+
+                                <!-- (5) Condicion de IVA / Responsabilidad -->
+                                <!-- (10) CUIT -->
+                                <br />
+                                <span
+                                    t-field="c.l10n_ar_afip_responsibility_type_id" />
+                                <span
+                                    t-att-style="'color: %s;' % c.secondary_color">
+                                    - CUIT: </span>
+                                <span
+                                    t-field="c.partner_id.l10n_ar_formatted_vat" />
+
+                                <!-- (11) IIBB: -->
+                                <!-- (12) Inicio de actividades -->
+                                <br />
+                                <span
+                                    t-att-style="'color: %s;' % c.secondary_color">
+                                    IIBB: </span>
+                                <span
+                                    t-esc="c.l10n_ar_gross_income_type == 'exempt' and 'Exento' or c.l10n_ar_gross_income_number" />
+                                <span
+                                    t-att-style="'color: %s;' % c.secondary_color">
+                                    - Inicio de Actividades: </span>
+                                <span t-field="c.l10n_ar_afip_start_date" />
+                            </div>
+                        </div>
+                        <div id="informations">
+                            <div id="informations" class="row mt8 mb8">
+                                <div class="col-6">
+                
+                                    <!-- IDENTIFICACION (ADQUIRIENTE-LOCATARIO-PRESTARIO) -->
+                
+                                    <!-- (14) Apellido uy Nombre: Denominicacion o Razon Soclial -->
+                                    <strong>Comercial: </strong><span t-field="asi.partner_id.commercial_partner_id.name"/>
+                
+                                    <!-- (15) Domicilio Comercial -->
+                                    <br/>
+                                    <span t-field="asi.partner_id" t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': true, 'no_tag_br': True}"/>
+                
+                                    <!-- (16) Responsabilidad AFIP -->
+                                    <strong>Cóndicion: </strong><span t-field="asi.partner_id.l10n_ar_afip_responsibility_type_id"/>
+                
+                                    <!-- (17) CUIT -->
+                                    <t t-if="asi.partner_id.vat and asi.partner_id.l10n_latam_identification_type_id and asi.partner_id.l10n_latam_identification_type_id.l10n_ar_afip_code != '99'">
+                                        <br/><strong><t t-esc="asi.partner_id.l10n_latam_identification_type_id.name or asi.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>:</strong> <span t-esc="asi.partner_id.l10n_ar_formatted_vat if asi.partner_id.l10n_ar_vat else asi.partner_id.vat"/>
+                                    </t>
+                
+                                </div>
+                                <div class="col-6">
+                                    <t t-if="asi.date_of_issue">
+                                        <strong>Confección: </strong>
+                                        <span t-field="asi.date_of_issue"/>
+                                    </t>
+                
+                                    <t t-if="asi.topic">
+                                        <br/><strong>Rrunión:</strong>
+                                        <span t-field="asi.topic.short_name"/>
+                                    </t>
+                
+                
+                                    <!-- (18) REMITOS -->
+                                    <!-- We do not have remitos implement yet. print here the remito number when we have it -->
+            
+                
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <body>
+                        <div class="page">
+                            <div class="oe_structure" />
+                            <h3>
+                                <strong t-att-style="'color: %s;' % c.secondary_color">Título: </strong>
+                                <span t-field="asi.name" />
+                            </h3>
+                            <div class='m-3 mb-2 row'>
+                                <div class="col-6">
+                                    <div class="p-2" style="border-right: 2px solid cyan;">
+                                        <strong t-att-style="'color: %s;' % c.secondary_color">
+                                            Accionista: </strong>
+
+                                        <span t-field="asi.partner_id" />
+                                    </div>
+                                    <div class="p-2" style="border-right: 2px solid cyan;">
+                                        <strong t-att-style="'color: %s;' % c.secondary_color">Cantidad
+                                            de Acciones: </strong>
+
+                                        <span t-field="asi.shares_qty" />
+                                    </div>
+                                    <div class="p-2" style="border-right: 2px solid cyan;">
+                                        <strong t-att-style="'color: %s;' % c.secondary_color">Valor
+                                        Nominal <i>(Fijado
+                                                por la Compañía)</i>: </strong> $ <span
+                                            t-field="asi.nominal_value" />
+                                    </div>
+                                    <div class="p-2" style="border-right: 2px solid cyan;">
+                                        <strong t-att-style="'color: %s;' % c.secondary_color">Precio
+                                        de
+                                            Negociación: </strong> $ <span t-field="asi.price" />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2" style="border-right: 2px solid cyan;">
+                                        <strong t-att-style="'color: %s;' % c.secondary_color">Prima
+                                        de
+                                            Emisión: </strong> $ <span
+                                            t-field="asi.issue_premium" />
+                                    </div>
+                                    <div class="p-2" style="border-right: 2px solid cyan;">
+                                        <strong t-att-style="'color: %s;' % c.secondary_color">Descuento
+                                        de
+                                            Emisión: </strong> $ <span
+                                            t-field="asi.issue_discount" />
+                                    </div>
+                                    <div class="p-2" style="border-right: 2px solid cyan;">
+                                        <strong t-att-style="'color: %s;' % c.secondary_color">
+                                            Grupo: </strong>
+                                        <span t-field="asi.share_type" />
+                                    </div>
+                                </div>
+                            </div>
+                            <table class="table table-sm o_main_table table-borderless mt-4">
+                                <thead style="display: table-row-group">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Estado</th>
+                                        <th>Fecha de Emisión</th>
+                                        <th>Votos</th>
+                                        <th>Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="shares" t-value="asi.mapped('shares')" />
+                                    <tr t-foreach="shares" t-as="share">
+                                        <td>
+                                            <span t-field="share.short_name" />
+                                        </td>
+                                        <td>
+                                            <span t-field="share.state" />
+                                        </td>
+                                        <td>
+                                            <span t-field="share.date_of_issue" />
+                                        </td>
+                                        <td>
+                                            <span t-field="share.votes_num" />
+                                        </td>
+                                        <td>
+                                            <span t-field="share.price" />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div id="total" class="row justify-content-end">
+                                <div class="col-4">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td>
+                                                <strong>Total Nominal</strong>
+                                            </td>
+                                            <td> $ <span t-field="asi.total_nominal" />
+                                            </td>
+                                        </tr>
+                                        <hr />
+                                        <tr>
+                                            <td>
+                                                <strong>Total Prima</strong>
+                                            </td>
+                                            <td> $ <span t-field="asi.total_prime" />
+                                            </td>
+                                        </tr>
+                                        <hr />
+                                        <tr>
+                                            <td>
+                                                <strong>Total Descuento</strong>
+                                            </td>
+                                            <td> $ <span t-field="asi.total_discount" />
+                                            </td>
+                                        </tr>
+                                        <hr />
+                                        <tr>
+                                            <td>
+                                                <strong>Total</strong>
+                                            </td>
+                                            <td> $ <span t-field="asi.total" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <p t-field="asi.notes" class="mt-4" />
+                            <div class="oe_structure" />
+                        </div>
+                    </body>
+                </t>
+            </t>
+        </t>
+    </template>
+    
+</odoo>
