@@ -2,6 +2,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 
+import logging
+_logger = logging.getLogger(__name__)
 from odoo.exceptions import UserError
 from werkzeug import urls
 
@@ -122,6 +124,8 @@ class AssemblyMeeting(models.Model):
         
     date_start=fields.Datetime(string='Hora de Inicio', help='Hora de inicio de la reunion', required=True)
     date_end=fields.Datetime(string='Hora de Finalización', help='Hora de inicio de la reunion', required=True)
+    release_date=fields.Date(string='Revisión', groups='top_management.top_management_group_user_release')
+    
     duration = fields.Float(
         string="Actual duration",
         compute=_compute_duration,
@@ -161,6 +165,7 @@ class AssemblyMeeting(models.Model):
         ('finished', 'Finalizada'),
         ('canceled', 'Cancelada')
     ], default='draft')
+    report_missing=fields.Text(string='Documentación', groups='top_management.top_management_group_manager')
     blocked=fields.Boolean(string='Bloqueado', default=False, required=True, help='Campo que establece la posibilidad de editarlo por parte de los usuarios comunes', groups='top_management.top_management_group_manager')
 
     partner_ids = fields.Many2many(string='Accionistas Presentes', 
@@ -180,7 +185,18 @@ class AssemblyMeeting(models.Model):
                          help='Porcentaje de Asistencia a la Reunión', 
                          compute='_compute_quorum')
     
+    user_id=fields.Many2one(string='Usuario', comodel_name='res.users', default=lambda self: self.env.user, readonly=True)
+
+
     partner_text=fields.Text(string='Texto de Prueba')
+
+    # probando el metodo sudo (superusuario)
+    def report_missing_assembly(self):
+        self.ensure_one()
+        message="El documento de la reunión se perdió (Reportado por: %s)"%self.env.user.name
+        self.sudo(flag=True).write({
+            'report_missing': message
+        })
 
     def action_draft(self):
         for meet in self:
@@ -245,12 +261,13 @@ class AssemblyMeeting(models.Model):
     def action_finish(self):
         for meet in self:
             if meet.state in ['count']:
-                meet.state = 'finished' 
+                meet.state = 'finished'
                 meet.date_end=fields.Datetime.now()
             else:
                 raise UserError('No se puede finalizar la reunion')
             
     def action_cancel(self):
+        """Se cancela por falta de quorum sino se continua"""
         for meet in self:
            quorum_per_type={
                 'ordinary': self.env.company.quorum_ord,
@@ -258,12 +275,14 @@ class AssemblyMeeting(models.Model):
                 'directory': self.env.company.quorum_ord,
            }
            is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
-        if meet.state in ['draft','new'] or not is_quorum:
+           if meet.blocked and not is_quorum:
+               meet.with_context(write_desc=True)
+        if meet.state in ['draft','new','progress'] or not is_quorum:
                 meet.state = 'canceled' 
                 for line in meet.assembly_meeting_line:
                     for topic in line.topic:
                         topic.action_set_canceled()
-                        
+
     def action_check_partners(self):
         """Este helper comprueba la asistencia de accionsitas una vez que la reunion este en marcha"""
         for meet in self:
@@ -394,7 +413,24 @@ class AssemblyMeeting(models.Model):
             'target': 'new',
             'type': 'ir.actions.act_window',
         }
-    
+    def average_meeting_duration(self):
+        self.flush()
+        sql_query = """
+            SELECT
+            am.name,
+            avg((EXTRACT(epoch from age(date_start, date_end)) / 86400))::int
+            FROM
+            assembly_meeting AS am
+            WHERE am.state = 'finished'
+            GROUP BY am.name;"""
+        self.env.cr.execute(sql_query)
+        result=self.env.cr.fetchone()()
+        _logger.info("Duracion promedio de las reuniones: %s", result)
+        result=self.env.cr.fetchall()
+        _logger.info("Duracion promedio de las reuniones: %s", result)
+        result=self.env.cr.dictfetchall()
+        _logger.info("Duracion promedio de las reuniones: %s", result)
+
 class HrAttendance(models.Model):
     _inherit = "hr.attendance"
     assembly_meeting = fields.Many2one(

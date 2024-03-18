@@ -35,7 +35,7 @@
                     <header>
                         <button name="action_draft" string="A Borrador" type="object"
                             class="oe_highlight"
-                            attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                            attrs="{'invisible': [('state', 'in', ['new','canceled'])]}" />
                         <button name="action_confirm" string="Confirmar Alta" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'draft')]}" />
@@ -49,7 +49,7 @@
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'new')]}" />
                         <field name="state" widget="statusbar"
-                            statusbar_visible="draft,new,approved,refused,cancel" />
+                            statusbar_visible="draft,new,approved,refused,canceled" />
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -82,7 +82,7 @@
                         ect -->
                         <notebook attrs='{"invisible":[("topic_type","!=","issuance")]}'>
                             <page id='share_issuance' string='Orden de Emisión'>
-                                <field name='share_issuance' />
+                                <field name='share_issuance' string='Agregar Manualmente'/>
                             </page>
                         </notebook>
                         <group id='header_right_group'>

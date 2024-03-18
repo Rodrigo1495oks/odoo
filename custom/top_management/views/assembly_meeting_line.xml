@@ -43,7 +43,9 @@
                         <button name="action_refuse_topic" string="Rechazar" type="object"
                             class="oe_highlight"
                              />
-                        <button name="action_add_vote" string="Desempatar" default_focus="1"
+                        <button name="action_add_vote" string="Aprobar des." default_focus="1"
+                            type="object" groups='top_management.top_management_group_president'/>
+                        <button name="action_add_minus_vote" string="Desaprobar des." default_focus="1"
                             type="object" groups='top_management.top_management_group_president'/>
                     </header>
                     <sheet>

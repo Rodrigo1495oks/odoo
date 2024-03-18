@@ -13,6 +13,13 @@
             eval="[(6, 0, [ref('base.group_private_addresses'), ref('base.group_user')])]" />
         <field name="comment">The user will be able to approve document created by Manager an Shareholders.</field>
     </record>
+    <record id="top_management_group_user_release" model="res.groups">
+        <field name="name">Usuario Gerencia/Directorio - Fecha de Revisión</field>
+        <field name="category_id" ref="base.module_category_shareholding" />
+        <field name="implied_ids"
+            eval="[(6, 0, [ref('base.group_user')])]" />
+        <field name="comment">El usuario podrá gestionar las fechas de revisión.</field>
+    </record>
     <record id="top_management_group_manager" model="res.groups">
         <field name="name">Gerencia General</field>
         <field name="comment">El Usuario será el Gerente General de la Compania o el Presidente </field>

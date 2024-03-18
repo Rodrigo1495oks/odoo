@@ -65,7 +65,7 @@ class AssemblyMeetingTopic(models.Model):
         ('new', 'Nuevo'),
         ('approved', 'Aprobado'),
         ('refused', 'Rechazado'),
-        ('cancel', 'Cancelado')
+        ('canceled', 'Cancelado')
     ], default='draft', required=True, readonly=True)
     topic_meet=fields.Selection(string='Tipo de Reunión', 
                                 selection=[('directory','Directorio'),('assembly','Asambleas')], 
@@ -152,20 +152,27 @@ class AssemblyMeetingTopic(models.Model):
 
     def _action_refuse_topic(self):
         for topic in self:
-            if topic.state not in ['draft', 'approved', 'refused','cancel']:
+            if topic.state not in ['draft', 'approved', 'refused','canceled']:
                 topic.state = 'refused'
             else:
                 raise UserError('No puede rechazarse este tópico')
 
     def action_draft(self):
+        """Solo cuando un asunto es cancelado, al ser cancelada la reunion
+            puede ponerse en borrador a solicitud del interesado
+        """
         for meet in self:
-            if meet.state in ['new']:
+            if meet.state in ['new','canceled']:
                 meet.state = 'draft'
 
     def action_set_canceled(self):
         for topic in self:
             if topic.state in ['new']:
-                topic.state = 'cancel'
+                topic.state = 'canceled'
+                if topic._context.get('write_desc'):
+                    topic.write({
+                        'description': 'La Reunión de este topico se cancelo'
+                    })
             else:
                 raise UserError(
                     'No puede Cancelarse un tópico que ya esta cancelado o aprobado')
