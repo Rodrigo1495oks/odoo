@@ -1,0 +1,2064 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* top_management
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-03-23 21:12+0000\n"
+"PO-Revision-Date: 2024-03-23 18:54-0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#. module: top_management
+#: model:ir.actions.report,print_report_name:top_management.assembly_meeting
+msgid ""
+"'Acta de Asamblea - %s' % (object.name or\n"
+"            'Reunión').replace('/','')"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.report,print_report_name:top_management.assembly_meeting_vote
+msgid ""
+"'Voto - %s' % (object.name or\n"
+"            'Voto de Accionista').replace('/','')"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid ""
+",\n"
+"                                Acta N°"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid ""
+", de Conformidad a\n"
+"                                las disposiciones de la ley, concordantes y del Estatuto Social, <span class=\"text-danger\">\n"
+"                                    <strong>CONVOCA</strong>\n"
+"                                </span>\n"
+"                                a los accionsitas a la Asamblea a realizarse en las intalaciones de\n"
+"                                la Companía"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid ": Your user should be linked to an employee to use attendance."
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.view_assembly_meeting_kanban
+msgid ""
+"<br/>\n"
+"                                                            <i class=\"fa fa-level-up fa-rotate-90\" title=\"Confirmed\"/>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.view_assembly_meeting_kanban
+msgid "<i class=\"fa fa-arrow-right me-2 o_event_fontsize_09\" title=\"End date\"/>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_form_quick_create
+msgid "<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"Arrow icon\" title=\"Arrow\"/>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.view_assembly_meeting_kanban
+msgid "<i class=\"fa fa-map-marker mt-1 me-1\" title=\"Location\"/>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid ""
+"<span class=\"o_form_label\" attrs=\"{'invisible': [('state','in',('draft'))]}\">Reunión de\n"
+"                                Asamblea </span>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+msgid ""
+"<span class=\"o_form_label\" attrs=\"{'invisible': [('state','in',('draft'))]}\">Tema\n"
+"                                Reunión\n"
+"                                Asamblea </span>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_form
+msgid "<span class=\"o_form_label\">Cargo Accionista</span>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid ""
+"<span class=\"o_form_label\">Porcentaje Asambleas Extraordinarias</span>\n"
+"                                    <span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-specific.\" aria-label=\"Values set here are company-specific.\" groups=\"base.group_multi_company\" role=\"img\"/>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid ""
+"<span class=\"o_form_label\">Porcentaje Asambleas Ordinarias</span>\n"
+"                                    <span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-specific.\" aria-label=\"Values set here are company-specific.\" groups=\"base.group_multi_company\" role=\"img\"/>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_form
+msgid "<span class=\"o_form_label\">Voto </span>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.view_partner_property_form
+msgid "<span class=\"o_stat_text\">Participación</span>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "<strong> de Directorio</strong> |"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "<strong>Accionista: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "<strong>Asunto: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "<strong>CUIT: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "<strong>Condición Frente al IVA: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "<strong>Estado: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "<strong>Extraordinaria</strong> |"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "<strong>Fecha: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "<strong>Ordinaria</strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "<strong>Razón Social: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "<strong>Reunión: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "<strong>Tipo de Voto: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "<strong>Título: </strong>"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "A Borrador"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_partner__account_share_count
+#: model:ir.model.fields,field_description:top_management.field_res_users__account_share_count
+#: model_terms:ir.ui.view,arch_db:top_management.view_partner_property_form
+msgid "Acciones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__partner_id
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__partner_id
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__partner_id
+#: model:ir.model.fields.selection,name:top_management.selection__res_partner_position__type__shareholder
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.view_partner_property_form
+msgid "Accionista"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_res_partner_position__partner_id
+#: model:ir.ui.menu,name:top_management.menu_top_management_partner
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_form
+msgid "Accionistas"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__partner_ids
+msgid "Accionistas Presentes"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.message_wizard_form
+msgid "Aceptar"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Acta Junta de Accionistas N°"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.report,name:top_management.assembly_meeting
+msgid "Acta de Reunión - Asamblea"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_needaction
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Activar fecha de Revisión en Reuniones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_ids
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_ids
+msgid "Activities"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_exception_decoration
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_state
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_state
+msgid "Activity State"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_type_icon
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_type_icon
+msgid "Activity Type Icon"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__active
+msgid "Activo: "
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+msgid "Activos - Archivados"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__duration
+msgid "Actual duration"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__duration
+msgid "Actual duration in hours"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.menu_top_management_mngmt
+msgid "Administración"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_config_settings__group_release_dates
+msgid "Administrar Fechas de Revisión"
+msgstr "Gérer les dates de révision"
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+msgid "Agregar Manualmente"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.top_management_config_settings_menu
+msgid "Ajustes"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__amort
+msgid "Amortización de Acciones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__irrevocable
+msgid "Aporte Irrevocable"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_partner__total_shared
+#: model:ir.model.fields,field_description:top_management.field_res_users__total_shared
+msgid "Aportes"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__hiring
+msgid "Aprobación Regimen de Contrataciones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_line__state__approved
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__state__approved
+msgid "Aprobado"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_tree
+msgid "Aprobar"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_form
+msgid "Aprobar des."
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Asamblea"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__assembly_meet_type__extraordinary
+msgid "Asamblea Extraordinaria"
+msgstr "Assemblée extraordinaire"
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__assembly_meet_type__ordinary
+msgid "Asamblea Ordinaria"
+msgstr "Assemblée ordinaire"
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_meet__assembly
+msgid "Asambleas"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Asambleas de Accionistas"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+msgid "Asignado"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__quorum
+msgid "Asistencia"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__attendance
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Asistencias"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__topic
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Asunto"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__topic
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__topic
+#: model:ir.ui.menu,name:top_management.menu_top_management_topic
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Asuntos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__topic_type
+msgid "Asuntos correspondientes a asambleas ordinarias y extraordinarias, fijados por el Articulo 234 y 235 de la LGS"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_attachment_count
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_attachment_count
+msgid "Attachment Count"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.client,name:top_management.hr_attendance_action_my_attendances_meeting
+#: model:ir.model,name:top_management.model_hr_attendance
+msgid "Attendance"
+msgstr "Présences"
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__power_acts
+msgid "Autorizacion Actos que Requieren poder Judicial"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__dependencies
+msgid "Autorización - Administración Dependencias, Sedes, Sectores y Departamentos, Segmentos, Regiones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__personal
+msgid "Autorización Dotación del Personal"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__debts
+msgid "Autorización Operaciones Financieras (Préstamos, Bancos)"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__contracts
+msgid "Autorización de Contratos"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Available"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_line__priority__low
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Baja"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__balance
+msgid "Balance General"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Barcode"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__blocked
+msgid "Bloqueado"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__state__draft
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__state__draft
+msgid "Borrador"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_form
+msgid "CArgo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__blocked
+msgid "Campo que establece la posibilidad de editarlo por parte de los usuarios comunes"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.message_wizard_form
+#: model_terms:ir.ui.view,arch_db:top_management.view_account_payment_register_form
+msgid "Cancel"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__state__canceled
+msgid "Cancelada"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__state__canceled
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Cancelado"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Cancelar"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Características Especiales"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_partner__position
+#: model:ir.model.fields,field_description:top_management.field_res_users__position
+msgid "Cargo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_res_partner_position
+#: model:ir.model.fields,help:top_management.field_res_partner__position
+#: model:ir.model.fields,help:top_management.field_res_users__position
+msgid "Cargo del Accionista dentro de la Compañía"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.menu_top_management_position
+msgid "Cargos"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Check IN"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Check OUT"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Checked in at"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Checked out at"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.menu_top_management_customers_french
+msgid "Clientes en Francés"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Comenzar"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Comenzar Cómputo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_res_company
+msgid "Companies"
+msgstr "Sociétés"
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__company_id
+msgid "Company"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Company Logo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_config_settings__company_id
+msgid "Compañía"
+msgstr "Société"
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_search
+msgid "Con Reunión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.top_management_config_settings_action
+msgid "Configuraciones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.menu_top_management_config
+msgid "Configuración"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Confirmar Alta"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_res_partner
+msgid "Contact"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__state__count
+msgid "Conteo de Votos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__attendance
+msgid "Control de Asistencias a Reuniones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__conv
+msgid "Conversión en acciones"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Convocatoria"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.assembly_meeting_topic_action
+msgid "Crear Asunto de Reunión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.assembly_meeting_action
+msgid "Crear Reunión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.res_partner_position_action
+msgid "Crear Tópico de Reunión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.action_create_assembly_vote
+#: model:ir.actions.act_window,name:top_management.assembly_vote_action
+msgid "Crear Voto de Reunión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_wizard_create_vote
+#: model:ir.ui.menu,name:top_management.menu_top_management_wizard
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.view_account_payment_register_form
+msgid "Crear Votos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__create_uid
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__create_uid
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__create_uid
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__create_uid
+#: model:ir.model.fields,field_description:top_management.field_message_wizard__create_uid
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__create_uid
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__create_date
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__create_date
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__create_date
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__create_date
+#: model:ir.model.fields,field_description:top_management.field_message_wizard__create_date
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__create_date
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_form_quick_create
+msgid "Date"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "De Fecha"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Declarar perdido el documento"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_form
+msgid "Desaprobar des."
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__name
+msgid "Descripcion"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__description
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__description
+msgid "Descripción"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_res_partner_position__description
+msgid "Descripción General del Puesto"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__description
+msgid "Descripción del tema a tratar"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_tree
+msgid "Desempatar"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_vote__type__breaker
+#: model:ir.model.fields.selection,name:top_management.selection__wizard_create_vote__type__breaker
+msgid "Desempate"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__res_partner_position__type__director
+msgid "Director"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__assembly_meet_type__directory
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_meet__directory
+msgid "Directorio"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__dis
+msgid "Disolución"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__display_name
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__display_name
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__display_name
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__display_name
+#: model:ir.model.fields,field_description:top_management.field_message_wizard__display_name
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__display_name
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__distribution
+msgid "Distribucion de Dividendos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__report_missing
+msgid "Documentación"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Duración"
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,comment:top_management.top_management_group_manager
+msgid "El Usuario será el Gerente General de la Compania o el Presidente "
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,comment:top_management.top_management_group_president
+msgid "El Usuario será el Presidente de la Compañía "
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "El asunto ya se trató o el cómputo aún no ha comenzado 😎"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "El quorum no se completo"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "El quorum no se completo o no recibio los votos suficientes"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid ""
+"El tema de Reunión fue:  \n"
+" <strong> ❤ Aprobado existosamente </strong>"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid ""
+"El tema de Reunión fue:  \n"
+" <strong>Rechazado existosamente 🤷‍♀️</strong>"
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,comment:top_management.top_management_group_user_release
+msgid "El usuario podrá gestionar las fechas de revisión."
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid ""
+"El voto de desempate fue exitosamente \n"
+" <strong>registrado</strong>"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__issuance
+msgid "Emisión de Acciones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__issuance_1
+msgid "Emisión de Acciones art 235"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__share_issuance
+msgid "Emisión de Acciónes"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__certificates
+msgid "Emisión de Bonos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__deb
+msgid "Emisión de Debentures"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_hr_employee
+msgid "Employee"
+msgstr "Employé"
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_partner__employee_ids
+msgid "Employees"
+msgstr "Employés"
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__state__progress
+msgid "En Curso"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.menu_hr_attendance_my_attendances_meeting
+msgid "Entrada y Salida Reuniones"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Error: could not find corresponding employee."
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Establezca los porcentajes de quórum para asistencias"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__state
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__state
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__state
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+msgid "Estado"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__income
+msgid "Estado de Resultados"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/wizard/wizard_create_vote.py:0
+#, python-format
+msgid "Este wizard solo puede ser llamado desde una Reunion o Linea de Reunión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_event_event
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__event_id
+msgid "Event"
+msgstr "Événement"
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+msgid "Evento"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Extra hours today:"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_partner__start_date
+#: model:ir.model.fields,field_description:top_management.field_res_users__start_date
+msgid "Fecha Inicio del cargo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_partner__end_date
+#: model:ir.model.fields,field_description:top_management.field_res_users__end_date
+msgid "Fecha de Finalización cargo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__date
+msgid "Fecha y Hora"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_res_company__quorum_ext
+#: model:ir.model.fields,help:top_management.field_res_config_settings__quorum_ext
+msgid "Fije el Porcentaje de Asistencia para asambleas extraordinarias"
+msgstr "Fixer le pourcentage de présence pour les assemblées extraordinaires"
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_res_company__quorum_ord
+#: model:ir.model.fields,help:top_management.field_res_config_settings__quorum_ord
+msgid "Fije el Porcentaje de Asistencia para asambleas ordinarias"
+msgstr "Définir le pourcentage de présence pour les assemblées régulières"
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__state__finished
+msgid "Finalizada"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Finalizado"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Finalizar"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_follower_ids
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_follower_ids
+msgid "Followers"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_partner_ids
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__activity_type_icon
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__fusion
+msgid "Fusión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.menu_top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Gerencia"
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,name:top_management.top_management_group_manager
+msgid "Gerencia General"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Go back"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Goodbye"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Goodbye! See you next meeting"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_search
+msgid "Group By"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__has_message
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__date_end
+msgid "Hora de Finalización"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__date_start
+msgid "Hora de Inicio"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__date_end
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__date_start
+msgid "Hora de inicio de la reunion"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__id
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__id
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__id
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__id
+#: model:ir.model.fields,field_description:top_management.field_message_wizard__id
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__id
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__id
+msgid "ID"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_exception_icon
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_exception_icon
+msgid "Icon"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__activity_exception_icon
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Identificacion"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Identify Manually"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__message_needaction
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__message_has_error
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__message_has_sms_error
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__message_has_error
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Imprimir agrupacion"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Imprimir cos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__receiver
+msgid "Informe del Síndico"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Instalar Módulo de Notas"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_config_settings__module_note
+msgid "Install Notes app"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Invalid request"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_is_follower
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid ""
+"La Junta de Accionista de la Coorporación Imperal\n"
+"                                SACIFACETI, en sesión de tipo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting____last_update
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line____last_update
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic____last_update
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote____last_update
+#: model:ir.model.fields,field_description:top_management.field_message_wizard____last_update
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position____last_update
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__write_uid
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__write_uid
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__write_uid
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__write_uid
+#: model:ir.model.fields,field_description:top_management.field_message_wizard__write_uid
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__write_uid
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__write_date
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__write_date
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__write_date
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__write_date
+#: model:ir.model.fields,field_description:top_management.field_message_wizard__write_date
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__write_date
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__susp
+msgid "Limitacion o suspensión en el Derecho de Preferencia"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_main_attachment_id
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_main_attachment_id
+msgid "Main Attachment"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__memory
+msgid "Memoria"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_message_wizard__message
+msgid "Message"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_has_error
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_ids
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "Muy Bien!"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__my_activity_date_deadline
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_vote__result__negative
+#: model:ir.model.fields.selection,name:top_management.selection__wizard_create_vote__result__negative
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "Negativo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_vote__result__blank
+#: model:ir.model.fields.selection,name:top_management.selection__wizard_create_vote__result__blank
+msgid "Neutral"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting.py:0
+#: code:addons/top_management/models/assembly_meeting_topic.py:0
+#: code:addons/top_management/models/assembly_meeting_vote.py:0
+#, python-format
+msgid "New"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_calendar_event_id
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_date_deadline
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_summary
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_summary
+msgid "Next Activity Summary"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_type_id
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_type_id
+msgid "Next Activity Type"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "No hay Registros asignados a Esta Reunión"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "No hay acciones registradas"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_search
+msgid "Nombre"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__name
+msgid "Nombre del Cargo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_line__priority__normal
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_vote__type__normal
+#: model:ir.model.fields.selection,name:top_management.selection__wizard_create_vote__type__normal
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Normal"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting__state__new
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__state__new
+msgid "Nuevo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_needaction_counter
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_has_error_counter
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__message_needaction_counter
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__message_needaction_counter
+msgid "Number of messages which requires an action"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__message_has_error_counter
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__num_votes_blank
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__num_votes_minus
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__num_votes_plus
+msgid "Número de votos que este tópico ha recibido"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "OK"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_assembly_meeting_line
+msgid "Objeto Línea tópico Reunión de asamblea"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_account_share_issuance
+msgid "Objeto Orden de Emisión de Acciones"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_assembly_meeting
+#: model:ir.model,name:top_management.model_assembly_meeting_vote
+msgid "Objeto Reunión de asamblea"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_assembly_meeting_topic
+msgid "Objeto Temas de reunion"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Open partner categories"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__furniture
+msgid "Operaciones con Muebles e Inmuebles"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+msgid "Orden de Emisión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.assembly_meeting_line_action
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__assembly_meeting_line
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__assembly_meeting_line
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Orden del Día"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__power
+msgid "Otorgar Poderes Generales o Especiales"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid ""
+"Para\n"
+"                                                Más información contacte al Gerente General"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/wizard/wizard_create_vote.py:0
+#, python-format
+msgid "Para emitir los votos, todos los campos deben ser completados"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_hr_employee__partner_id
+msgid "Partner"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__finance
+msgid "Planificacion Economico - Financiera"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Please contact your administrator."
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Please enter your PIN to"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Please return to the main menu."
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__quorum
+msgid "Porcentaje de Asistencia a la Reunión"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Porcentajes de quórum Asambleas Extraordinarias"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Porcentajes de quórum Asambleas Ordinarias"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_vote__result__positive
+#: model:ir.model.fields.selection,name:top_management.selection__wizard_create_vote__result__positive
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "Positivo"
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,name:top_management.top_management_group_president
+msgid "Presidente del Directorio"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__priority
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Prioridad"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Próximamente"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.res_config_settings_view_form
+msgid "Quórum Ord."
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_company__quorum_ext
+#: model:ir.model.fields,field_description:top_management.field_res_config_settings__quorum_ext
+msgid "Quórum R. Ext."
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_res_company__quorum_ord
+#: model:ir.model.fields,field_description:top_management.field_res_config_settings__quorum_ord
+msgid "Quórum R. Ord."
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.act_res_partner_account_share
+msgid "RFQs and Purchases"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_line__state__refused
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__state__refused
+msgid "Rechazado"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_tree
+msgid "Rechazar"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__reduction
+msgid "Reducción y Reintegro del Capital"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__short_name
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__short_name
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__short_name
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+msgid "Referencia"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting.py:0
+#: model_terms:ir.ui.view,arch_db:top_management.view_account_payment_register_form
+#, python-format
+msgid "Registrar Voto"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "Registrar Voto Desempate"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__procedure
+msgid "Reglamento Interno (Normas y Manuales de Procedimiento)"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_res_partner__employee_ids
+msgid "Related employees based on their private address"
+msgstr "Employés associés sur base de leur adresse privée"
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__description
+msgid "Rellene la descripción de la Reunión"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid ""
+"República de\n"
+"                                Argentina. En la Sala de Reuniones del cuarto piso, sito en calle\n"
+"                                Av. Berrondo 1255, el Presidente del Directorio con el objeto de\n"
+"                                tratar el\n"
+"                                siguiente......................................................................................."
+msgstr ""
+"\"République de\n"
+"Argentine. Dans la salle de réunion au quatrième étage, située dans la rue\n"
+"Av. Berrondo 1255, le Président du Conseil d'Administration aux fins de\n"
+"traiter le\n"
+"suivant................................................ ............................................"
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__redemption
+msgid "Rescate de Acciones en Cartera y Reembolso"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__responsabilities
+msgid "Responsabilidades"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__activity_user_id
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__activity_user_id
+msgid "Responsible User"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__result
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__result
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_search
+msgid "Resultado"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_line__assembly_meeting
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__assembly_meeting
+#: model:ir.model.fields,field_description:top_management.field_event_event__assembly_meeting
+#: model:ir.model.fields,field_description:top_management.field_hr_attendance__assembly_meeting
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__assembly_meeting
+msgid "Reunion Tratante"
+msgstr ""
+
+#. module: top_management
+#: model:ir.ui.menu,name:top_management.menu_top_management_meeting
+#: model_terms:ir.ui.view,arch_db:top_management.account_share_issuance_view_form
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.hr_attendance_assembly_view_form
+msgid "Reuniones"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_tree
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_tree
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_tree
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_tree
+msgid "Reunión"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid ""
+"Reunión\n"
+"                                                en Organización"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__meeting_assigned
+msgid "Reunión Asignada"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Reunión En Curso"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.hr_attendance_assembly_view_filter
+msgid "Reunión de Accionistas"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Reunión de Asamblea"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__release_date
+msgid "Revisión"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_res_partner_position__type
+msgid "Rol del partner dentro de la companía"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__message_has_sms_error
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Scan your badge"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Selecciona la reunión del día"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.view_account_payment_register_form
+msgid "Seleccione los datos pertinentes"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Sign out"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_line__state__no_treating
+msgid "Sin Tratar"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__activity_state
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__res_partner_position__type__receiver
+msgid "Síndico"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.view_project_tasks_activity
+msgid "Tasks"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_form
+msgid "Tema de Asamblea"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_account_share_issuance__topic
+msgid "Tema de Reunión"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "Tema de Reunión Aprobado! 👍"
+msgstr ""
+
+#. module: top_management
+#. odoo-python
+#: code:addons/top_management/models/assembly_meeting_line.py:0
+#, python-format
+msgid "Tema de Reunión Rechazado! ❌"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_line_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_search
+msgid "Temas de reunion"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__partner_text
+msgid "Texto de Prueba"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.actions.act_window,help:top_management.act_res_partner_account_share
+msgid ""
+"The request for quotation is the first step of the purchases flow. Once\n"
+"                converted into a purchase order, you will be able to control the receipt\n"
+"                of the products and the vendor bill."
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,comment:top_management.top_management_group_user
+msgid "The user will be able to approve document created by Manager an Shareholders."
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.actions.act_window,help:top_management.act_res_partner_account_share
+msgid "This vendor has no purchase order. Create a new RfQ"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__type
+#: model:ir.model.fields,field_description:top_management.field_res_partner_position__type
+#: model:ir.model.fields,field_description:top_management.field_wizard_create_vote__type
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_topic_view_search
+#: model_terms:ir.ui.view,arch_db:top_management.res_partner_position_view_search
+msgid "Tipo"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__assembly_meet_type
+msgid "Tipo de Asamblea"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__topic_type
+msgid "Tipo de Asunto"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__topic_meet
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+msgid "Tipo de Reunión"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Today's work hours:"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Total extra hours:"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.act_window,name:top_management.action_all_customers_fr
+msgid "Tous les clients"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__trans
+msgid "Transformación"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__activity_exception_decoration
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__name
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__name
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_vote__name
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Título"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_search
+msgid "Tópico"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_line__priority__urgent
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "Urgente"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__user_id
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_search
+msgid "Usuario"
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,name:top_management.top_management_group_user
+msgid "Usuario Gerencia/Directorio"
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,name:top_management.top_management_group_user_release
+msgid "Usuario Gerencia/Directorio - Fecha de Revisión"
+msgstr ""
+
+#. module: top_management
+#: model:res.groups,name:top_management.group_top_management_readonly
+msgid "Usuario Gerencia/Directorio Mostrar todas las funciones - solo lectura"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields.selection,name:top_management.selection__assembly_meeting_topic__topic_type__share_sale
+msgid "Venta de Acciones"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_tree
+msgid "Voto"
+msgstr ""
+
+#. module: top_management
+#: model:ir.actions.report,name:top_management.assembly_meeting_vote
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_view_form
+msgid "Voto de Asamblea"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "Voto de Asamblea N°"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__assembly_vote
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__assembly_vote
+#: model:ir.ui.menu,name:top_management.menu_top_management_vote
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_view_form
+msgid "Votos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__num_votes_minus
+msgid "Votos Negativos"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__num_votes_blank
+msgid "Votos Neutros"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__num_votes_plus
+msgid "Votos Positivos"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Want to check out?"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Warning"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting__website_message_ids
+#: model:ir.model.fields,field_description:top_management.field_assembly_meeting_topic__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model.fields,help:top_management.field_assembly_meeting__website_message_ids
+#: model:ir.model.fields,help:top_management.field_assembly_meeting_topic__website_message_ids
+msgid "Website communication history"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Welcome"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Welcome to"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Welcome to meeting!"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "Welcome!"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "check in"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "check out"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "de"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.view_assembly_meeting_kanban
+msgid ""
+"de\n"
+"                                                                Accionistas Confirmados:"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_report
+msgid "de fecha"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_form_quick_create
+msgid "e.g. Conference for Architects"
+msgstr ""
+
+#. module: top_management
+#: model_terms:ir.ui.view,arch_db:top_management.assembly_meeting_vote_report
+msgid "en Blanco"
+msgstr ""
+
+#. module: top_management
+#: model:ir.model,name:top_management.model_message_wizard
+msgid "message.wizard"
+msgstr ""
+
+#. module: top_management
+#. odoo-javascript
+#: code:addons/top_management/static/src/xml/attendance.xml:0
+#, python-format
+msgid "o_barcode_main pt-5"
+msgstr ""
