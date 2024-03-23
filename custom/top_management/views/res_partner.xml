@@ -8,40 +8,45 @@
             <!-- find field description and add the field
             new_field after it -->
             <xpath expr="//page[@name='accounting']" position="after">
+                <!-- expr="//div[hasclass('test_class')]". -->
                 <page id='shareholding' name='shareholding' string='Accionista'
                     groups="top_management.top_management_group_manager">
                     <group>
                         <field name='start_date' />
                         <field name='end_date' />
                         <field name='position' />
-                        <field name='employee_ids' readonly="1"/>
+                        <field name='employee_ids' readonly="1" />
                     </group>
                 </page>
             </xpath>
             <!-- <xpath expr="//div[@name='button_box']" position="after"> -->
-                    <div name="button_box" position="inside">
-                        <button class="oe_stat_button"
-                            name="account_share_management.account_share_action" type="action"
-                            icon="fa-money-bill-trend-up">
-                            <field string="Acciones" name="account_share_count" widget="statinfo" />
-                        </button>
-                        <!-- <i class="fa-sharp fa-light fa-money-bill-trend-up"></i> -->
+                <!-- Agregando una clase a un elemento por herencia -->
+            <field name="email" position="attributes">
+                <attribute name="class" add="oe_inline" separator=" " />
+            </field>
+            <div name="button_box" position="inside">
+                <button class="oe_stat_button"
+                    name="account_share_management.account_share_action" type="action"
+                    icon="fa-money-bill-trend-up">
+                    <field string="Acciones" name="account_share_count" widget="statinfo" />
+                </button>
+                <!-- <i class="fa-sharp fa-light fa-money-bill-trend-up"></i> -->
+            </div>
+            <div name="button_box" position="inside">
+                <button type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                    name="action_view_partner_shares"
+                    groups='account_financial_policies.account_financial_policies_stock_market_group_manager,account_financial_policies.account_financial_policies_group_manager'
+                    context="{'default_partner_id': active_id}">
+                    <div class="o_form_field o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="currency_id" invisible="1" />
+                            <field name="total_shared" widget='monetary'
+                                options="{'currency_field': 'currency_id'}" />
+                        </span>
+                        <span class="o_stat_text">Participación</span>
                     </div>
-                    <div name="button_box" position="inside">
-                        <button type="object" class="oe_stat_button" icon="fa-pencil-square-o"
-                            name="action_view_partner_shares"
-                            groups='account_financial_policies.account_financial_policies_stock_market_group_manager,account_financial_policies.account_financial_policies_group_manager'
-                            context="{'default_partner_id': active_id}">
-                            <div class="o_form_field o_stat_info">
-                                <span class="o_stat_value">
-                                    <field name="currency_id" invisible="1" />
-                                    <field name="total_shared" widget='monetary'
-                                        options="{'currency_field': 'currency_id'}" />
-                                </span>
-                                <span class="o_stat_text">Participación</span>
-                            </div>
-                        </button>
-                    </div>
+                </button>
+            </div>
             <!-- </xpath> -->
         </field>
     </record>
