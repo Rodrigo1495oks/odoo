@@ -27,6 +27,7 @@
         'views/res_partner_position.xml',
         'views/res_partner.xml',
         'views/hr_employee.xml',
+        'views/french_action.xml',
         'report/assembly_meeting_template.xml',
         'report/assembly_meeting_vote_template.xml',
         'report/assembly_meeting_report.xml',

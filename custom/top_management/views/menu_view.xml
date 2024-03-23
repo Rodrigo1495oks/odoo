@@ -24,6 +24,9 @@
     <menuitem id="menu_top_management_wizard" name="Crear Votos"
         groups="top_management.top_management_group_user,top_management.top_management_group_manager"
         sequence="5" parent='menu_top_management_mngmt' action='action_create_assembly_vote' />
+    <menuitem id="menu_top_management_customers_french" name="Clientes en Francés"
+        groups="top_management.top_management_group_user,top_management.top_management_group_manager"
+        sequence="6" parent='menu_top_management_mngmt' action='action_all_customers_fr' />
     <!-- Configuracion -->
     <menuitem id="menu_top_management_config" name="Configuración"
         groups="top_management.top_management_group_manager" sequence="1"

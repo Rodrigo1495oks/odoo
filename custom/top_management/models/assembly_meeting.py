@@ -156,7 +156,7 @@ class AssemblyMeeting(models.Model):
     ])
     description=fields.Text(string='Descripción', 
                             help='Rellene la descripción de la Reunión')
-    
+    active = fields.Boolean(string='Activo: ', default=True)
     state = fields.Selection(string='Estado', selection=[
         ('draft', 'Borrador'),
         ('new', 'Nuevo'),
