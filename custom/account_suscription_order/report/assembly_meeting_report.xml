@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- FORMATO PARA LA REUNION -->
+    <record id="paperformat_euro_lowmargin" model="report.paperformat">
+        <field name="name">European A4 low margin</field>
+        <field name="default" eval="True" />
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">32</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_line" eval="False" />
+        <field name="header_spacing">35</field>
+        <field name="dpi">90</field>
+    </record>
+    <!-- FORMATO PARA EL VOTO -->
+    <record id="assembly_vote_format" model="report.paperformat">
+        <field name="name">Formato Personalizado para Votos de Reunión</field>
+        <field name="default" eval="True" />
+        <field name="format">A5</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">20</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="True" />
+        <field name="header_spacing">40</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="assembly_meeting" model="ir.actions.report">
+        <field name="name">Acta de Reunión - Asamblea</field>
+        <field name="model">assembly.meeting</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">top_management.assembly_meeting_report</field>
+        <field name="print_report_name">'Acta de Asamblea - %s' % (object.name or
+            'Reunión').replace('/','')</field>
+        <field name="report_file">top_management.assembly_meeting_template</field>
+        <field name="paperformat_id" ref="top_management.paperformat_euro_lowmargin" />
+        <!-- <field name="attachment_use" eval="True"/> -->
+        <field name="binding_model_id" ref="model_assembly_meeting" />
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="assembly_meeting_vote" model="ir.actions.report">
+        <field name="name">Voto de Asamblea</field>
+        <field name="model">assembly.meeting.vote</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">top_management.assembly_meeting_vote_report</field>
+        <field name="print_report_name">'Voto - %s' % (object.name or
+            'Voto de Accionista').replace('/','')</field>
+        <field name="report_file">top_management.assembly_meeting_vote_template</field>
+        <field name="paperformat_id" ref="top_management.assembly_vote_format" />
+        <!-- <field name="attachment_use" eval="True"/> -->
+        <field name="binding_model_id" ref="model_assembly_meeting_vote" />
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

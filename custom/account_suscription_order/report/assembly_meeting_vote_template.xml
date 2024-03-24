@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="assembly_meeting_vote_report">
+        <t t-foreach="docs" t-as="amv">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <t t-set='p' t-value="amv.partner_id" />
+                    <div class=".main-container">
+                        <header>
+                            <!-- banner section -->
+                            <section id="home" class="w3l-banner">
+                                <div class="container py-lg-2 mt-lg-2">
+                                    <div class="py-lg-4 my-1">
+                                        <div class="banner-info-grid mt-lg-5">
+                                            <h3 class="my-4 main-title text-center">Voto de Asamblea N° <strong>
+                                                    <span id='short_name' t-field="amv.short_name"></span>
+                                                </strong></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </header>
+                        <!-- //banner section -->
+                        <section id='vote_body'>
+                            <section class='vote-main container'>
+                                <div class='vote-main-card row'>
+                                    <section class="vote-main-card-fields col-6">
+                                        <div class="name-field">
+                                            <strong>Título: </strong>
+                                            <span t-field="amv.name" />
+                                        </div>
+                                        <div class="date-field">
+                                            <strong>Fecha: </strong>
+                                            <span t-field="amv.date" />
+                                        </div>
+                                        <div class="topic-field">
+                                            <strong>Asunto: </strong>
+                                            <span t-field="amv.topic" />
+                                        </div>
+                                        <div class="partner-field">
+                                            <strong>Accionista: </strong>
+                                            <span t-field="amv.partner_id.name" />
+                                        </div>
+                                        <div class="assembly_meeting-field">
+                                            <strong>Reunión: </strong>
+                                            <span
+                                                t-field="amv.assembly_meeting.short_name" /> - <span
+                                                t-field="amv.assembly_meeting.name" />
+                                        </div>
+                                        <div class="type-field">
+                                            <strong>Tipo de Voto: </strong>
+                                            <span t-field="amv.type" />
+                                            - <t
+                                                t-if="amv.result=='positive'">
+                                                <p class='btn btn-success'>Positivo</p>
+                                            </t><t
+                                                t-elif="amv.result=='negative'">
+                                                <p class='btn btn-danger'>Negativo</p>
+                                            </t>
+                                    <t
+                                                t-else="amv.result=='blank'">
+                                                <p class='btn btn-secondary'> en Blanco</p>
+                                            </t>
+                                        </div>
+                                        <div>
+                                            <a href="#info-button" class="btn btn-news mt-4">Para
+                                                Más información contacte al Gerente General
+                                            </a>
+                                        </div>
+                                    </section>
+                                    <section class="vote-main-card-image col-6">
+                                        <span t-if="amv.partner_id.image_128">
+                                            <img
+                                                t-att-src="image_data_uri(amv.partner_id.image_128)"
+                                                class="vote_logo mb-2" />
+                                        </span>
+                                    </section>
+                                </div>
+                            </section>
+                        </section>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

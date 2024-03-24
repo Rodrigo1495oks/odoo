@@ -24,11 +24,11 @@ from odoo.exceptions import UserError, AccessError
 
 
 class SuscriptionOrder(models.Model):
-    _name = 'suscription.order'
+    _name = 'account.suscription.order'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _description = 'Objeto Subscripción de Acciones'
-    _order = 'number desc, name desc'
-    _rec_name = 'number'
+    _description = 'Purpose of Share Subscription'
+    _order = 'short_name desc, name desc'
+    _rec_name = 'short_name'
 
     # metodos computados
     @api.depends('product_id', 'cash_id')
@@ -44,27 +44,22 @@ class SuscriptionOrder(models.Model):
                 order.qty_to_subscribe += line.price_total \
                     if line.price_total and line.price_total > 0 else 0
 
-    @api.depends('shares')
+    @api.depends('share_qty')
     def _compute_amount_total(self):
         for order in self:
-            for share in order.shares:
-                amount_total += share.price
+                amount_total= order.price * order.share_qty
 
-    @api.depends('integration_order')
-    def _compute_qty_integrated(self):
-        for order in self:
-            for integration in order.integration_orders:
-                order.qty_integrated += integration.amount_total_order
-                if order.qty_integrated == integration.qty_to_integrate:
-                    order.pending = False
-                else:
-                    order.pending = True
+    # @api.depends('integration_order')
+    # def _compute_qty_integrated(self):
+    #     for order in self:
+    #         for integration in order.integration_orders:
+    #             order.qty_integrated += integration.amount_total_order
+    #             if order.qty_integrated == integration.qty_to_integrate:
+    #                 order.pending = False
+    #             else:
+    #                 order.pending = True
 
-    @api.depends('qty_integrated')
-    def _compute_qty_pending(self):
-        for order in self:
-            order.qty_pending = order.qty_integrated-order.amount_total
-
+    # Basics
     number = fields.Char(string='Referencia', default='New',
                          required=True, copy=False, readonly=True)
     name = fields.Char(string='Name', required=True, tracking=True)
@@ -74,28 +69,41 @@ class SuscriptionOrder(models.Model):
     integration_date_due = fields.Date(
         string='Fecha de integración', 
         help='Coloque aquí la fecha estimada de integración - No puede superar los dos años', 
-        states={'draft': [('readonly', False)]})
+        states={'draft': [('readonly', False)]},
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
 
-    payment_term_id = fields.Many2one('account.payment.term', 'Términos de Pago',
-                                      domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
+    notes=fields.Html(string='Notas')
 
-
+    # Shares
     share_qty = fields.Integer(
         string='Cantidad de acciones a subscribir', required='True')
-    nominal_value = fields.Float(related='share_issuance.nominal_value',
-                                 string='Valor de Emisión', required=True, copy=True)
-    price = fields.Float(related='share_issuance.price', string='Valor pactado en la suscripción',
+    nominal_value = fields.Float(related='company_id.share_price',
+                                 string='Issue Value', required=True, copy=True)
+    price = fields.Float(string='Valor pactado en la suscripción',
                          help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True, readonly=True, store=True)
+    
+    amount_total = fields.Monetary(
+        string='Total', store=True, readonly=True, compute='_compute_amount_total')
 
-    issue_premium = fields.Float(related='share_issuance.issue_premium',
-                                 string='Prima de emision', help='Cotizacion sobre la par', readonly=True, store=True)
+    qty_integrated = fields.Monetary(string='Cantidad Integrada', currency_field='company_currency_id',
+                                      help='Cantidad que se ha integrado')
 
-    issue_discount = fields.Float(related='share_issuance.issue_discount',
-                                  string='Descuento de Emisión', help='Descuento bajo la par', readonly=True, store=True)
+    qty_pending = fields.Monetary(string='Cantidad pendiente de integrar', currency_field='company_currency_id',
+                                  help='Cantidad que no se ha subscripto')
+    # Relational fields
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id)
 
+    
+    
+    
+
+    
+
+    partner_id = fields.Many2one(
+        string='Shareholder', comodel_name='res.partner')
+    payment_term_id = fields.Many2one(comodel_name='account.payment.term', string='Pay Terms',required=True)
     # === Currency fields === #
     company_currency_id = fields.Many2one(
         string='Company Currency',
@@ -110,46 +118,12 @@ class SuscriptionOrder(models.Model):
         states={'posted': [('readonly', True)], 'cancel': [
             ('readonly', True)]},
     )
-    qty_to_subscribe = fields.Monetary(
-        string='Cantidad a Subscribir', currency_field='company_currency_id', compute='_compute_qty_to_subscribe')
-
-    amount_total = fields.Monetary(
-        string='Total', store=True, readonly=True, compute='_compute_amount_total')
-
-    qty_integrated = fields.Monetary(string='Cantidad Integrada', currency_field='company_currency_id',
-                                     compute='_compute_qty_integrated', help='Cantidad que se ha integrado')
-
-    qty_pending = fields.Monetary(string='Cantidad pendiente de integrar', currency_field='company_currency_id',
-                                  compute='_compute_qty_pending', help='Cantidad que no se ha subscripto')
-
-    # campos relacionales
-    credit_lines = fields.One2many(string='Líneas de Crédito', comodel_name='suscription.order.line.credit', inverse_name='order_id', copy=False, readonly=True,
-
-                                   states={'draft': [('readonly', False)]})
-    cash_lines = fields.One2many(string='Líneas de Efectivo', comodel_name='suscription.order.line.cash', inverse_name='order_id', copy=False, readonly=True,
-                                 states={'draft': [('readonly', False)]})
-
-    product_lines = fields.One2many(string='Líneas de Activos', comodel_name='suscription.order.line', inverse_name='order_id', copy=False, readonly=True,
-                                    states={'draft': [('readonly', False)]}, help='Sólo Productos Físicos no servicios')
-
-    partner_id = fields.Many2one(
-        string='Accionista', comodel_name='res.partner')
-
-    share_issuance = fields.One2many(
-        string='Orden de Emisión', readonly=True, index=True, store=True, comodel_name='shares.issuance', inverse_name='suscription_order')
-
-    topic = fields.Many2one(string='Tema de Reunión',
-                            comodel_name='assembly.meeting.topic', ondelete='restrict')
-
-    integration_orders = fields.One2many(string='Orden de Integración', comodel_name='integration.order', inverse_name='suscription_order',
-                                         help='Campo técnico usado para relacionar la orden de suscripcion ocn la de integracion respectiva')
-
     # asiento de subscripcion correspondiente
     account_move = fields.Many2many(string='Asiento contable', comodel_name='account.move', index=True,
                                    help='Asiento contable Relacionado', readonly=True, domain=[('move_type', '=', 'suscription')])
     user_id = fields.Many2one('res.users', string='Empleado',
                               index=True, tracking=True, default=lambda self: self.env.user)
-    notes=fields.Html(string='Notas')
+    
     # ACTIONS METHODS
 
     def action_create_suscription(self):
@@ -454,195 +428,6 @@ class SuscriptionOrder(models.Model):
                 raise ValidationError(
                     'La diferencia entre la cantidad prometida y la cantidad integrada, no puede ser superior al 20%. \n Revea la emision de acciones correspondiente')
 
-
-class suscriptionOrderLine(models.Model):
-    _name = 'suscription.order.line'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
-    # _inherits = {'calendar.event': 'event_id'}
-    _description = 'Objeto Línea Subscripción de Acciones'
-    _order = 'short_name desc, move_name desc'
-    _rec_name = 'short_name'
-
-    order_id = fields.Many2one(string='Orden', comodel_name='suscription.order', index=True, required=True, readonly=True, auto_join=True, ondelete="cascade",
-                               check_company=True,
-                               help="La orden de esta linea.")
-
-    @api.depends('quantity', 'discount', 'price_unit', 'tax_ids', 'currency_id')
-    def _compute_totals(self):
-        for line in self:
-            if line.type != 'product':
-                line.price_total = line.price_subtotal = False
-            # Compute 'price_subtotal'.
-            line_discount_price_unit = line.price_unit * \
-                (1 - (line.discount / 100.0))
-            subtotal = line.quantity * line_discount_price_unit
-
-            # Compute 'price_total'.
-            if line.tax_ids:
-                taxes_res = line.tax_ids.compute_all(
-                    line_discount_price_unit,
-                    quantity=line.quantity,
-                    currency=line.currency_id,
-                    product=line.product_id,
-                    partner=line.partner_id,
-                    is_refund=line.is_refund,
-                )
-                line.price_subtotal = taxes_res['total_excluded']
-                line.price_total = taxes_res['total_included']
-            else:
-                line.price_total = line.price_subtotal = subtotal
-
-    def _compute_partner_id(self):
-        for line in self:
-            line.partner_id = line.partner_id.line.partner_id.commercial_partner_id
-
-    @api.depends('type')
-    def _compute_quantity(self):
-        for line in self:
-            line.quantity = 1 if line.type == 'product' else False
-
-    @api.depends('product_id', 'product_uom_id')
-    def _compute_price_unit(self):
-        for line in self:
-            if not line.product_id:
-                continue
-            document_type = 'suscription'
-            line.price_unit = line.product_id._get_tax_included_unit_price(
-                line.move_id.company_id,
-                line.move_id.currency_id,
-                line.move_id.date,
-                document_type,
-                fiscal_position=line.move_id.fiscal_position_id,
-                product_uom=line.product_uom_id,
-            )
-    # action methods
-
-    short_name = fields.Char(string='Referencia')
-
-    company_id = fields.Many2one(
-        related='order_id.company_id', store=True, readonly=True, precompute=True,
-        index=True,
-    )
-    company_currency_id = fields.Many2one(
-        string='Company Currency',
-        related='order_id.company_currency_id', readonly=True, store=True, precompute=True,
-    )
-    move_name = fields.Char(
-        string='Number',
-        related='order_id.name', store=True, readonly=True,
-        index='btree'
-    )
-    parent_state = fields.Selection(related='order_id.state', store=True)
-    date = fields.Date(
-        related='order_id.date', store=True,
-        copy=False,
-        group_operator='min',
-    )
-    ref = fields.Char(
-        related='order_id.short_name', store=True,
-        copy=False,
-        index='trigram', readonly=True
-    )
-
-    partner_id = fields.Many2one(
-        comodel_name='res.partner',
-        string='Partner',
-        compute='_compute_partner_id', store=True, readonly=False, precompute=True,
-        ondelete='restrict',
-    )
-    partner_id = fields.Many2one(
-        string='Accionista', comodel_name='res.partner')
-
-    # ==============================================================================================
-    #                                          FOR account_move_line
-    # ==============================================================================================
-
-    product_id = fields.Many2one(
-        comodel_name='product.product',
-        string='Product',
-        inverse='_inverse_product_id',
-        ondelete='restrict',
-    )
-    product_uom_id = fields.Many2one(
-        comodel_name='uom.uom',
-        string='Unit of Measure',
-        store=True, readonly=False, precompute=True,
-        domain="[('category_id', '=', product_uom_category_id)]",
-        ondelete="restrict",
-    )
-    product_uom_category_id = fields.Many2one(
-        comodel_name='uom.category',
-        related='product_id.uom_id.category_id',
-    )
-    quantity = fields.Float(
-        string='Quantity',
-        compute='_compute_quantity', store=True, readonly=False, precompute=True,
-        digits='Product Unit of Measure',
-        help="The optional quantity expressed by this line, eg: number of product sold. "
-             "The quantity is not a legal requirement but is very useful for some reports.",
-    )
-
-    # === Price fields === #
-    price_unit = fields.Float(
-        string='Unit Price',
-        compute="_compute_price_unit", store=True, readonly=False, precompute=True,
-        digits='Product Price',
-    )
-    price_subtotal = fields.Monetary(
-        string='Subtotal',
-        compute='_compute_totals', store=True,
-        currency_field='currency_id',
-    )
-    price_total = fields.Monetary(
-        string='Total',
-        compute='_compute_totals', store=True,
-        currency_field='currency_id',
-    )
-    discount = fields.Float(
-        string='Discount (%)',
-        digits='Discount',
-        default=0.0,
-    )
-
-    # campos para arrastrar los activos Fijos
-
-    asset_profile_id = fields.Many2one(
-        comodel_name="account.asset.profile",
-        string="Asset Profile",
-        store=True,
-        readonly=False,
-    )
-    asset_id = fields.Many2one(
-        comodel_name="account.asset",
-        string="Asset",
-        ondelete="restrict",
-    )
-
-    def _prepare_order_line(self):
-        self.ensure_one()
-
-        vals = {
-            'short_name': self.short_name,
-            'company_id': self.company_id.id,
-            'company_currency_id': self.company_currency_id.id,
-            'move_name': self.move_name,
-            'parent_state': self.parent_state,
-            'date': fields.Datetime.now(),
-            'ref': self.ref,
-            'partner_id': self.partner_id,
-            'partner_id': self.partner_id.id,
-            'suscription_order_line': self.id,
-            'product_id': self.product_id.id,
-            'product_uom_id': self.product_uom_id.id,
-            'product_uom_category_id': self.product_uom_category_id.id,
-            'quantity': self.quantity,
-            'price_unit': self.price_unit,
-            'price_subtotal': self.price_subtotal,
-            'price_total': self.price_total,
-            'discount': self.discount,
-            'asset_profile_id': self.asset_profile_id.id
-        }
-        return vals
 
 
 class suscriptionOrderLineCredit(models.Model):
