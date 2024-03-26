@@ -2,30 +2,21 @@
 <odoo>
     <data noupdate='1'> <!-- para que no se reinicie la secuencia-->
         <!-- sequences for shares_issuance -->
-        <record id='seq_assembly_meeting' model='ir.sequence'>
-            <field name='name'>Assembly Meeting</field>
-            <field name='code'>assembly.meeting</field>
-            <field name='prefix'>AM</field>
-            <field name='suffix'>F</field>
-            <field name='padding'>5</field>
+        <record id='seq_account_suscription_order' model='ir.sequence'>
+            <field name='name'>Suscription Order</field>
+            <field name='code'>account.suscription.order</field>
+            <field name='prefix'>So</field>
+            <field name='suffix'>R</field>
+            <field name='padding'>12</field>
             <field name='company_id' eval='False' />
         </record>
-        <!-- sequences for topic -->
-        <record id='seq_assembly_meeting_topic' model='ir.sequence'>
-            <field name='name'>Assembly Meeting Topic</field>
-            <field name='code'>assembly.meeting.topic</field>
-            <field name='prefix'>TP</field>
-            <field name='suffix'>AM</field>
-            <field name='padding'>5</field>
-            <field name='company_id' eval='False' />
-        </record>
-        <!-- sequences for votes -->
-        <record id='seq_assembly_meeting_vote' model='ir.sequence'>
-            <field name='name'>Assembly Meeting Vote</field>
-            <field name='code'>assembly.meeting.vote</field>
-            <field name='prefix'>V</field>
-            <field name='suffix'>T</field>
-            <field name='padding'>5</field>
+        <!-- sequences for shares_issuance -->
+        <record id='seq_account_suscription_order_stage' model='ir.sequence'>
+            <field name='name'>Suscription Order Stage</field>
+            <field name='code'>account.suscription.order.stage</field>
+            <field name='prefix'>SoS</field>
+            <field name='suffix'>S</field>
+            <field name='padding'>6</field>
             <field name='company_id' eval='False' />
         </record>
     </data>

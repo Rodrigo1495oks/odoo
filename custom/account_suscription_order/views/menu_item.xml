@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Acciones -->
+    <menuitem
+        id="menu_account_stock_quote"
+        name="Stock Quote"
+        sequence="3"
+        groups="account_financial_policies.account_financial_policies_stock_market_group_user"
+        parent="account_financial_policies.menu_account_stock_market"
+        action='account_stock_quote_action' />
+</odoo>

@@ -2,26 +2,16 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from functools import lru_cache
-
-
 from odoo.exceptions import UserError
-
 from datetime import datetime, timedelta
-
+from odoo.osv import expression
 from odoo.tools.float_utils import float_is_zero, float_compare
-
 from odoo import models, fields, api, tools, _
-
 from odoo.osv.expression import get_unaccent_wrapper
-
 from odoo.exceptions import ValidationError
-
 from odoo.addons.base.models.res_partner import _tz_get
-
 from odoo.tools.translate import _
-
 from odoo.exceptions import UserError, AccessError
-
 
 class SuscriptionOrder(models.Model):
     _name = 'account.suscription.order'
@@ -30,76 +20,102 @@ class SuscriptionOrder(models.Model):
     _order = 'short_name desc, name desc'
     _rec_name = 'short_name'
 
+    # campos computados
+    @api.model
+    def _default_order_stage(self):
+        Stage=self.env['account.suscription.order.stage']
+        return Stage.search([],limit=1)
+    
+
     # metodos computados
-    @api.depends('product_id', 'cash_id')
-    def _compute_qty_to_subscribe(self):
-        for order in self:
-            for line in order.credit_lines:
-                order.qty_to_subscribe += line.amount_currency \
-                    if line.amount_currency and line.amount_currency > 0 else 0
-            for line in order.cash_lines:
-                order.qty_to_subscribe += line.amount_currency \
-                    if line.amount_currency and line.amount_currency > 0 else 0
-            for line in order.product_lines:
-                order.qty_to_subscribe += line.price_total \
-                    if line.price_total and line.price_total > 0 else 0
 
     @api.depends('share_qty')
     def _compute_amount_total(self):
         for order in self:
-                amount_total= order.price * order.share_qty
+                order.amount_total= order.price * order.share_qty
+    @api.depends('company_id')
+    def _compute_share_price(self):
+        """Look up the latest stock quote"""
+        for order in self:
+            # Busco la cotizacion más reciente
+            recent_quote=order.env['account.stock.quote'].search([()],limit=1,order='date')
+            order.price=recent_quote.price if recent_quote else 0
 
-    # @api.depends('integration_order')
-    # def _compute_qty_integrated(self):
-    #     for order in self:
-    #         for integration in order.integration_orders:
-    #             order.qty_integrated += integration.amount_total_order
-    #             if order.qty_integrated == integration.qty_to_integrate:
-    #                 order.pending = False
-    #             else:
-    #                 order.pending = True
+    # onchange methods
+    @api.onchange('currency_id')
+    def _onchange_currency_order(self):
+        for order in self:
+            if order.currency_id:
+                """Itero sobre todas las líneas"""
+                for cashLine in order.cash_lines:
+                    cashLine.currency_id=order.currency_id
+                for creditLine in order.credit_lines:
+                    creditLine.currency_id=order.currency_id
+                for productLine in order.product_lines:
+                    productLine.currency_id=order.currency_id
+            else:
+                """Itero sobre todas las líneas"""
+                for cashLine in order.cash_lines:
+                    cashLine.currency_id=False
+                for creditLine in order.credit_lines:
+                    creditLine.currency_id=False
+                for productLine in order.product_lines:
+                    productLine.currency_id=False
 
+    @api.model
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
+            args = args or []
+            domain = [('state','=','new')]
+            return self.search(expression.AND([domain, args]), limit=limit).name_get()
+        
+    def name_get(self):
+        result = []
+        for ast in self:
+            name = '%s - (%s)' % (ast.name, ast.short_name)
+            result.append((ast.id, name))
+        return result
+    
     # Basics
-    number = fields.Char(string='Referencia', default='New',
+    short_name = fields.Char(string='Reference', default='New',
                          required=True, copy=False, readonly=True)
     name = fields.Char(string='Name', required=True, tracking=True)
     origin = fields.Char(string='Source Document')
     description=fields.Text(string='Description', help='Add a description to the document')
-    suscription_date = fields.Date(string='Fecha de Subscripción')
+    suscription_date = fields.Date(string='Subscription Date')
     integration_date_due = fields.Date(
-        string='Fecha de integración', 
-        help='Coloque aquí la fecha estimada de integración - No puede superar los dos años', 
+        string='Integration Date', 
+        help="This field is used for payable and receivable journal entries. "
+             "You can put the limit date for the payment of this line.",
         states={'draft': [('readonly', False)]},
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
-
-    notes=fields.Html(string='Notas')
+    active=fields.Boolean(string='Archived', default=False, help='field that files the document')
+    notes=fields.Html(string='Notes')
 
     # Shares
     share_qty = fields.Integer(
-        string='Cantidad de acciones a subscribir', required='True')
+        string='Quantity Shares', required='True')
     nominal_value = fields.Float(related='company_id.share_price',
                                  string='Issue Value', required=True, copy=True)
-    price = fields.Float(string='Valor pactado en la suscripción',
-                         help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True, readonly=True, store=True)
+    price = fields.Monetary(string='Agreed value in the subscription',
+                         help='The value at which the share was sold, the total amount that the shareholder paid to acquire the share', readonly=True, copy=False, readonly=True, store=True, currency_field='company_currency_id',
+                         compute='_compute_share_price')
     
-    amount_total = fields.Monetary(
-        string='Total', store=True, readonly=True, compute='_compute_amount_total')
+    price_total = fields.Monetary(
+        string='Nominal Total', store=True, currency_field='company_currency_id',
+        readonly=True, 
+        compute='_compute_amount_total', help='Total amount of share price')
 
-    qty_integrated = fields.Monetary(string='Cantidad Integrada', currency_field='company_currency_id',
-                                      help='Cantidad que se ha integrado')
+    qty_integrated = fields.Monetary(string='Integrated Quantity', currency_field='company_currency_id',
+                                      help='Amount that has been integrated')
 
-    qty_pending = fields.Monetary(string='Cantidad pendiente de integrar', currency_field='company_currency_id',
-                                  help='Cantidad que no se ha subscripto')
+    qty_pending = fields.Monetary(string='Amount pending integration', currency_field='company_currency_id',
+                                  help='Amount that has not been integrated')
+    
     # Relational fields
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id)
-
-    
-    
-    
-
-    
 
     partner_id = fields.Many2one(
         string='Shareholder', comodel_name='res.partner')
@@ -112,18 +128,16 @@ class SuscriptionOrder(models.Model):
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
-        tracking=True,
-        required=True,
-        store=True, readonly=False, precompute=True,
-        states={'posted': [('readonly', True)], 'cancel': [
-            ('readonly', True)]},
+        tracking=True, help='If you choose one currency for the entire order, the import currency for each line will be set to that currency, leave this field empty to set a different currency for each line.',
+        required=False,
+        store=True, readonly=False,
     )
     # asiento de subscripcion correspondiente
-    account_move = fields.Many2many(string='Asiento contable', comodel_name='account.move', index=True,
-                                   help='Asiento contable Relacionado', readonly=True, domain=[('move_type', '=', 'suscription')])
-    user_id = fields.Many2one('res.users', string='Empleado',
+    account_move = fields.Many2many(string='Accounting entry', comodel_name='account.move', index=True,
+                                   help='Related accounting entry', readonly=True, domain=[('move_type', '=', 'suscription')])
+    user_id = fields.Many2one('res.users', string='User',
                               index=True, tracking=True, default=lambda self: self.env.user)
-    
+    stage_id=fields.Many2one(string='State', comodel_name='account.suscription.order.stage', default=_default_order_stage)
     # ACTIONS METHODS
 
     def action_create_suscription(self):
@@ -399,21 +413,21 @@ class SuscriptionOrder(models.Model):
         }
         return res
 
-     # low level methods
+    # low level methods
+
     @api.model
     def create(self, vals):
-        if vals.get('number', _('New')) == _('New'):
-            vals['number'] = self.env['ir.sequence'].next_by_code(
-                'suscription.order') or _('New')
-        res = super(SuscriptionOrder, self.create(vals))
-        return res
+        if vals.get('short_name', _('New')) == _('New'):
+            vals['short_name'] = self.env['ir.sequence'].next_by_code(
+                'account.suscription.order') or _('New')
+        return super().create(vals)
 
     @api.ondelete(at_uninstall=False)
     def _unlink_if_cancelled(self):
         for order in self:
             if not order.state == 'cancel':
                 raise UserError(
-                    _('In order to delete a purchase order, you must cancel it first.'))
+                    _('In order to delete a suscription order, you must cancel it first.'))
     # restricciones
 
     @api.constrains('amount_total')

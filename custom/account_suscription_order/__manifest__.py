@@ -11,7 +11,10 @@
         'base', 'account','top_management','account_asset_management'
     ],
     'data': [
-        
+        'security/security_rules.xml',
+        'security/ir.model.access.csv',
+        'views/account_stock_quote_views.xml',
+        'views/menu_item.xml',
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

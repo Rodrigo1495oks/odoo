@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- vistas -->
+        <record id="assembly_meeting_line_view_tree" model="ir.ui.view">
+            <field name="name">assembly.meeting.line.tree</field>
+            <field name="model">assembly.meeting.line</field>
+            <field name="arch" type="xml">
+                <tree string="Suscription Line" decoration-success="priority=='low'"
+                    decoration-bf='priority=="urgent"' decoration-muted="priority=='normal'">
+                    <field name="name" />
+                    <field name="topic" />
+                    <!-- <button name="action_approve_topic" string="Aprobar"
+                        type="object" icon="fa-check" />
+                    <button name="action_refuse_topic" string="Rechazar" 
+                        type="object" icon="fa-times" />
+                    <button name="action_add_vote" string="Desempatar" default_focus="1"
+                        type="object" icon="fa-brands fa-vimeo" groups='top_management.top_management_group_president' /> -->
+                        
+                    <field name="priority" optional="show" widget="badge"
+                        decoration-success="priority == 'urgent'"
+                        decoration-warning="priority == 'normal'"
+                        decoration-muted="priority=='low'" />
+
+                    <field name="state" optional="show" widget="badge"
+                        decoration-success="state == 'refused'"
+                        decoration-warning="state == 'approved'"
+                        decoration-muted="state=='no_treating'" />
+                </tree>
+            </field>
+        </record>
+        <!-- formulario -->
+        <record id="assembly_meeting_line_view_form" model="ir.ui.view">
+            <field name="name">assembly.meeting.line.form</field>
+            <field name="model">assembly.meeting.line</field>
+            <field name="arch" type="xml">
+                <form string="Orden del Día">
+                    <header>
+                        <button name="action_approve_topic" string="Aprobar" type="object"
+                            class="oe_highlight"
+                            />
+                        <button name="action_refuse_topic" string="Rechazar" type="object"
+                            class="oe_highlight"
+                             />
+                        <button name="action_add_vote" string="Aprobar des." default_focus="1"
+                            type="object" groups='top_management.top_management_group_president'/>
+                        <button name="action_add_minus_vote" string="Desaprobar des." default_focus="1"
+                            type="object" groups='top_management.top_management_group_president'/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group id='header_right_group'>
+                                <field name='topic' force_save="1" />
+                                <field name='name' />
+                                <field name='priority' />
+                                <field name='assembly_meeting' />
+                                <field name='state'/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search view -->
+
+        <record id="assembly_meeting_line_view_search" model="ir.ui.view">
+            <field name="name">assembly.meeting.line.search</field>
+            <field name="model">assembly.meeting.line</field>
+            <field name="arch" type="xml">
+                <search string="Temas de reunion">
+                    <field name="name" string="Nombre" />
+                    <separator />
+                    <separator />
+                    <group expand="1" string="Group By">
+                        <filter string="Prioridad" name="priority" context="{'group_by':'priority'}" />
+                        <filter string="Asunto" name="topic" context="{'group_by':'topic'}" />
+                        <filter string="Con Reunión" name="assembly_meeting"
+                            context="{'group_by':'assembly_meeting'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+        <!-- Accion para crear la emisíon -->
+        <record id="assembly_meeting_line_action" model="ir.actions.act_window">
+            <field name="name">Orden del Día</field>
+            <field name="res_model">assembly.meeting.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="assembly_meeting_line_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+    </data>
+</odoo>
