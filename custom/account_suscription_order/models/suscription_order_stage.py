@@ -37,8 +37,21 @@ class SuscriptionOrderStage(models.Model):
         ], help='Order State for Suscription Order',default='draft')
 
     # low level methods
-
     @api.model
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
+            args = args or []
+            domain = [('active','=',True)]
+            return self.search(expression.AND([domain, args]), limit=limit).name_get()
+        
+    def name_get(self):
+        result = []
+        for ast in self:
+            name = '%s - (%s) - S° %s' % (ast.name, ast.short_name)
+            result.append((ast.id, name))
+        return result
+    @api.model
+
     def create(self, vals):
         if vals.get('short_name', _('New')) == _('New'):
             vals['short_name'] = self.env['ir.sequence'].next_by_code(

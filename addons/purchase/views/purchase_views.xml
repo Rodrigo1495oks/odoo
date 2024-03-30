@@ -244,8 +244,8 @@
                                     <field name="product_qty"/>
                                     <field name="qty_received_manual" invisible="1"/>
                                     <field name="qty_received_method" invisible="1"/>
-                                    <field name="qty_received" string="Received" attrs="{'column_invisible': [('parent.state', 'not in', ('purchase', 'done'))], 'readonly': [('qty_received_method', '!=', 'manual')]}" optional="show"/>
-                                    <field name="qty_invoiced" string="Billed" attrs="{'column_invisible': [('parent.state', 'not in', ('purchase', 'done'))]}" optional="show"/>
+                                    <field name="qty_received" string="Received" attrs="'readonly': [('qty_received_method', '!=', 'manual')]}" optional="show"/>
+                                    <field name="qty_invoiced" string="Billed" optional="show"/>
                                     <field name="product_uom" string="UoM" groups="uom.group_uom"
                                         attrs="{
                                             'readonly': [('state', 'in', ('purchase', 'done', 'cancel'))],

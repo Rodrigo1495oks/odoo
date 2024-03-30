@@ -218,7 +218,7 @@ class AccountPaymentTermLine(models.Model):
     discount_percentage = fields.Float(string='Discount %', help='Early Payment Discount granted for this line')
     discount_days = fields.Integer(string='Discount Days', help='Number of days before the early payment proposition expires')
     payment_id = fields.Many2one('account.payment.term', string='Payment Terms', required=True, index=True, ondelete='cascade')
-
+    
     def _get_due_date(self, date_ref):
         self.ensure_one()
         due_date = fields.Date.from_string(date_ref)

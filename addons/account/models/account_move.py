@@ -681,7 +681,6 @@ class AccountMove(models.Model):
     def _compute_name(self):
         self = self.sorted(lambda m: (m.date, m.ref or '', m.id))
         highest_name = self[0]._get_last_sequence(lock=False) if self else False
-
         for move in self:
             if not highest_name and move == self[0] and not move.posted_before and move.date and (not move.name or move.name == '/'):
                 # In the form view, we need to compute a default sequence so that the user can edit

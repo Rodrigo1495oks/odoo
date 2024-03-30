@@ -13,7 +13,12 @@
     'data': [
         'security/security_rules.xml',
         'security/ir.model.access.csv',
+        'data/data.xml',
+        'data/order_stage.xml',
         'views/account_stock_quote_views.xml',
+        'views/account_subscription_line.xml',
+        'views/account_subscription_order.xml',
+        'views/order_stage_views.xml',
         'views/menu_item.xml',
     ],
     'demo': [

@@ -3,7 +3,7 @@
     <!-- Los usuarios solo pueden ver los registros que han creado -->
     <record model="ir.rule" id="suscription_order_user_rule_issue">
         <field name="name">Jefatura: Solo ver Registros propios</field>
-        <field name="model_id" ref="model_assembly_meeting" />
+        <field name="model_id" ref="model_account_suscription_order" />
         <field name="groups" eval="[(4, ref('account_financial_policies.account_financial_policies_stock_market_group_user'))]" />
         <field name="domain_force">
             [('user_id', '=', user.id)]
@@ -12,7 +12,7 @@
         <!-- Los usuarios solo pueden ver los registros que han creado -->
         <record model="ir.rule" id="suscription_order_user_rule_company">
             <field name="name">Jefatura: Solo ver Registros de la companía</field>
-            <field name="model_id" ref="model_assembly_meeting" />
+            <field name="model_id" ref="model_account_suscription_order" />
             <field name="groups" eval="[(4, ref('account_financial_policies.account_financial_policies_stock_market_group_user'))]" />
             <field name="domain_force">
                 [('company_id', '=', user.company_id.id)]
@@ -21,7 +21,7 @@
     <!-- Regla que habilita al presidente y Gerente a ver todos los registros -->
     <record model="ir.rule" id="suscription_order_all_rule">
         <field name="name">Jefatura: Ver Todas las órdenes de suscripción</field>
-        <field name="model_id" ref="model_assembly_meeting" />
+        <field name="model_id" ref="model_account_suscription_order" />
         <field name="groups" eval="[(4, ref('account_financial_policies.account_financial_policies_group_manager'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>

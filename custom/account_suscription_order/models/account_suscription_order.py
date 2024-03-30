@@ -10,12 +10,13 @@ from odoo import models, fields, api, tools, _
 from odoo.osv.expression import get_unaccent_wrapper
 from odoo.exceptions import ValidationError
 from odoo.addons.base.models.res_partner import _tz_get
+from odoo.tools.misc import frozendict
 from odoo.tools.translate import _
 from odoo.exceptions import UserError, AccessError
-
+from dateutil.relativedelta import relativedelta
 class SuscriptionOrder(models.Model):
     _name = 'account.suscription.order'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin','portal.mixin',]
     _description = 'Purpose of Share Subscription'
     _order = 'short_name desc, name desc'
     _rec_name = 'short_name'
@@ -41,6 +42,63 @@ class SuscriptionOrder(models.Model):
             recent_quote=order.env['account.stock.quote'].search([()],limit=1,order='date')
             order.price=recent_quote.price if recent_quote else 0
 
+    @api.depends('needed_terms')
+    def _compute_invoice_date_due(self):
+        today = fields.Date.context_today(self)
+        for move in self:
+            move.date_due = move.needed_terms and max(
+                (k['date_maturity'] for k in move.needed_terms.keys() if k),
+                default=False,
+            ) or move.date_due or today
+
+    @api.depends('payment_term_id', 'date_order', 'currency_id', 'price_total', 'date_due')
+    def _compute_needed_terms(self):
+        for invoice in self:
+            is_draft = invoice# ver como comprobar el estado del coumento
+            invoice.needed_terms = {}
+            sign = 1
+            if invoice.payment_term_id:
+                if is_draft:
+                    invoice_payment_terms = invoice.payment_term_id._compute_terms(
+                        date_ref=invoice.date_order or  fields.Date.today(),
+                        currency=invoice.currency_id,
+                        tax_amount_currency=0,
+                        tax_amount=0,
+                        untaxed_amount_currency=invoice.price_total,
+                        untaxed_amount=invoice.price_total,
+                        company=invoice.company_id,
+                        sign=sign
+                    )
+                    for term in invoice_payment_terms:
+                        key = frozendict({
+                            'move_id': invoice.id,
+                            'date_maturity': fields.Date.to_date(term.get('date')),
+                            'discount_date': term.get('discount_date'),
+                            'discount_percentage': term.get('discount_percentage'),
+                        })
+                        values = {
+                            'balance': term['company_amount'],
+                            'amount_currency': term['foreign_amount'],
+                            'discount_amount_currency': term['discount_amount_currency'] or 0.0,
+                            'discount_balance': term['discount_balance'] or 0.0,
+                            'discount_date': term['discount_date'],
+                            'discount_percentage': term['discount_percentage'],
+                        }
+                        if key not in invoice.needed_terms:
+                            invoice.needed_terms[key] = values
+                        else:
+                            invoice.needed_terms[key]['balance'] += values['balance']
+                            invoice.needed_terms[key]['amount_currency'] += values['amount_currency']
+                else:
+                    invoice.needed_terms[frozendict({
+                        'move_id': invoice.id,
+                        'date_maturity': fields.Date.to_date(invoice.invoice_date_due),
+                        'discount_date': False,
+                        'discount_percentage': 0
+                    })] = {
+                        'balance': invoice.price_total,
+                        'amount_currency': invoice.price_total,
+                    }
     # onchange methods
     @api.onchange('currency_id')
     def _onchange_currency_order(self):
@@ -66,13 +124,13 @@ class SuscriptionOrder(models.Model):
     def name_search(self, name='', args=None, operator='ilike', limit=100):
         if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
             args = args or []
-            domain = [('state','=','new')]
+            domain = [('active','=',True)]
             return self.search(expression.AND([domain, args]), limit=limit).name_get()
         
     def name_get(self):
         result = []
         for ast in self:
-            name = '%s - (%s)' % (ast.name, ast.short_name)
+            name = '%s - (%s) - F° %s' % (ast.name, ast.short_name, ast.date_order)
             result.append((ast.id, name))
         return result
     
@@ -82,36 +140,33 @@ class SuscriptionOrder(models.Model):
     name = fields.Char(string='Name', required=True, tracking=True)
     origin = fields.Char(string='Source Document')
     description=fields.Text(string='Description', help='Add a description to the document')
-    suscription_date = fields.Date(string='Subscription Date')
-    integration_date_due = fields.Date(
+    date_order = fields.Date(string='Subscription Date')
+    date_approve = fields.Datetime('Confirmation Date', readonly=1, index=True, copy=False)
+    priority = fields.Selection(selection=[('0', 'Normal'), ('1', 'Urgent')], string='Priority', default='0', index=True)
+    date_due = fields.Date(
         string='Integration Date', 
         help="This field is used for payable and receivable journal entries. "
-             "You can put the limit date for the payment of this line.",
-        states={'draft': [('readonly', False)]},
-        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
+             "You can put the limit date for the payment of this line.", compute='_compute_invoice_date_due')   
+    date_planned = fields.Datetime(
+        string='Expected Arrival', index=True, copy=False, compute='_compute_date_planned', store=True, readonly=False,
+        help="Delivery date promised by vendor. This date is used to determine expected arrival of products.")
     active=fields.Boolean(string='Archived', default=False, help='field that files the document')
     notes=fields.Html(string='Notes')
-
+    needed_terms = fields.Binary(compute='_compute_needed_terms')
     # Shares
     share_qty = fields.Integer(
         string='Quantity Shares', required='True')
     nominal_value = fields.Float(related='company_id.share_price',
                                  string='Issue Value', required=True, copy=True)
     price = fields.Monetary(string='Agreed value in the subscription',
-                         help='The value at which the share was sold, the total amount that the shareholder paid to acquire the share', readonly=True, copy=False, readonly=True, store=True, currency_field='company_currency_id',
-                         compute='_compute_share_price')
+                        help='The value at which the share was sold, the total amount that the shareholder paid to acquire the share', readonly=True, copy=False, store=True, currency_field='company_currency_id',
+                        compute='_compute_share_price')
     
     price_total = fields.Monetary(
         string='Nominal Total', store=True, currency_field='company_currency_id',
         readonly=True, 
         compute='_compute_amount_total', help='Total amount of share price')
 
-    qty_integrated = fields.Monetary(string='Integrated Quantity', currency_field='company_currency_id',
-                                      help='Amount that has been integrated')
-
-    qty_pending = fields.Monetary(string='Amount pending integration', currency_field='company_currency_id',
-                                  help='Amount that has not been integrated')
-    
     # Relational fields
 
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
@@ -120,6 +175,7 @@ class SuscriptionOrder(models.Model):
     partner_id = fields.Many2one(
         string='Shareholder', comodel_name='res.partner')
     payment_term_id = fields.Many2one(comodel_name='account.payment.term', string='Pay Terms',required=True)
+
     # === Currency fields === #
     company_currency_id = fields.Many2one(
         string='Company Currency',
@@ -133,13 +189,47 @@ class SuscriptionOrder(models.Model):
         store=True, readonly=False,
     )
     # asiento de subscripcion correspondiente
-    account_move = fields.Many2many(string='Accounting entry', comodel_name='account.move', index=True,
-                                   help='Related accounting entry', readonly=True, domain=[('move_type', '=', 'suscription')])
+    account_move_count=fields.Integer(compute="_compute_move", string='Move Count', copy=False, default=0, store=True)
+    account_move = fields.Many2many(string='Accounting entry', compute="_compute_move", comodel_name='account.move', index=True, help='Related accounting entry', readonly=True, domain=[('move_type', '=', 'suscription')])
     user_id = fields.Many2one('res.users', string='User',
                               index=True, tracking=True, default=lambda self: self.env.user)
     stage_id=fields.Many2one(string='State', comodel_name='account.suscription.order.stage', default=_default_order_stage)
-    # ACTIONS METHODS
+    # Amount Fields
+    qty_pending = fields.Monetary(string='Amount pending integration', currency_field='company_currency_id',
+                                  help='Amount that has not been integrated')
+    qty_progress=fields.Integer(string='Porcentage', default=0)
 
+    mail_reminder_confirmed = fields.Boolean("Reminder Confirmed", default=False, readonly=True, copy=False, help="True if the reminder email is confirmed by the vendor.")
+    mail_reception_confirmed = fields.Boolean("Reception Confirmed", default=False, readonly=True, copy=False, help="True if PO reception is confirmed by the vendor.")
+
+    receipt_reminder_email = fields.Boolean('Receipt Reminder Email', related='partner_id.receipt_reminder_email', readonly=False)
+    reminder_date_before_receipt = fields.Integer('Days Before Receipt', related='partner_id.reminder_date_before_receipt', readonly=False)
+
+    @api.depends('order_line.invoice_lines.move_id')
+    def _compute_invoice(self):
+        for order in self:
+            invoices = order.mapped('order_line_ids.move_lines.move_id')
+            order.account_move = invoices
+            order.account_move_count = len(invoices)
+    @api.constrains('date_due')
+    def _check_date_due(self):
+        for order in self:
+            if order.date_due> (order.date_due+relativedelta(years=2)):
+                raise ValidationError(_("The deadline for integration cannot be more than 2 years"))
+    # ACTIONS METHODS
+    def confirm_reminder_mail(self, confirmed_date=False):
+        for order in self:
+            if order.stage_id.state in ['approved', 'suscribed'] and not order.mail_reminder_confirmed:
+                order.mail_reminder_confirmed = True
+                date = confirmed_date or self.date_planned.date()
+                order.message_post(body=_("%s confirmed the receipt will take place on %s.", order.partner_id.name, date))
+    
+    @api.returns('mail.message', lambda value: value.id)
+    def message_post(self, **kwargs):
+        if self.env.context.get('mark_rfq_as_sent'):
+            self.filtered(lambda o: o.state == 'draft').write({'state': 'sent'})
+        return super(SuscriptionOrder, self.with_context(mail_post_autofollow=self.env.context.get('mail_post_autofollow', True))).message_post(**kwargs)
+    
     def action_create_suscription(self):
         """Create the suscription associated to the SO.
         """
@@ -328,7 +418,6 @@ class SuscriptionOrder(models.Model):
         for order in self:
             for cash_line in order.cash_lines:
                 total += cash_line.amount
-
         return total
 
     def _action_create_share_issuance(self):
@@ -441,212 +530,3 @@ class SuscriptionOrder(models.Model):
             if dif_per > 0.2:
                 raise ValidationError(
                     'La diferencia entre la cantidad prometida y la cantidad integrada, no puede ser superior al 20%. \n Revea la emision de acciones correspondiente')
-
-
-
-class suscriptionOrderLineCredit(models.Model):
-    _name = 'suscription.order.line.credit'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
-    # _inherits = {'calendar.event': 'event_id'}
-    _description = 'Objeto Línea Subscripción de Acciones - credito'
-    _order = 'source_document desc, amount desc'
-    _rec_name = 'source_document'
-
-    order_id = fields.Many2one(string='Orden', comodel_name='suscription.order', index=True, required=True, readonly=True, auto_join=True, ondelete="cascade",
-                               check_company=True,
-                               help="La orden de esta linea.")
-
-    @api.depends('currency_id', 'company_id', 'move_id.date')
-    def _compute_currency_rate(self):
-        @lru_cache()
-        def get_rate(from_currency, to_currency, company, date):
-            return self.env['res.currency']._get_conversion_rate(
-                from_currency=from_currency,
-                to_currency=to_currency,
-                company=company,
-                date=date,
-            )
-        for line in self:
-            line.currency_rate = get_rate(
-                from_currency=line.company_currency_id,
-                to_currency=line.currency_id,
-                company=line.company_id,
-                date=line.move_id.invoice_date or line.move_id.date or fields.Date.context_today(
-                    line),
-            )
-
-    @api.depends('currency_rate', 'amount')
-    def _compute_amount_currency(self):
-        for line in self:
-            if line.amount_currency is False:
-                line.amount_currency = line.currency_id.round(
-                    line.amount * line.currency_rate)
-            if line.currency_id == line.company_id.currency_id:
-                line.amount_currency = line.amount
-
-    @api.depends('order_id.currency_id')
-    def _compute_currency_id(self):
-        for line in self:
-            line.currency_id = line.currency_id or line.company_id.currency_id
-
-    @api.depends('currency_id', 'company_currency_id')
-    def _compute_same_currency(self):
-        for record in self:
-            record.is_same_currency = record.currency_id == record.company_currency_id
-
-    @api.onchange('amount_currency', 'currency_id')
-    def _inverse_amount_currency(self):
-        for line in self:
-            if line.currency_id == line.company_id.currency_id and line.value != line.amount_currency:
-                line.value = line.amount_currency
-            elif (
-                line.currency_id != line.company_id.currency_id
-                and not line.order_id.is_invoice(True)
-                and not self.env.is_protected(self._fields['value'], line)
-            ):
-                line.value = line.company_id.currency_id.round(
-                    line.amount_currency / line.currency_rate)
-        # Do not depend on `move_id.partner_id`, the inverse is taking care of that
-
-    # methods
-
-    def _prepare_credit_line_vals(self):
-        self.ensure_one()
-        vals = {
-            'amount': self.amount,
-            'partner_id': self.partner_id,
-            'source_document': self.source_document,
-            'amount_currency': self.amount_currency,
-            'company_currency_id': self.company_currency_id.id,
-            'currency_id': self.currency_id.id,
-            'is_same_currency': self.is_same_currency,
-            'suscription_line_id': self.id
-        }
-        return vals
-
-    amount = fields.Monetary(
-        string='Monto', help='Monto extraido de la ultima valuacion de la deuda', currency_field='company_currency_id')
-
-    partner_id = fields.Many2one(
-        string='Deudor', comodel_name='res.partner', help='Titular de la deuda')
-
-    source_document = fields.Char(string='Documento de Origen')
-    date = fields.Date(string='Fecha de vencimiento',
-                       default=fields.Datetime.now)
-    # === Accountable fields === #
-
-    currency_rate = fields.Float(
-        compute='_compute_currency_rate',
-        help="Currency rate from company currency to document currency.",
-    )
-    amount_currency = fields.Monetary(
-        string='Amount in Currency',
-        group_operator=None,
-        compute='_compute_amount_currency', inverse='_inverse_amount_currency', store=True, readonly=False, precompute=True,
-        help="The amount expressed in an optional other currency if it is a multi-currency entry.")
-    company_currency_id = fields.Many2one(
-        string='Company Currency',
-        related='order_id.company_currency_id', readonly=True, store=True, precompute=True,
-    )
-    currency_id = fields.Many2one(
-        comodel_name='res.currency',
-        string='Currency',
-        compute='_compute_currency_id', store=True, readonly=False, precompute=True,
-        required=True,
-    )
-    is_same_currency = fields.Boolean(compute='_compute_same_currency')
-
-
-class suscriptionOrderLineCash(models.Model):
-    _name = 'suscription.order.line.cash'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
-    # _inherits = {'calendar.event': 'event_id'}
-    _description = 'Objeto Línea Subscripción de Acciones - credito'
-    _order = 'source_document desc, amount desc'
-    _rec_name = 'source_document'
-
-    order_id = fields.Many2one(string='Orden', comodel_name='suscription.order', index=True, required=True, readonly=True, auto_join=True, ondelete="cascade",
-                               check_company=True,
-                               help="La orden de esta linea.")
-
-    @api.depends('currency_id', 'company_id', 'move_id.date')
-    def _compute_currency_rate(self):
-        @lru_cache()
-        def get_rate(from_currency, to_currency, company, date):
-            return self.env['res.currency']._get_conversion_rate(
-                from_currency=from_currency,
-                to_currency=to_currency,
-                company=company,
-                date=date,
-            )
-        for line in self:
-            line.currency_rate = get_rate(
-                from_currency=line.company_currency_id,
-                to_currency=line.currency_id,
-                company=line.company_id,
-                date=line.move_id.invoice_date or line.move_id.date or fields.Date.context_today(
-                    line),
-            )
-
-    @api.depends('currency_rate', 'amount')
-    def _compute_amount_currency(self):
-        for line in self:
-            if line.amount_currency is False:
-                line.amount_currency = line.currency_id.round(
-                    line.amount * line.currency_rate)
-            if line.currency_id == line.company_id.currency_id:
-                line.amount_currency = line.amount
-
-    @api.depends('order_id.currency_id')
-    def _compute_currency_id(self):
-        for line in self:
-            line.currency_id = line.currency_id or line.company_id.currency_id
-
-    @api.depends('currency_id', 'company_currency_id')
-    def _compute_same_currency(self):
-        for record in self:
-            record.is_same_currency = record.currency_id == record.company_currency_id
-
-    @api.onchange('amount_currency', 'currency_id')
-    def _inverse_amount_currency(self):
-        for line in self:
-            if line.currency_id == line.company_id.currency_id and line.value != line.amount_currency:
-                line.value = line.amount_currency
-            elif (
-                line.currency_id != line.company_id.currency_id
-                and not line.order_id.is_invoice(True)
-                and not self.env.is_protected(self._fields['value'], line)
-            ):
-                line.value = line.company_id.currency_id.round(
-                    line.amount_currency / line.currency_rate)
-        # Do not depend on `move_id.partner_id`, the inverse is taking care of that
-    amount = fields.Monetary(
-        string='Monto', help='Monto extraido de la ultima valuacion de la deuda', currency_field='company_currency_id')
-
-    partner_id = fields.Many2one(
-        string='Deudor', comodel_name='res.partner', help='Titular de la deuda')
-
-    source_document = fields.Char(string='Documento de Origen')
-
-    # === Accountable fields === #
-
-    currency_rate = fields.Float(
-        compute='_compute_currency_rate',
-        help="Currency rate from company currency to document currency.",
-    )
-    amount_currency = fields.Monetary(
-        string='Amount in Currency',
-        group_operator=None,
-        compute='_compute_amount_currency', inverse='_inverse_amount_currency', store=True, readonly=False, precompute=True,
-        help="The amount expressed in an optional other currency if it is a multi-currency entry.")
-    company_currency_id = fields.Many2one(
-        string='Company Currency',
-        related='order_id.company_currency_id', readonly=True, store=True, precompute=True,
-    )
-    currency_id = fields.Many2one(
-        comodel_name='res.currency',
-        string='Currency',
-        compute='_compute_currency_id', store=True, readonly=False, precompute=True,
-        required=True,
-    )
-    is_same_currency = fields.Boolean(compute='_compute_same_currency')

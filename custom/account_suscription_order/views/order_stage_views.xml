@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- vistas list General -->
+        <record id="account_suscription_order_stage_view_tree" model="ir.ui.view">
+            <field name="name">account.suscription.order.stage.tree</field>
+            <field name="model">account.suscription.order.stage</field>
+            <field name="arch" type="xml">
+                <tree string="Suscription Order">
+                    <field name="short_name" />
+                    <field name="name" />
+                    <field name="fold" />
+                    <field name='order_state' />
+                </tree>
+            </field>
+        </record>
+        <!-- formulario -->
+        <record id="account_suscription_order_stage_view_form" model="ir.ui.view">
+            <field name="name">account.suscription.order.stage.form</field>
+            <field name="model">account.suscription.order.stage</field>
+            <field name="arch" type="xml">
+                <form string="Subscription Stage">
+                    <sheet>
+                        <newline />
+                        <group id='header_left_group' string='Line Info'>
+                            <field name='short_name' widget='badge'/>
+                            <field name='fold' widget='toggle'/>
+                            <field name='order_state' widget='radio'/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <!-- Search view -->
+        <record id="account_suscription_order_line_view_search" model="ir.ui.view">
+            <field name="name">account.suscription.order.stage.search</field>
+            <field name="model">account.suscription.order.stage</field>
+            <field name="arch" type="xml">
+                <search string="Suscription Stage Search">
+                    <field name="name" string="Reference"
+                        filter_domain="[
+                    '|', '|',
+                        ('name', 'ilike', self),
+                        ('short_name', '=', self)" />
+                    <separator />
+                
+                    <field name="order_state" string="Order State" />
+                    <separator />
+                    <filter string="Fold" name="fold" context="{'group_by':'fold'}" />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Fold" name="fold" context="{'group_by':'fold'}" />
+                        <field name="order_state" string="Order State" />
+                    </group>
+                </search>
+            </field>
+        </record>
+        <!-- Accion para crear la emisíon -->
+        <record id="account.suscription.order.stage_action" model="ir.actions.act_window">
+            <field name="name">Suscription Order Stage</field>
+            <field name="res_model">account.suscription.order.stage</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="account_suscription_order_view_tree" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+    </data>
+</odoo>

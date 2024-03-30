@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-
         <!-- vistas -->
         <record id="assembly_meeting_view_tree" model="ir.ui.view">
             <field name="name">assembly.meeting.tree</field>
             <field name="model">assembly.meeting</field>
             <field name="arch" type="xml">
-                <tree string="Reunión" decoration-success="state=='finished'"
+                <tree string="Suscription Order" decoration-success="state=='finished'"
                     decoration-bf='state=="new"' decoration-muted="state=='canceled'">
                     <field name="assembly_meet_type" class="mr-3" />
                     <field name="short_name" widget='handle' />
