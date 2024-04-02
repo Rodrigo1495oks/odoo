@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_account_issuance_register_form" model="ir.ui.view">
+            <field name="name">wizard.issuance.register.form</field>
+            <field name="model">wizard.issuance.register</field>
+            <field name="arch" type="xml">
+                <form string="Registrar Voto">
+                    <!-- Invisible fields -->
+                    <group string='Select relevant data'>
+                        <field name='share_issuance_ids'/>
+                        <field name='topic' readonly='1'/>
+                    </group>
+                    <br />
+                    <footer>
+                        <button string="Associate Issuance" name="assign_issue_ids" type="object"
+                            class="oe_highlight" data-hotkey="q" />
+                        <button string="Cancel" class="btn btn-secondary" special="cancel"
+                            data-hotkey="z" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <!-- Accion para crear la emisíon -->
+        <record id="action_asign_issuance" model="ir.actions.act_window">
+            <field name="name">Associate Issuance of shares with issues</field>
+            <field name="res_model">wizard.issuance.register</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_account_issuance_register_form" />
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

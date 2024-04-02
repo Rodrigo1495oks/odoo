@@ -1,4 +1,5 @@
 from . import account_share_issuance
+from . import assembly_meeting_topic
 from . import res_company
 from . import res_config_settings
 from . import suscription_order_stage

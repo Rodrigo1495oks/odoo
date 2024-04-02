@@ -261,6 +261,9 @@ class AssemblyMeeting(models.Model):
     def action_finish(self):
         for meet in self:
             if meet.state in ['count']:
+                for line in meet.assembly_meeting_line:
+                    if line['state']=='no_treating': 
+                        raise UserError(_('Error!. Los topicos deben aprobarse o rechazarse. No pueden quedar sin tratar'))
                 meet.state = 'finished'
                 meet.date_end=fields.Datetime.now()
             else:

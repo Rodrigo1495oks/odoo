@@ -20,6 +20,8 @@
         'views/order_stage_views.xml',
         'views/account_subscription_line.xml',
         'views/account_subscription_order.xml',
+        'views/assembly_meeting_topic.xml',
+        'wizard/wizard_issuance_register.xml',
         'views/menu_item.xml',
     ],
     'demo': [
