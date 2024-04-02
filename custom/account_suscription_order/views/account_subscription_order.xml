@@ -17,6 +17,7 @@
                     <field name='price_total' widget='monetary' />
                     <field name='qty_pending' widget='monetary' />
                     <field name='stage_id' />
+                    <field name="state" />
                 </tree>
             </field>
         </record>
@@ -34,7 +35,7 @@
                             type="object" groups='top_management.top_management_group_president' /> -->
                         <button name="confirm_reminder_mail" string="Confirm Receipt Date"
                             type="object"
-                            attrs="{'invisible': ['|','|', ('stage_id.state', 'not in', ('approved', 'suscribed')), ('mail_reminder_confirmed', '=', True), ('date_planned', '=', False)]}"
+                            attrs="{'invisible': ['|','|', ('state', 'not in', ('approved', 'suscribed')), ('mail_reminder_confirmed', '=', True), ('date_planned', '=', False)]}"
                             groups="base.group_no_one" data-hotkey="o" />
                         <field name='stage_id' widget="statusbar"
                             options="{'clickable': '1', 'fold_field': 'fold' " />
@@ -42,7 +43,7 @@
                     <sheet>
                         <div class="oe_title">
                             <span class="o_form_label"
-                                attrs="{'invisible': [('stage_id.state','in',('draft'))]}">Subscription
+                                attrs="{'invisible': [('state','in',('draft'))]}">Subscription
                                 Order </span>
                             <h1 class="d-flex mb32">
                                 <field name="short_name" readonly="1" />
@@ -53,7 +54,7 @@
                         <newline />
                         <group id='header_left_group' string='Line Info'>
                             <field name='name' />
-
+                            <field name="state" />
                             <field name='origin' />
                             <field name='active' string='Active' />
                             <field name='company_id' string="Company" />
@@ -62,12 +63,11 @@
                         </group>
                         <group>
                             <field name='date_due' />
-                            <field name="date_order"
-                                attrs="{'invisible': [('state','in',('purchase','done'))]}" />
+                            <field name="date_order" />
                             <label for="date_approve"
-                                attrs="{'invisible': [('state','not in',('purchase','done'))]}" />
+                                attrs="{'invisible': [('state','in',('draft','new'))]}" />
                             <div name="date_approve"
-                                attrs="{'invisible': [('state','not in',('purchase','done'))]}"
+                                attrs="{'invisible': [('state','in',('draft','new'))]}"
                                 class="o_row">
                                 <field name="date_approve" />
                                 <field name="mail_reception_confirmed" invisible="1" />
@@ -78,7 +78,7 @@
                             <label for="date_planned" />
                             <div name="date_planned_div" class="o_row">
                                 <field name="date_planned"
-                                    attrs="{'readonly': [('state', 'not in', ('draft', 'sent', 'to approve', 'purchase'))]}" />
+                                    attrs="{'readonly': [('state', 'not in', ('draft','new'))]}" />
                                 <field name="mail_reminder_confirmed" invisible="1" />
                                 <span class="text-muted"
                                     attrs="{'invisible': [('mail_reminder_confirmed', '=', False)]}">(confirmed
@@ -105,15 +105,14 @@
                             <field name='price' widget='monetary' />
                             <field name='price_total' widget='monetary' />
                         </group>
-                        <group string='Company Info' id='header_down_right_group'
-                            attrs="{'invisible': [('line_type', '!=', 'credit')]}">
+                        <group string='Company Info' id='header_down_right_group'>
                             <field name='company_id' />
                             <field name='payment_term_id' />
                             <span class="oe_inline o_form_label mx-3"
                                 groups="base.group_multi_currency"> in </span>
                             <field name="currency_id"
                                 groups="base.group_multi_currency"
-                                attrs="{'readonly': [('state', '!=', 'draft')]" />
+                                attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             <field name='partner_id' widget="many2one_avatar" />
                             <field name='user_id' widget="many2one_avatar" />
                         </group>
@@ -121,11 +120,8 @@
                         <notebook>
                             <page id='cash_lines' string='Cash Lines'>
                                 <group string='Order Lines'>
-                                    <field name='order_line_ids' widget="section_and_note_one2many"
-                                        mode="tree"
-                                        context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_cash_view_tree'}"
-                                        attrs="{'readonly': [('stage_id.state', 'in', ('new','approved', 'subscribed','finished','canceled'))]}"
-                                        domain="[('line_type','=','cash')]" />
+                                    <field name='order_line_ids' widget="section_and_note_one2many" context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_cash_view_tree'}" attrs="{'readonly': [('state', 'in', ('new','approved', 'subscribed','finished','canceled'))]}"
+                                         />
                                 </group>
                                 <group class="oe_subtotal_footer oe_right">
                                     <field name="credit_total" widget="account-tax-totals-field"
@@ -135,10 +131,7 @@
                             <page id='credit_lines' string='Credit Lines'>
                                 <group string='Order Lines'>
                                     <field name='order_line_ids' widget="section_and_note_one2many"
-                                        mode="tree"
-                                        context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_credit_view_tree'}"
-                                        attrs="{'readonly': [('stage_id.state', 'in', ('new','approved', 'subscribed','finished','canceled'))]}"
-                                        domain="[('line_type','=','credit')]" />
+                                        context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_credit_view_tree'}" attrs="{'readonly': [('state', 'in', ('new','approved', 'subscribed','finished','canceled'))]}" domain="[('line_type','=','credit')]" />
                                 </group>
                                 <group class="oe_subtotal_footer oe_right">
                                     <field name="credit_total" widget="account-tax-totals-field"
@@ -148,10 +141,7 @@
                             <page id='product_lines' string='Product Lines'>
                                 <group string='Order Lines'>
                                     <field name='order_line_ids' widget="section_and_note_one2many"
-                                        mode="tree"
-                                        context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_product_view_tree'}"
-                                        attrs="{'readonly': [('stage_id.state', 'in', ('new','approved', 'subscribed','finished','canceled'))]}"
-                                        domain="[('line_type','=','credit')]" />
+                                       context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_product_view_tree'}" attrs="{'readonly': [('state', 'in', ('new','approved','subscribed','finished','canceled'))]}" domain="[('line_type','=','credit')]" />
                                 </group>
                                 <group class="oe_subtotal_footer oe_right">
                                     <field name="product_total" widget="account-tax-totals-field"
@@ -162,7 +152,7 @@
                         <group>
                             <group>
                                 <field colspan="2" name="notes" nolabel="1"
-                                    placeholder="Define your terms and conditions ..." />
+                                    placeholder="Define your terms and conditions..." />
                             </group>
                             <group class="oe_subtotal_footer oe_right">
                                 <field name="amount_total" widget="account-tax-totals-field"
@@ -173,7 +163,7 @@
                     </sheet>
                     <div class="o_attachment_preview"
                         options="{types: ['image', 'pdf'], 'order':'desc'}"
-                        attrs="{'invisible': [('stage_id.state', '!=', 'draft')]}" />
+                        attrs="{'invisible': [('state', '!=', 'draft')]}" />
                     <div class="oe_chatter">
                         <field name="message_follower_ids" />
                         <field name="activity_ids" />
@@ -183,7 +173,7 @@
             </field>
         </record>
         <!-- Search view -->
-        <record id="account_suscription_order_line_view_search" model="ir.ui.view">
+        <record id="account_suscription_order_view_search" model="ir.ui.view">
             <field name="name">account.suscription.order.search</field>
             <field name="model">account.suscription.order</field>
             <field name="arch" type="xml">
@@ -195,6 +185,7 @@
                         ('short_name', '=', self),
                         ('description', 'ilike', self)]" />
                     <separator />
+                    <field name="state" />
                     <field name="notes" string="Notes" />
                     <field name="partner_id" string="Partner" />
                     <field name="company_id" string="Company" />
@@ -207,16 +198,16 @@
                     <filter string="Starred" name="starred" domain="[('priority', '=', '1')]" />
                     <separator />
                     <filter name="draft" string="RFQs"
-                        domain="[('stage_id.state', 'in', ('draft', 'new'))]" />
+                        domain="[('state', 'in', ('draft', 'new'))]" />
                     <separator />
                     <filter name="approved" string="Suscription  Orders"
-                        domain="[('stage_id.state', 'in', ('approved', 'subscribed'))]" />
+                        domain="[('state', 'in', ('approved', 'subscribed'))]" />
                     <filter name="to_approve" string="To Approve"
-                        domain="[('stage_id.state', '=', 'new')]" />
+                        domain="[('state', '=', 'new')]" />
                     <filter name="draft_rfqs" string="Draft RFQs"
-                        domain="[('stage_id.state', '=', 'draft')]" />
+                        domain="[('state', '=', 'draft')]" />
                     <filter name="late_rfqs" string="Late RFQs"
-                        domain="[('stage_id.state', 'in', ['draft', 'new']),('date_planned', '&lt;', datetime.datetime.now())]" />
+                        domain="[('state', 'in', ['draft', 'new']),('date_planned', '&lt;', datetime.datetime.now())]" />
                     <separator />
                     <filter invisible="1" string="Late Activities" name="activities_overdue"
                         domain="[('my_activity_date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"
@@ -243,33 +234,29 @@
                         <filter string="Currency" name="currency_id"
                             context="{'group_by':'currency_id'}" />
                         <filter string="User" name="user_id" context="{'group_by':'user_id'}" />
-                        <filter string="Stage" name="stage_id" context="{'group_by':'stage_id'}" />
+                        <filter string="Stage" name="state" context="{'group_by':'state'}" />
                         <filter name="active"
                             string="Active" domain="[('active','=',True)]" />
                     </group>
                     <!-- Panel lateral de busqueda -->
                     <searchpanel>
                         <field name='user_id' icon='fa fa-users' />
-                        <field name='partner_id' icon='fa fa-list' select="multi"
-                            groupby='position' />
-                        <field name='currency_id' icon='fa fa-solid fa-wallet' select="multi"
-                            groupby='position' />
-                        <field name='stage_id' icon='fa-solid fa-mug-saucer' select="multi"
-                            groupby='position' />
+                        <field name='partner_id' icon='fa fa-list' select="multi" groupby='position' />
+                        <field name='currency_id' icon='fa fa-solid fa-wallet' select="multi" groupby='name' />
+                        <field name='stage_id' icon='fa-solid fa-mug-saucer' select="multi" groupby='order_state' />
                         <field name='payment_term_id' icon='fa-solid fa-magnifying-glass-chart'
-                            select="multi"
-                            groupby='position' />
+                            select="multi" groupby='name' />
                     </searchpanel>
                 </search>
             </field>
         </record>
         <!-- Estate Property Kanban View  -->
-        <record model="ir.ui.view" id="view_assembly_meeting_kanban">
+        <record model="ir.ui.view" id="view_account_suscription_order_kanban">
             <field name="name">account.suscription.order.kanban</field>
             <field name="model">account.suscription.order</field>
             <field name="arch" type="xml">
                 <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
-                <kanban default_group_by="stage_id.state" group_create='1' group_delete='1'
+                <kanban default_group_by="stage_id" group_create='1' group_delete='1'
                     group_edit='1'
                     archivable='1' quick_create='1'
                     quick_create_view='account_suscription_order.account_suscription_order_form_quick_create'
@@ -279,6 +266,7 @@
                     <field name="origin" readonly="1" />
                     <field name="description" />
                     <field name="stage_id" />
+                    <field name="state" />
                     <field name="priority" widget="priority" />
                     <field name="date_order" />
                     <field name="date_approve" />
@@ -292,7 +280,7 @@
                     <field name="currency_id" />
                     <field name="qty_pending" />
                     <field name="user_id" widget="many2one_avatar_user" />
-                    <progressbar field="stage_id.state"
+                    <progressbar field="stage_id"
                         colors='{"integrated": "success", "today": "warning", "approved": "danger"}' />
                     <templates>
                         <t t-name="kanban-box">
@@ -444,7 +432,7 @@
             <field name="model">account.suscription.order</field>
             <field name="priority">1000</field>
             <field name="arch" type="xml">
-                <form>
+                <form string="Subscription Order">
                     <group>
                         <field name="name" placeholder="e.g. Suscription por an Shareholder....." />
                         <label for="date_order" string="Date" />
@@ -528,7 +516,7 @@
             <field name="res_model">account.suscription.order</field>
             <field name="view_mode">tree,kanban,form,calendar,graph,pivot,activity</field>
             <field name="view_id" ref="account_suscription_order_view_tree" />
-            <field name="domain">[('active','=',True)]</field>
+            <field name="domain">[]</field>
             <field name="context">{}</field>
         </record>
     </data>

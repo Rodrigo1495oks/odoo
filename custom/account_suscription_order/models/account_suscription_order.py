@@ -194,6 +194,14 @@ class SuscriptionOrder(models.Model):
     user_id = fields.Many2one('res.users', string='User',
                               index=True, tracking=True, default=lambda self: self.env.user)
     stage_id=fields.Many2one(string='State', comodel_name='account.suscription.order.stage', default=_default_order_stage)
+    state=fields.Selection(string='State',related='stage_id.order_state',readonly=True, selection=[
+        ('draft','Draft'), # se permite modificaciones
+        ('new','New'), # se cierran las modificaciones
+        ('approved','Approved'), # se vuelven a permitir algunas modficaciones, relacionadas a las lineas, para hacer coincidir con price_total
+        ('subscribed','Subscribed'), # se bloquea la edicion de nuevo
+        ('finished','Finished'), # se bloquea la edicion totalmente
+        ('canceled','Canceled'), # se bloquea la edicion totalmente, pero se permite volver a borrador
+        ])
     # Amount Fields
     qty_pending = fields.Monetary(string='Amount pending integration', currency_field='company_currency_id',
                                   help='Amount that has not been integrated')

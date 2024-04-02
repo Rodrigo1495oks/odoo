@@ -155,16 +155,10 @@ class SharesIssuance(models.Model):
                                
                                store=True, readonly=True, 
                                compute='_amount_all')
+    
+
     def action_approve(self):
-        for issuance in self:
-            if issuance.state not in ['draft', 'cancel', 'suscribed', 'approved'] and self.user_has_groups('account_financial_policies.account_financial_policies_group_manager'): # and issuance.topic.id.state == 'approved':
-                issuance.state = 'approved'
-                # creo las acciones
-                for i in range(self.shares_qty):
-                    share_vals = issuance._prepare_share_values()
-                    self.env['account.share'].create(share_vals)
-            else:
-                raise UserError('Orden de emision no autorizada')
+        return {}
 
     def action_cancel(self):
         for issuance in self:
@@ -192,16 +186,7 @@ class SharesIssuance(models.Model):
                 raise UserError('Acción no válida. La emision no esta suscrita o el aporte irrevocable no esta Aprobado')
 
     def action_confirm(self):
-        self.ensure_one()
-        for issue in self:
-            if issue.state == 'draft' and self.user_has_groups('account_financial_policies.account_financial_policies_stock_market_group_manager'):
-                issue.state = 'new'
-                # topic_vals = self._prepare_topic_values()
-                # self.env['assembly.meeting.topic'].create(topic_vals)
-                return True
-            else:
-                raise UserError(
-                    'Accion no permitida')
+        return {}
 
     def action_draft(self):
         self.ensure_one()
@@ -217,16 +202,6 @@ class SharesIssuance(models.Model):
                 raise UserError(
                     'Accion no permitida')
     # methods
-
-    def _prepare_topic_values(self):
-        self.ensure_one()
-        vals = {
-            "name": f" Emisión N°: {self.short_name}/= {self.makeup_date} ",
-            "description": f'Emisión de acciones',
-            "topic_type": "issuance",
-            "share_issuance": self.id
-        }
-        return vals
 
     def _prepare_share_values(self):
         self.ensure_one()

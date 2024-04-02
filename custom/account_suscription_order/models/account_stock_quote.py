@@ -42,10 +42,11 @@ class AccountStockQuote(models.Model):
     def name_get(self):
         result = []
         for ast in self:
-            name = '%s - (%s)' % (ast.name, ast.short_name)
+            name = '%s - (%s)' % (ast.name, ast.date)
             result.append((ast.id, name))
         return result
     
+    name=fields.Char(string='Name')
     date=fields.Date(string='Date', help='Date for Stock Quote')
     price=fields.Monetary(string='Price',help='listing price', company_currency_id='company_currency_id')
 
@@ -61,6 +62,4 @@ class AccountStockQuote(models.Model):
         tracking=True,
         required=True,
         store=True, readonly=False, precompute=True,
-        states={'posted': [('readonly', True)], 'cancel': [
-            ('readonly', True)]},
     )

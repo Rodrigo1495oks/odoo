@@ -56,11 +56,11 @@
             </field>
         </record>
         <!-- Accion para crear la emisíon -->
-        <record id="account.suscription.order.stage_action" model="ir.actions.act_window">
+        <record id="account_suscription_order_stage_action" model="ir.actions.act_window">
             <field name="name">Suscription Order Stage</field>
             <field name="res_model">account.suscription.order.stage</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="account_suscription_order_view_tree" />
+            <field name="view_id" ref="account_suscription_order_stage_view_tree" />
             <field name="domain">[]</field>
             <field name="context">{}</field>
         </record>

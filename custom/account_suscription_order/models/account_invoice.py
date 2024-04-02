@@ -9,7 +9,6 @@ _logger = logging.getLogger(__name__)
 
 TOLERANCE = 0.02  # tolerance applied to the total when searching for a matching purchase order
 
-
 class AccountMove(models.Model):
     _inherit = 'account.move'
 

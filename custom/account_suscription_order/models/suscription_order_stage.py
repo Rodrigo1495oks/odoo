@@ -47,7 +47,7 @@ class SuscriptionOrderStage(models.Model):
     def name_get(self):
         result = []
         for ast in self:
-            name = '%s - (%s) - S° %s' % (ast.name, ast.short_name)
+            name = '%s - (%s) - S° %s' % (ast.name, ast.short_name, ast.order_state)
             result.append((ast.id, name))
         return result
     @api.model

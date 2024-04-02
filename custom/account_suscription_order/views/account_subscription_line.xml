@@ -12,7 +12,7 @@
                     <field name="name" widget="section_and_note_text" />
                     <field name="date" />
                     <field name="ref" />
-                    <field name="line_type" />
+                    <field name="line_type"/>
                     <field name="currency_id" />
                     <field name="money_type" widget='badge' />
                     <field name="description" />
@@ -45,11 +45,14 @@
                     <field name="display_type" invisible="1" />
                     <field name="line_type"/>
                     <field name="product_type" invisible="1" />
-                    <field name="currency_id" optional="show" attrs="{'required': [('display_type', '=', False),('line_type', '=', 'money')],'readonly': [('state', '!=', 'draft')]}" force_save="1"/>
+                    <field name="currency_id" optional="show"
+                        attrs="{'required': [('display_type', '=', False),('line_type', '=', 'money')],'readonly': [('state', '!=', 'draft')]}"
+                        force_save="1" />
                     <field name="money_type" widget='badge'
-                    attrs="{'required': [('display_type', '=', False),('line_type', '=', 'money')], 'readonly': [('state', '!=', 'draft')]}" force_save="1"/>
+                        attrs="{'required': [('display_type', '=', False),('line_type', '=', 'money')], 'readonly': [('state', '!=', 'draft')]}"
+                        force_save="1" />
                     <field name="description" optional="show"
-                    attrs="{'required': [('display_type', '=', False),('line_type', '=', 'money')], 'readonly': [('state', '!=', 'draft')]}"/>
+                        attrs="{'required': [('display_type', '=', False),('line_type', '=', 'money')], 'readonly': [('state', '!=', 'draft')]}" />
                     <field name="price_unit" widget='monetary' />
                     <field name="price_total" widget='monetary' />
                     <field name="amount_residual" widget='monetary' />
@@ -75,15 +78,20 @@
                         <create name="add_note_control" string="Add a note"
                             context="{'default_display_type': 'line_note'}" />
                     </control>
-                    
+
                     <field name="display_type" invisible="1" />
-                    <field name="line_type"/>
-                    <field name="credit_type"  attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}"/>
-                    <field name="currency_id" attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}"/>
+                    <field name="line_type" />
+                    <field name="credit_type"
+                        attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}" />
+                    <field name="currency_id"
+                        attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}" />
                     <field name="name" widget="section_and_note_text" />
                     <field optional="show"
-                        name="doc_source" attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}"/>
-                    <field name="partner_id" attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}" widget="many2one_avatar" />
+                        name="doc_source"
+                        attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}" />
+                    <field name="partner_id"
+                        attrs="{'required': [('display_type', '=', False),('line_type', '=', 'credit')], 'readonly': [('state', '!=', 'draft')]}"
+                        widget="many2one_avatar" />
                     <field name="price_unit" widget='monetary' />
                     <field name="price_total" widget='monetary' />
                     <field name="amount_residual" widget='monetary' />
@@ -112,17 +120,21 @@
                     </control>
                     <field name="name" widget="section_and_note_text" />
                     <field name="display_type" invisible="1" />
-                    <field name="line_type"/>
+                    <field name="line_type" />
                     <field name="product_type" invisible="1" />
                     <field name="date" optional="show"
                         attrs="{'required': [('display_type', '=', False)]}" force_save="1" />
                     <field name="product_uom_category_id" invisible="1" />
-                    <field name="currency_id" attrs="{
+                    <field name="currency_id"
+                        attrs="{
                         'readonly': [('state', '!=', 'draft')],
-                        'required': [('display_type', '=', False)]}"/>
-                    <field name="product_id" attrs="{
+                        'required': [('display_type', '=', False)]}" />
+                    <field name="product_id"
+                        attrs="{
                         'readonly': [('state', '!=', 'draft')],
-                        'required': [('display_type', '=', False)]}" force_save="1" domain="['|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]" />
+                        'required': [('display_type', '=', False)]}"
+                        force_save="1"
+                        domain="['|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]" />
 
                     <field name="asset_profile_id" />
                     <field name="product_qty" />
@@ -133,7 +145,8 @@
                         optional="show" />
 
                     <field name="product_uom_id" string="UoM" groups="uom.group_uom"
-                        attrs="{'readonly': [('state', 'in', ('partial_integrated', 'integrated', 'canceled'))],'required': [('display_type', '=', False)]}" force_save="1" optional="show" />
+                        attrs="{'readonly': [('state', 'in', ('partial_integrated', 'integrated', 'canceled'))],'required': [('display_type', '=', False)]}"
+                        force_save="1" optional="show" />
                     <field name="product_packaging_qty"
                         attrs="{'invisible': ['|', ('product_id', '=', False), ('product_packaging_id', '=', False)]}"
                         groups="product.group_stock_packaging" optional="show" />
@@ -170,7 +183,7 @@
                             <field name='date' />
                             <field name='ref' string='reference' />
                             <field name='active' string='Active' />
-                            <field name='line_type' widget='label_selection' />
+                            <field name='line_type' widget='label_selection'/>
                             <field name='company_id' string="Line's Company" />
                             <field name='currency_id' string="Line's Currency" />
                         </group>
@@ -188,6 +201,7 @@
                         </group>
                         <group string='Product Fields' id='header_down_left_group'
                             attrs="{'invisible': ['|',('line_type', '!=', 'product'),('display_type', '!=', False)]}">
+                            <field name="product_uom_category_id" />
                             <field name='product_id' string='Product Related'
                                 context="{'partner_id': parent.partner_id}"
                                 widget="many2one_barcode"
@@ -203,7 +217,10 @@
                             <field name="qty_received_method" invisible="1" />
                             <field name="qty_received" string="Received Quantity"
                                 attrs="{'readonly': [('qty_received_method', '!=', 'manual')]}" />
-                                <field name="product_packaging_id" attrs="{'invisible': [('product_id', '=', False)]}" context="{'default_product_id': product_id, 'tree_view_ref':'product.product_packaging_tree_view', 'form_view_ref':'product.product_packaging_form_view'}" groups="product.group_stock_packaging" />
+                            <field name="product_packaging_id"
+                                attrs="{'invisible': [('product_id', '=', False)]}"
+                                context="{'default_product_id': product_id, 'tree_view_ref':'product.product_packaging_tree_view', 'form_view_ref':'product.product_packaging_form_view'}"
+                                groups="product.group_stock_packaging" />
                         </group>
                         <br></br>
                         <group name='total_fields' string='Total Fields'>
@@ -213,8 +230,9 @@
                             <field name='amount_residual' widget='monetary' />
                         </group>
                         <notebook colspan="4">
-                            <page string="Invoices and Incoming Shipments" name="invoices_incoming_shiptments">
-                                <field name="account_move_lines"/>
+                            <page string="Invoices and Incoming Shipments"
+                                name="invoices_incoming_shiptments">
+                                <field name="account_move_lines" />
                             </page>
                         </notebook>
                         <group col="12" class="oe_invoice_lines_tab">
@@ -227,7 +245,7 @@
                                 <group class="oe_subtotal_footer oe_right">
                                     <field name="price_total" widget="account-tax-totals-field"
                                         nolabel="1" colspan="2"
-                                        attrs="{'readonly': ['|', ('state', '!=', 'draft'), '&amp;',('quick_edit_mode', '=', False)]}" />
+                                        attrs="{'readonly': [('state', '!=', 'draft')]}" />
                                     <field name="amount_residual"
                                         class="oe_subtotal_footer_separator"
                                         attrs="{'invisible': [('state', '=', 'draft')]}" />
@@ -247,7 +265,8 @@
                 <kanban default_group_by="state" group_create='1' group_delete='1' group_edit='1'
                     archivable='1'>
                     <field name="order_id" />
-                    <field name="line_type" />
+                    <field name="display_type" invisible="1" />
+                    <field name="line_type"/>
                     <field name="company_id" readonly="1" />
                     <field name="date" />
                     <field name="date_maturity" />
@@ -255,7 +274,6 @@
                     <field name="state" />
                     <field name="doc_source" />
                     <field name="credit_type" />
-                    <field name="user_id" />
                     <field name="partner_id" />
                     <field name="product_id" />
                     <field name="asset_profile_id" />
@@ -268,7 +286,7 @@
                             <div class="oe_kanban_global_click">
                                 <div class="row mb4">
                                     <div class="col-8">
-                                        <field name="line_type" />
+                                        <field name="line_type"/>
                                     </div>
                                     <strong t-if="record.date.raw_value" class="col-4 ps-0 text-end">
                                         <i class="fa fa-clock-o" aria-label="Date" role="img"
@@ -276,7 +294,8 @@
                                         <field name="date" />
                                         <i class="fa fa-clock-o" aria-label="Date" role="img"
                                             title="Due Date" />
-                                        <field name="date_maturity" widget="date" attrs="{'required': [('display_type', '=', False)]}"/>
+                                        <field name="date_maturity" widget="date"
+                                            attrs="{'required': [('display_type', '=', False)]}" />
                                     </strong>
                                 </div>
                                 <div class="row mb4" style="min-height: 60px;">
@@ -309,9 +328,7 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-6">
-                                        <field name='user_id' />
-                                    </div>
+
                                     <div class="col-6">
                                         <field name='partner_id' />
                                     </div>
@@ -358,13 +375,11 @@
                         context="{'group_by':'asset_profile_id'}" />
                     <group expand="1" string="Group By">
                         <filter string="Order" name="order_id" context="{'group_by':'order_id'}" />
-                        <filter string="User" name="user_id" context="{'group_by':'user_id'}" />
                         <filter name="active"
                             string="Active - Archived" domain="[('active','=',True)]" />
                     </group>
                     <!-- Panel lateral de busqueda -->
                     <searchpanel>
-                        <field name='user_id' icon='fa fa-users' />
                         <field name='partner_id' icon='fa fa-list' select="multi"
                             groupby='position' />
                         <field name='currency_id' icon='fa fa-solid fa-wallet' select="multi"
@@ -382,7 +397,7 @@
         <record id="account_suscription_order_line_action" model="ir.actions.act_window">
             <field name="name">Suscription Line</field>
             <field name="res_model">account.suscription.order.line</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,kanban</field>
             <field name="view_id" ref="account_suscription_order_line_view_tree" />
             <field name="domain">[]</field>
             <field name="context">{}</field>

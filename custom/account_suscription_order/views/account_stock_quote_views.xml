@@ -28,8 +28,9 @@
                     <newline />
                     <group>
                         <group id='header_left_group' name='company_info' string='Company Info'>
-                            <field name="company_id" readonly='1' />
-                            <field name="company_currency_id" readonly='1' />
+                            <field name="company_id" />
+                            <field name="name" />
+                            <field name="currency_id" />
                         </group>
                         <group name='price_info' id='header_right_group' string='Price Info'>
                             <br />
@@ -99,9 +100,9 @@
                                         </div>
                                     </div>
                                     <strong>
-                                        <div t-if="record.assembly_meet_type.value">
+                                        <div t-if="record.price.value">
                                             <span>
-                                                <t t-esc="record.assembly_meet_type.value" />
+                                                <t t-esc="record.price.value" />
                                             </span>
                                         </div>
                                     </strong>
@@ -134,7 +135,7 @@
         <field name="name">Create Stock Quote</field>
         <field name="res_model">account.stock.quote</field>
         <field name="view_mode">tree,form,kanban</field>
-        <field name="view_id" ref="account_suscription_order.account_stock_quote_view_tree" />
+        <field name="view_id" ref="account_stock_quote_view_tree" />
         <field name="domain">[]</field>
         <field name="context">{}</field>
     </record>
