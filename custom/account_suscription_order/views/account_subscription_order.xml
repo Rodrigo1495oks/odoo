@@ -22,21 +22,17 @@
             </field>
         </record>
         <!-- formulario -->
+
         <record id="account_suscription_order_view_form" model="ir.ui.view">
             <field name="name">account.suscription.order.form</field>
             <field name="model">account.suscription.order</field>
             <field name="arch" type="xml">
                 <form string="Subscription Order">
                     <header>
-                        <!-- <button name="action_add_vote" string="Aprobar des." default_focus="1"
-                            type="object" groups='top_management.top_management_group_president' />
-                        <button name="action_add_minus_vote" string="Desaprobar des."
-                            default_focus="1"
-                            type="object" groups='top_management.top_management_group_president' /> -->
                         <button name="confirm_reminder_mail" string="Confirm Receipt Date"
                             type="object"
                             attrs="{'invisible': ['|','|', ('state', 'not in', ('approved', 'suscribed')), ('mail_reminder_confirmed', '=', True), ('date_planned', '=', False)]}"
-                            groups="base.group_no_one" data-hotkey="o" />
+                            data-hotkey="o" />
                         <field name='stage_id' widget="statusbar"
                             options="{'clickable': '1', 'fold_field': 'fold' " />
                     </header>
@@ -49,10 +45,9 @@
                                 <field name="short_name" readonly="1" />
                                 <field name="priority" widget="priority" class="me-3" />
                             </h1>
-
                         </div>
                         <newline />
-                        <group id='header_left_group' string='Line Info'>
+                        <group id='header_left_group' string='Info'>
                             <field name='name' />
                             <field name="state" />
                             <field name='origin' />
@@ -82,11 +77,11 @@
                                 <field name="mail_reminder_confirmed" invisible="1" />
                                 <span class="text-muted"
                                     attrs="{'invisible': [('mail_reminder_confirmed', '=', False)]}">(confirmed
-                                    by vendor)</span>
+                                    by vendor)</span> 
                             </div>
                             <label for="receipt_reminder_email" class="d-none"
-                                groups="purchase.group_send_reminder" />
-                            <div name="reminder" class="o_row" groups='purchase.group_send_reminder'
+                                 />
+                            <div name="reminder" class="o_row"
                                 title="Automatically send a confirmation email to the vendor X days before the expected receipt date, asking him to confirm the exact date.">
                                 <field name="receipt_reminder_email" />
                                 <span>Ask confirmation</span>
@@ -105,13 +100,11 @@
                             <field name='price' widget='monetary' />
                             <field name='price_total' widget='monetary' />
                         </group>
-                        <group string='Company Info' id='header_down_right_group'>
+                        <group string='Company Info'>
                             <field name='company_id' />
                             <field name='payment_term_id' />
-                            <span class="oe_inline o_form_label mx-3"
-                                groups="base.group_multi_currency"> in </span>
+                            <span class="oe_inline o_form_label mx-3"> in </span>
                             <field name="currency_id"
-                                groups="base.group_multi_currency"
                                 attrs="{'readonly': [('state', '!=', 'draft')]}" />
                             <field name='partner_id' widget="many2one_avatar" />
                             <field name='user_id' widget="many2one_avatar" />
@@ -141,7 +134,7 @@
                             <page id='product_lines' string='Product Lines'>
                                 <group string='Order Lines'>
                                     <field name='order_line_ids' widget="section_and_note_one2many"
-                                       context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_product_view_tree'}" attrs="{'readonly': [('state', 'in', ('new','approved','subscribed','finished','canceled'))]}" domain="[('line_type','=','credit')]" />
+                                       context="{'default_state': 'draft', 'tree_view_ref' : 'account_suscription_order.account_suscription_order_line_product_view_tree'}" attrs="{'readonly': [('state', 'in', ('new','approved','subscribed','finished','canceled'))]}" domain="[('line_type','=','product')]" />
                                 </group>
                                 <group class="oe_subtotal_footer oe_right">
                                     <field name="product_total" widget="account-tax-totals-field"
@@ -194,7 +187,7 @@
                     <field name='user_id' string='User' />
                     <separator />
                     <filter name="my_purchases" string="My Purchases"
-                        domain="[('user_id', '=', uid)]" />
+                        domain="[('user_id', '=', user_id)]" />
                     <filter string="Starred" name="starred" domain="[('priority', '=', '1')]" />
                     <separator />
                     <filter name="draft" string="RFQs"
@@ -209,12 +202,12 @@
                     <filter name="late_rfqs" string="Late RFQs"
                         domain="[('state', 'in', ['draft', 'new']),('date_planned', '&lt;', datetime.datetime.now())]" />
                     <separator />
-                    <filter invisible="1" string="Late Activities" name="activities_overdue"
+                    <filter string="Late Activities" name="activities_overdue"
                         domain="[('my_activity_date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"
                         help="Show all records which has next action date is before today" />
-                    <filter invisible="1" string="Today Activities" name="activities_today"
+                    <filter string="Today Activities" name="activities_today"
                         domain="[('my_activity_date_deadline', '=', context_today().strftime('%Y-%m-%d'))]" />
-                    <filter invisible="1" string="Future Activities" name="activities_upcoming_all"
+                    <filter string="Future Activities" name="activities_upcoming_all"
                         domain="[('my_activity_date_deadline', '&gt;', context_today().strftime('%Y-%m-%d'))]" />
                     <separator />
                     <filter string="Active" name="active" context="{'group_by':'active'}" />
@@ -242,7 +235,7 @@
                     <searchpanel>
                         <field name='user_id' icon='fa fa-users' />
                         <field name='partner_id' icon='fa fa-list' select="multi" groupby='position' />
-                        <field name='currency_id' icon='fa fa-solid fa-wallet' select="multi" groupby='name' />
+                        <field name='currency_id' icon='fa fa-solid fa-wallet' select="multi" />
                         <field name='stage_id' icon='fa-solid fa-mug-saucer' select="multi" groupby='order_state' />
                         <field name='payment_term_id' icon='fa-solid fa-magnifying-glass-chart'
                             select="multi" groupby='name' />

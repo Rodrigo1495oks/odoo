@@ -10,6 +10,7 @@
                     decoration-bf='state=="new"' decoration-muted="state=='canceled'">
                     <field name="assembly_meet_type" class="mr-3" />
                     <field name="short_name" widget='handle' />
+                    <field name="short_name" invisible='1'/>
                     <field name="activity_ids" widget="list_activity" optional="show" />
                     <field name="user_id" widget="many2one_avatar" optional="show" />
                     <field name="state" optional="show" widget="badge"
@@ -34,6 +35,8 @@
                         <button name="action_draft" string="A Borrador" type="object"
                             class="oe_highlight"
                             states='new' />
+                        <button name="action_test" string="To Test" type="object"
+                            class="oe_highlight" />
                         <button name="action_start" string="Comenzar" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', 'in', ('canceled','finished','draft','progress','count'))]}" />
@@ -74,24 +77,29 @@
                                     attrs="{'readonly': [('state', '!=', 'draft')]}" widget='radio' />
                             </group>
                             <group name='Datos' id='header_right_group' string='Duración'>
-                                <button name="report_missing_assembly"
-                                    string="Declarar perdido el documento" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('state', 'not in', 'new')]}" />
-                                <br />
+                                <div class="button_box">
+                                    <button name="report_missing_assembly"
+                                        string="Declarar perdido el documento" type="object"
+                                        class="oe_highlight btn btn-primary"
+                                        attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                                </div>
                                 <field name="date_start" />
                                 <field name="date_end" />
                                 <field name="duration" />
                                 <field name='blocked' widget='toogle' />
                                 <field name="user_id" widget="many2one_avatar" />
-                                <label for="release_date" class="oe_read_only" />
-                                <field name="release_date" />
-                                <label for="report_missing" class="oe_edit_only" />
-                                <field name="report_missing"
-                                    attrs="{
-                                    'invisible': [('state', '=', 'canceled')],
-                                    'required': [('blocked', '=', True)]
+                                <div class="">
+                                    <label for="release_date" class="oe_read_only" />
+                                    <field name="release_date" />
+                                </div>
+                                <div class="">
+                                    <label for="report_missing" class="oe_edit_only" />
+                                    <field name="report_missing"
+                                        attrs="{
+                                        'invisible': [('state', '=', 'canceled')],
+                                        'required': [('blocked', '=', True)]
                                     }" />
+                                </div>
                             </group>
                         </group>
                         <newline />
@@ -123,8 +131,6 @@
                                         class="oe_highlight"
                                         attrs="{'invisible': [('state', '!=', 'progress')]}" />
                                 </group>
-                                <field name='assembly_vote'
-                                    attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}" />
                                 <field name='assembly_vote'
                                     attrs="{'readonly': [('state', 'in', ['finished','canceled'])]}">
                                     <tree>

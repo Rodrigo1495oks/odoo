@@ -338,71 +338,71 @@ class SuscriptionOrder(models.Model):
         }
         return suscription_vals
 
-    def action_view_integration(self, integrations=False):
-        """This function returns an action that display existing  integrations entries of
-        given Integration order ids. When only one found, show the integration entries
-        immediately.
-        """
-        if not integrations:
-            # Invoice_ids may be filtered depending on the user. To ensure we get all
-            # suscriptions related to the suscription order, we read them in sudo to fill the
-            # cache.
-            self.invalidate_model(['integration_order'])
-            self.sudo()._read(['integration_order'])
-            integrations = self.integration_orders
+    # def action_view_integration(self, integrations=False):
+    #     """This function returns an action that display existing  integrations entries of
+    #     given Integration order ids. When only one found, show the integration entries
+    #     immediately.
+    #     """
+    #     if not integrations:
+    #         # Invoice_ids may be filtered depending on the user. To ensure we get all
+    #         # suscriptions related to the suscription order, we read them in sudo to fill the
+    #         # cache.
+    #         self.invalidate_model(['integration_order'])
+    #         self.sudo()._read(['integration_order'])
+    #         integrations = self.integration_orders
 
-        result = self.env['ir.actions.act_window']._for_xml_id(
-            'higher_authority.action_move_in_integration_type')
-        # choose the view_mode accordingly
-        if len(integrations) > 1:
-            result['domain'] = [('id', 'in', integrations.ids)]
-        elif len(integrations) == 1:
-            res = self.env.ref('higher_authority.view_integration_form', False)
-            form_view = [(res and res.id or False, 'form')]
-            if 'views' in result:
-                result['views'] = form_view + \
-                    [(state, view)
-                     for state, view in result['views'] if view != 'form']
-            else:
-                result['views'] = form_view
-            result['res_id'] = integrations.id
-        else:
-            result = {'type': 'ir.actions.act_window_close'}
+    #     result = self.env['ir.actions.act_window']._for_xml_id(
+    #         'higher_authority.action_move_in_integration_type')
+    #     # choose the view_mode accordingly
+    #     if len(integrations) > 1:
+    #         result['domain'] = [('id', 'in', integrations.ids)]
+    #     elif len(integrations) == 1:
+    #         res = self.env.ref('higher_authority.view_integration_form', False)
+    #         form_view = [(res and res.id or False, 'form')]
+    #         if 'views' in result:
+    #             result['views'] = form_view + \
+    #                 [(state, view)
+    #                  for state, view in result['views'] if view != 'form']
+    #         else:
+    #             result['views'] = form_view
+    #         result['res_id'] = integrations.id
+    #     else:
+    #         result = {'type': 'ir.actions.act_window_close'}
 
-        return result
+    #     return result
 
-    def action_view_suscription(self, suscriptions=False):
-        """This function returns an action that display existing  suscriptions entries of
-        given suscription order ids. When only one found, show the suscriptions entries
-        immediately.
-        """
-        if not suscriptions:
-            # Invoice_ids may be filtered depending on the user. To ensure we get all
-            # suscriptions related to the suscription order, we read them in sudo to fill the00
-            # cache.
-            self.invalidate_model(['account_move'])
-            self.sudo()._read(['account_move'])
-            suscriptions = self.account_move
+    # def action_view_suscription(self, suscriptions=False):
+    #     """This function returns an action that display existing  suscriptions entries of
+    #     given suscription order ids. When only one found, show the suscriptions entries
+    #     immediately.
+    #     """
+    #     if not suscriptions:
+    #         # Invoice_ids may be filtered depending on the user. To ensure we get all
+    #         # suscriptions related to the suscription order, we read them in sudo to fill the00
+    #         # cache.
+    #         self.invalidate_model(['account_move'])
+    #         self.sudo()._read(['account_move'])
+    #         suscriptions = self.account_move
 
-        result = self.env['ir.actions.act_window']._for_xml_id(
-            'higher_authority.action_move_suscription_type')
-        # choose the view_mode accordingly
-        if len(suscriptions) > 1:
-            result['domain'] = [('id', 'in', suscriptions.ids)]
-        elif len(suscriptions) == 1:
-            res = self.env.ref('higher_authority.view_suscription_form', False)
-            form_view = [(res and res.id or False, 'form')]
-            if 'views' in result:
-                result['views'] = form_view + \
-                    [(state, view)
-                     for state, view in result['views'] if view != 'form']
-            else:
-                result['views'] = form_view
-            result['res_id'] = suscriptions.id
-        else:
-            result = {'type': 'ir.actions.act_window_close'}
+    #     result = self.env['ir.actions.act_window']._for_xml_id(
+    #         'higher_authority.action_move_suscription_type')
+    #     # choose the view_mode accordingly
+    #     if len(suscriptions) > 1:
+    #         result['domain'] = [('id', 'in', suscriptions.ids)]
+    #     elif len(suscriptions) == 1:
+    #         res = self.env.ref('higher_authority.view_suscription_form', False)
+    #         form_view = [(res and res.id or False, 'form')]
+    #         if 'views' in result:
+    #             result['views'] = form_view + \
+    #                 [(state, view)
+    #                  for state, view in result['views'] if view != 'form']
+    #         else:
+    #             result['views'] = form_view
+    #         result['res_id'] = suscriptions.id
+    #     else:
+    #         result = {'type': 'ir.actions.act_window_close'}
 
-        return result
+    #     return result
 
     def button_approve(self):
         for order in self:

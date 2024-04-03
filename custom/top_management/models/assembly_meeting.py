@@ -1,23 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-
 import logging
 _logger = logging.getLogger(__name__)
 from odoo.exceptions import UserError
 from werkzeug import urls
-
 from datetime import datetime, timedelta
-
-
 from odoo import models, fields, api, tools
-
- 
 from odoo.exceptions import ValidationError
 from odoo.osv import expression
-# -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
-
 from odoo.tools.translate import _
 from odoo.tools.misc import get_lang
 from odoo.tools import pycompat
@@ -243,9 +233,74 @@ class AssemblyMeeting(models.Model):
                             #     raise UserError('Algunos asistentes no tienen la configuración \n correcta en el módulo de RR.HH')
             else:
                 raise UserError('No se puede Comenzar la reunion')
+    def action_test(self):
+        for assembly in self:
+            # Filtered
+            # def predicate(vote):
+            #     return vote.assembly_meeting==assembly and vote.type=='normal' and vote.result=='positive'
+            
+            # assembly_votes=assembly.env['assembly.meeting.vote'].search([]).filtered(predicate)
 
+            # print('....Longitud', len(assembly_votes))
+            # for vote in assembly_votes:
+            #     print('..............', vote)
+            #     print('..............', vote.type)
+
+            # sorted
+            
+            partner_sorted=assembly.env['res.partner'].search([]).sorted(lambda p: p.name,reverse=True)
+            for partner in partner_sorted:
+                print('......', partner.name)
+                print('........', partner_sorted[0]['name'])
+
+            # mapped
+            print('..... MAPPED.....')
+
+            topic_ids=assembly.env['assembly.meeting.topic'].search([('num_votes_plus','<',500)]).sorted(key='short_name', reverse=True).mapped('id')
+
+            print('topics:  ', topic_ids)
+        
+            # for t in topic_ids:
+            #     print('---')
+            #     print('... ',t)
+
+            # assembly_vote_ids=assembly.env['assembly.meeting.vote'].search([]).mapped('short_name')
+            # # acepta solo 1 argumento
+            # for vote in assembly_vote_ids:
+            #     print('..........', vote)
+
+            partner_ids=assembly.env['assembly.meeting.vote'].search([]).mapped('partner_id')
+            for partner in partner_ids:
+                print('............ partners ', partner.name)
+            bank_ids=assembly.env['assembly.meeting.vote'].search([]).mapped('partner_id.bank_ids')
+            for bank in bank_ids:
+                print('............... banks', bank)
+
+        # With context
+            print('With context')
+            product_category = self.env['product.category'].search([]).mapped('name')
+            product_category_context = self.env['product.category'].with_context(lang='ar_SY').search([]).mapped('name')
+            print("product_category...", product_category)
+            print("product_category_context...", product_category_context)
+
+        # SEARCH_READ()
+            # self.search_read(domain=[],fields=[],offset=10,limit=10,order='short_name')
+            topic_ids=assembly.env['assembly.meeting.topic'].search_read(domain=[('state','=','approved')], fields=['short_name','name','description','topic_type','num_votes_plus'],offset=2,limit=40, order='name')
+
+            print('Topics (search_read): ', topic_ids)
+            print('ID METHODS')
+
+            print('external id: ', assembly.get_external_id())
+            print('metadata: ', assembly.get_metadata())
+        
+            # Read_group()
+            self.read_group(domain=('active','=', True), fields=[])
+            assembly_ids=assembly.env['assembly.meeting'].read_group([])
+            
     def action_start_count(self):
         """Comenzar Conteo de votos"""
+        # Para iniciar el conteo, todos los accionistas presentes deben haber emitido su voto
+
         quorum_per_type={
                 'ordinary': self.env.company.quorum_ord,
                 'extraordinary': self.env.company.quorum_ext,
@@ -253,8 +308,16 @@ class AssemblyMeeting(models.Model):
            }
         is_quorum= self.quorum>= quorum_per_type[self.assembly_meet_type]
         for meet in self:
-            if meet.state in ['progress'] and is_quorum:
-                meet.state = 'count' 
+            if is_quorum:
+                def predicate(vote):
+                    return vote.assembly_meeting==meet and vote.type=='normal' and vote.topic==line.topic
+                for partner in meet.partner_ids:
+                    for line in meet.assembly_meeting_line:
+                        # Filtered
+                        partner_assembly_votes=meet.env['assembly.meeting.vote'].search([("partner_id",'=',partner.id)]).filtered(predicate)
+                        if len(partner_assembly_votes)<1:
+                            raise UserError(_('Alguno de los accionistas no ha votado'))
+                        meet.state = 'count'
             else:
                 raise UserError('La Reunión aún no esta en marcha')
 
@@ -294,7 +357,6 @@ class AssemblyMeeting(models.Model):
                 attendances=meet.env['hr.attendance'].search([('assembly_meeting','=',meet.id)])
                 for hratt in attendances:
                     update_partners.append(hratt.employee_id.partner_id.id)
-
                 meet.partner_ids=update_partners
             
     def _create_event(self):
