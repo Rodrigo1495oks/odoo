@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+    <record id="test_line_view_tree" model="ir.ui.view">
+        <field name="name">custom.test.line.tree</field>
+        <field name="model">custom.test.line</field>
+        <field name="arch" type="xml">
+            <tree editable='bottom'>
+                <field name="name" />
+                <field name="short_name" />
+                <field name="amount" />
+            </tree>
+        </field>
+    </record>
+    <record id="test_line_view_form" model="ir.ui.view">
+        <field name="name">custom.test.line.form</field>
+        <field name="model">custom.test.line</field>
+        <field name="arch" type="xml">
+            <form string="Línea">
+                <header>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label"
+                            attrs="{'invisible': [('state','in',('draft'))]}">Formulario de Prueba </span>
+                        <h1 class="d-flex mb32">
+                            <field name="short_name" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group name='inicio' string='Identificacion'>
+                            <field name="name" />
+                            <field name='amount' />
+                            <field name='short_name' />
+                        </group>
+                        <!-- <group name='Datos' string='Duración'>
+                            <div class="button_box">
+                                <button name="button_test"
+                                    string="Probar" type="object"
+                                    class="oe_highlight btn btn-primary"
+                                    attrs="{'invisible': [('state', 'not in', 'new')]}" />
+                            </div>
+                        </group> -->
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="test_line_view_search" model="ir.ui.view">
+        <field name="name">custom.test.line.search</field>
+        <field name="model">custom.test.line</field>
+        <field name="arch" type="xml">
+            <search string="Líneas">
+                <field name="name" string="Nombre"
+                    filter_domain="[
+                    '|', '|',
+                        ('name', 'ilike', self),
+                        ('short_name', '=', self),
+                        ('description', 'ilike', self)]" />
+
+                <field name="short_name" string="Referencia" />
+                <separator />
+                <separator />
+                <group
+                    expand="1" string="Group By">
+                    <filter string="Orden" name="order_id" context="{'group_by':'order_id'}" />
+                </group>
+                <!-- Panel lateral de busqueda -->
+            </search>
+        </field>
+    </record>
+    <!-- Accion para crear la emisíon -->
+    <record id="test_line_action" model="ir.actions.act_window">
+        <field name="name">Crear Linea</field>
+        <field name="res_model">custom.test.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="pruebas.test_line_view_tree" />
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+</data>
+</odoo>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem name="My Test Modulee" id="test_base_menu"
+    web_icon="pruebas, static/description/icon.png" />
+  <menuitem name="Order Test" id="test_menu" parent="test_base_menu"
+    action="test_view_tree" />
+    <menuitem name="Order Test Lines" id="test_lines_menu" parent="test_base_menu"
+    action="test_line_view_tree" />
+</odoo>

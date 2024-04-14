@@ -1,0 +1,7 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_test_readonly,access_test_readonly,custom_test,pruebas.group_test_readonly,1,0,0,0
+access_test_user,access_test_user,custom_test,pruebas.test_group_user,1,1,1,0
+access_test_manager,access_test_manager,custom_test,pruebas.test_group_manager,1,1,1,1
+access_test_line_readonly,access_test_line_readonly,custom_test_line,pruebas.group_test_readonly,1,0,0,0
+access_test_line_user,access_test_line_user,custom_test_line,pruebas.test_group_user,1,1,1,0
+access_test_line_manager,access_test_line_manager,custom_test_line,pruebas.test_group_manager,1,1,1,1

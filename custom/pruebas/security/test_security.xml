@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- solo lectura -->
+    <record id="group_test_readonly" model="res.groups">
+        <field name="name">Usuario Mostrar todas las funciones - solo lectura</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="test_group_user" model="res.groups">
+        <field name="name">Usuario</field>
+        <field name="category_id" ref="base.module_category_other" />
+        <field name="implied_ids"
+            eval="[(6, 0, [ref('base.group_private_addresses'), ref('base.group_user')])]" />
+        <field name="comment">The user will be able to approve document created by Manager</field>
+    </record>
+    <record id="test_group_manager" model="res.groups">
+        <field name="name">Administrador</field>
+        <field name="comment">El Usuario administrador</field>
+        <field name="category_id" ref="base.module_category_other"/>
+        <field name="implied_ids" eval="[(4, ref('test_group_user')),(4, ref('base.group_private_addresses'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>

@@ -1,0 +1,1 @@
+odoo queda en blanco -> https://stackoverflow.com/questions/77066654/odoo13-stuck-on-a-blank-page-after-login

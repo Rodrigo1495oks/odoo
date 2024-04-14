@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- <record id="view_company_form" model="ir.ui.view">
+        <field name="name">res.company.form.inherit.account</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <group string='Información Institucional' name='inst_info' id="header_left_group">
+                    <field name='business_name'/>
+                    <field name='initial_street'/>
+                    <field name='initial_street'/>
+                    <field name='duration'/>
+                    <field name='registration_code'/>
+                </group>
+            </xpath>
+        </field>
+    </record> -->
+</odoo>
