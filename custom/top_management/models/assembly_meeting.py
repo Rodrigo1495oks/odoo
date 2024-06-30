@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from collections import defaultdict
 import logging
 _logger = logging.getLogger(__name__)
 from odoo.exceptions import UserError
 from werkzeug import urls
+import xml.etree.ElementTree as xee
+from lxml import etree
 from datetime import datetime, timedelta
 from odoo import models, fields, api, tools
 from odoo.exceptions import ValidationError
@@ -23,11 +26,12 @@ class AssemblyMeeting(models.Model):
     
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True,
                                  default=lambda self: self.env.company.id)
+    
     # Traversing methods
     @api.model
     def _get_partner_names(self):
         partner_ids=self.env['res.partner'].search([]).sorted(key='name', reversed=True)
-        self.partner_text=''.join([partner.name] for partner in partner_ids) 
+        self.partner_text=' , '.join([partner.name] for partner in partner_ids) 
 
     # Compute methods
     @api.depends('partner_ids')
@@ -72,8 +76,8 @@ class AssemblyMeeting(models.Model):
             args = args or []
             domain = [('state','=','new')]
             return self.search(expression.AND([domain, args]), limit=limit).name_get()
-    
         return super(AssemblyMeeting, self).name_search(name=name, args=args, operator=operator, limit=limit)
+    
     @api.depends("date_start", "date_end")
     def _compute_duration(self):
         for rec in self:
@@ -112,6 +116,7 @@ class AssemblyMeeting(models.Model):
                 else:
                     asm.partner_ids=[]
         
+    date_assembly=fields.Datetime(string='Assembly Date', index=True, copy=False, default=fields.Datetime.now, help='Assembly Record Date')
     date_start=fields.Datetime(string='Hora de Inicio', help='Hora de inicio de la reunion', required=True)
     date_end=fields.Datetime(string='Hora de Finalización', help='Hora de inicio de la reunion', required=True)
     release_date=fields.Date(string='Revisión', groups='top_management.top_management_group_user_release')
@@ -172,7 +177,7 @@ class AssemblyMeeting(models.Model):
 
     quorum=fields.Float(string='Asistencia',
                          readonly=True, 
-                         help='Porcentaje de Asistencia a la Reunión', 
+                         help='Porcentaje de Asistencia a la Reunión', store=True,
                          compute='_compute_quorum')
     
     user_id=fields.Many2one(string='Usuario', comodel_name='res.users', default=lambda self: self.env.user, readonly=True)
@@ -181,6 +186,7 @@ class AssemblyMeeting(models.Model):
     partner_text=fields.Text(string='Texto de Prueba')
 
     # probando el metodo sudo (superusuario)
+
     def report_missing_assembly(self):
         self.ensure_one()
         message="El documento de la reunión se perdió (Reportado por: %s)"%self.env.user.name
@@ -233,6 +239,59 @@ class AssemblyMeeting(models.Model):
                             #     raise UserError('Algunos asistentes no tienen la configuración \n correcta en el módulo de RR.HH')
             else:
                 raise UserError('No se puede Comenzar la reunion')
+            
+    def load_default_lines(self):
+        """ Esta funcion busca Asuntos de reunion no tratados y sin lineas y los carga automáticamente a la reunion"""
+        for rec in self:
+            available_topic_ids=rec.env['assembly.meeting.topic'].search([('meeting_assigned','=',False)]).filtered(lambda t:t.state=='new' and t.topic_meet=='assembly' and not t.assembly_meeting_line)
+            topic_to_attach=[]
+            if not self.env['assembly.meeting.line'].check_access_rights('create', False):
+                try:
+                    self.check_access_rights('write')
+                    self.check_access_rule('write')
+                except AccessError:
+                    message_id = self.env['message.wizard'].create({'message': _("No Permitido")})
+            for topic in available_topic_ids:
+                topic_vals=dict([
+                    ("name",'Asunto %s - %s'%(topic.short_name, topic.name)),
+                    ("topic", topic.id),
+                    ("priority",'normal'),
+                    ('state','no_treating'),
+                    ('assembly_meeting', rec.id),
+                ])
+                topic_to_attach.append(topic_vals)
+                rec.env['assembly.meeting.line'].create(topic_to_attach)
+            message_id = self.env['message.wizard'].create({'message': _("Se han cargado Lineas por Defecto: Aquellas que han sido adas de alta para tratamiento y para las que aun no hay reuniones asignadas. Por Favor Revise las correspondientes")})
+        return {
+                'name': _('Líneas Agregadas Exitosamente! 👍'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'message.wizard',
+                # pass the id
+                'res_id': message_id.id,
+                'target': 'new'
+                }
+
+    def delete_lines(self):
+        if not self.env['assembly.meeting.line'].check_access_rights('unlink', False):
+            try:
+                self.check_access_rights('write')
+                self.check_access_rule('write')
+            except AccessError:
+                message_id = self.env['message.wizard'].create({'message': _("No Está autorizado a eliminar lineas!")})
+        for rec in self:
+            rec.assembly_meeting_line=[(5,)]
+            
+        message_id = self.env['message.wizard'].create({'message': _("Lineas Eliminadas Exitosamente!")})
+        return {
+                'name': _('Información: ! 👍'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'message.wizard',
+                # pass the id
+                'res_id': message_id.id,
+                'target': 'new'
+                }
     def action_test(self):
         for assembly in self:
             # Filtered
@@ -268,6 +327,9 @@ class AssemblyMeeting(models.Model):
             # # acepta solo 1 argumento
             # for vote in assembly_vote_ids:
             #     print('..........', vote)
+            # TODO !para buscar registros archivados!
+            # para buscar registros archivados   
+            #self.env['library.book'].with_context(active_test=False).search([])
 
             partner_ids=assembly.env['assembly.meeting.vote'].search([]).mapped('partner_id')
             for partner in partner_ids:
@@ -294,9 +356,114 @@ class AssemblyMeeting(models.Model):
             print('metadata: ', assembly.get_metadata())
         
             # Read_group()
-            self.read_group(domain=('active','=', True), fields=[])
-            assembly_ids=assembly.env['assembly.meeting'].read_group([])
+            # self.read_group(domain=('active','=', True), fields=['name','short_name'],groupby=['assembly_meet_type'],limit=10,offset=1)
+            print('....READGROUP')
             
+            assembly_ids=assembly.env['assembly.meeting'].read_group(domain=[('active','=',True)], fields=['short_name','name','user_id'],groupby=['assembly_meet_type'],limit=10,offset=0)
+
+            print('.....: aSSEMBLYES: ', assembly_ids)
+            for assembly_group in assembly_ids:
+                print('.....: %s'%(assembly_group))
+            
+            votes=assembly.env['assembly.meeting.vote'].read_group(domain=[], fields=['short_name','type','partner_id'],groupby=['partner_id'])
+            print('Votes: ', votes)
+
+            for vote in votes:
+                print('vote: ', vote)
+
+            topic_ids=assembly.env['assembly.meeting.topic'].search([]).read_group(domain=[], fields=['topic_type','num_votes_plus'], groupby=['topic_type'])
+            print('Topics:-----: ', topic_ids)
+
+            for topic in topic_ids:
+                print('topic-----: ', topic)
+
+            print('.....DISPLAY NAME.....')
+            its_assembly=self.env['assembly.meeting.vote'].search([('id','=','5')])
+            
+            print('....: ', its_assembly.display_name)
+
+            # # Read
+            # dicts=assembly.env['assembly.meeting.vote'].search([]).read(['name','short_name','date','result','topic','partner_id'])
+            # print('.................READ...................')
+            # print(dicts)
+            
+            # for rec in dicts:
+            #     print('dict: ',rec)
+
+            print('.................REF...................')
+            stage=assembly.env.ref('account_suscription_order.stage_new')
+            print('Stage: ', stage.id)
+            
+            print('CREATE.......')
+            vals={
+                "name":'Creado desde create',
+                "company_id": assembly.env.company.id,
+                "gender":"male",
+                "marital":"married",
+                "certificate":"graduate"
+            }
+            created_record=assembly.env['hr.employee'].create(vals)
+            print('...Created record: ', created_record, created_record.id)
+
+            print('UPDATE.......')
+
+            record_to_update=assembly.env['hr.employee'].browse(5)
+            new_vals={
+                "name":'Updated Vals',
+                "company_id": assembly.env.company.id,
+                "gender":"male",
+                "marital":"married",
+                "certificate":"graduate"
+            }
+            record_to_update.write(new_vals)
+
+            print('------NEW-----------.')
+
+            new_topic=assembly.env['assembly.meeting.topic'].new({
+                "name":'Probando New:::',
+                "description":'una nueva descripcion',
+                "state":'new',
+                "topic_type":"redemption",
+            })
+            print('new topic: ',new_topic)
+            print('new topic: ',new_topic.name)
+            
+            print('::::::::::::::::::::::::::copy::::::--. ')
+
+            record_copied=record_to_update.copy({
+                'name':'copied values and name overrided',
+            })
+
+            print(record_copied)
+            print('..............UNLINK...............')
+            record_to_erase=assembly.env['assembly.meeting.topic'].browse(20).unlink()
+            print('record to erase: ',record_to_erase)
+
+            print('..............search_read.................')
+            # self.search_read(domain=[], fields=[],offset=1, limit=100,order='name desc, date desc')
+
+            print("------------SEARCH_READ--------------")
+
+            votes=assembly.env['assembly.meeting.vote'].search_read(domain=[('type','=','normal')], fields=["name",'short_name','date','result','topic','partner_id'],offset=1, limit=100,order='name desc, date desc')
+
+            for vote in votes:
+                print(vote)
+                print(vote['topic'])
+
+            # FIELDS_GET
+            # self.fields_get(allfields=[],attributes=[])
+            purchase_ids=assembly.env['purchase.order'].fields_get(allfields=['name','priority','origin','date_order','state'],attributes=['readonly','default','help','selection','comodel_name','amount_total'])
+            print('..........: ', purchase_ids)
+
+            for purchaseField in purchase_ids:
+                print(purchaseField)
+
+            # UPDATE
+            record_to_update=assembly.env['purchase.order'].browse(3).update({
+                "notes":"New Description from update",
+                "partner_id": assembly.env['res.partner'].browse(14).id
+            })
+            print(record_to_update)
     def action_start_count(self):
         """Comenzar Conteo de votos"""
         # Para iniciar el conteo, todos los accionistas presentes deben haber emitido su voto
@@ -358,6 +525,7 @@ class AssemblyMeeting(models.Model):
                 for hratt in attendances:
                     update_partners.append(hratt.employee_id.partner_id.id)
                 meet.partner_ids=update_partners
+                meet._get_partner_names()
             
     def _create_event(self):
         # Creamos los tickets
@@ -385,8 +553,11 @@ class AssemblyMeeting(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('short_name', _('New')) == _('New'):
-            vals['short_name'] = self.env['ir.sequence'].next_by_code(
-                'assembly.meeting') or _('New')
+            seq_date = None
+            if 'date_assembly' in vals:
+                seq_date = fields.Datetime.context_timestamp(self, fields.Datetime.to_datetime(vals['date_assembly']))
+                vals['short_name'] = self.env['ir.sequence'].next_by_code(
+                    'assembly.meeting', sequence_date=seq_date) or _('New')
         return super().create(vals)
     
     def _prepare_event_values(self):
@@ -495,6 +666,50 @@ class AssemblyMeeting(models.Model):
         _logger.info("Duracion promedio de las reuniones: %s", result)
         result=self.env.cr.dictfetchall()
         _logger.info("Duracion promedio de las reuniones: %s", result)
+
+    def action_edit_xml(self):
+        view_id = self.env.ref('assembly_meeting.assembly_meeting_view_form')
+        view_arch = str(view_id.arch_base)
+        doc = xee.fromstring(view_arch)
+        field_list = []
+        field_list_1 = []
+        for tag in doc.findall('.//field'):
+            field_list.append(tag.attrib['name'])
+
+
+        model_id = self.env['ir.model'].sudo().search(
+            [('model', '=', 'assembly.meeting')])
+        
+        return [('model_id', '=', model_id.id), ('state', '=', 'draft'),
+        ('name', 'in', field_list)]
+
+
+    def print_accounts(self):
+        x = datetime(2024, 4, 1)
+        assembly_votes=self.env['assembly.meeting.vote'].search_read(
+            domain=['date','<',x.strftime('%Y-%m-%d')], 
+            fields=['short_name','name','result','type'],
+            order='date asc,short_name desc')
+
+        for vote in assembly_votes:
+            print(vote)
+
+        print('PROBANDO JOURNAL')
+
+    def get_SQL(self):
+        for record in self:
+            record._cr.execute(
+                """SELECT assembly
+                JOIN assembly_meeting_topic topic ON topic.assembly_meeting_line=assembly.id
+                JOIN LEFT assembly_meeting_line aml ON aml.topic.id=assembly
+                FROM assembly_meeting assembly
+                WHERE assembly.state='finished'
+                GROUP BY assembly.company_id                
+                """, [tuple(self.ids)]
+            )
+            result=[row for row in record.env.cr.dictfetchall()]
+
+            print(result)
 
 class HrAttendance(models.Model):
     _inherit = "hr.attendance"

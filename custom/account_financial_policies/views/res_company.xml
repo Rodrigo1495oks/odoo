@@ -9,6 +9,7 @@
                 <group string='Información Institucional' name='inst_info' id="header_left_group">
                     <field name='business_name'/>
                     <field name='initial_street'/>
+                    <field name='initial_street'/>
                     <field name='duration'/>
                     <field name='registration_code'/>
                 </group>

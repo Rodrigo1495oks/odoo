@@ -23,3 +23,30 @@ if vote:
     print('mayor a cero')
 else:
     print('Es cero')
+
+
+
+lista_de_tuplas=[
+    ('clave','valor'),
+    ('clave2','valor2'),
+    ('clave3','valor3'),
+]
+
+diccionario=dict(lista_de_tuplas)
+
+print(diccionario)
+
+directoryTopics=[
+        'power',
+        'furniture',
+        'contracts',
+        'personal',
+        'power_acts',
+        'debts',
+        'dependencies',
+        'hiring',
+        'procedure', 
+        'finance', 
+]
+
+print('power' in directoryTopics)

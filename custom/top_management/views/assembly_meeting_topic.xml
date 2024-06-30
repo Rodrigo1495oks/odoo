@@ -35,7 +35,7 @@
                     <header>
                         <button name="action_draft" string="A Borrador" type="object"
                             class="oe_highlight"
-                            attrs="{'invisible': [('state', 'in', ['new','canceled'])]}" />
+                            attrs="{'invisible': [('state', 'in', ['new','draft','approved','refused'])]}" />
                         <button name="action_confirm" string="Confirmar Alta" type="object"
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'draft')]}" />
@@ -76,6 +76,7 @@
                                 />
                                 <field name='topic_meet' attrs="{'readonly': [('state', '!=', 'draft')]}" />
                                 <!-- <field name='assembly_meeting' attrs="{'readonly': [('state', '!=', 'draft')]}" /> -->
+                                <field name="active" invisible="1" widget='toggle'/>
                             </group>
                         </group>
                         <!-- Referencai para reducciones, acciones en cartera, reservas, dividendos
@@ -106,12 +107,11 @@
                 <search string="Temas de reunion">
                     <field name="short_name" string="Nombre" />
                     <separator />
+                    <filter string='Active' name='Active Records'/>
                     <separator />
                     <group expand="1" string="Group By">
                         <filter string="Estado" name="state" context="{'group_by':'state'}" />
                         <filter string="Tipo" name="topic_type" context="{'group_by':'topic_type'}" />
-                        <filter string="Con Reunión" name="meeting_assigned"
-                            context="{'group_by':'meeting_assigned'}" />
                     </group>
                 </search>
             </field>

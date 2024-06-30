@@ -10,6 +10,41 @@ from odoo.tools.misc import get_lang
 from odoo.tools import pycompat
 from odoo.exceptions import UserError, AccessError
 
+assemblyTopics=[
+        'balance',
+        'income', 
+        'distribution',
+        'memory', 
+        'receiver', 
+        'responsabilities', 
+        'issuance',
+        'issuance_1', 
+        'redemption', 
+        'amort', 
+        'fusion', 
+        'trans', 
+        'dis',
+        'susp',
+        'deb',
+        'conv',
+        'certificates',
+        'reduction',
+        'irrevocable',
+        'share_sale',
+]
+
+directoryTopics=[
+        'power',
+        'furniture',
+        'contracts',
+        'personal',
+        'power_acts',
+        'debts',
+        'dependencies',
+        'hiring',
+        'procedure', 
+        'finance', 
+]
 class AssemblyMeetingTopic(models.Model):
     _name = 'assembly.meeting.topic'
     # _inherits = {'account.asset', 'ref_name'}
@@ -31,10 +66,19 @@ class AssemblyMeetingTopic(models.Model):
     @api.depends('assembly_meeting_line')
     def _compute_meeting_assigned(self):
         for record in self:
-            if record.assembly_meeting_line:
+            if len(record.assembly_meeting_line)>0:
                 record.meeting_assigned = True
             else:
                 record.meeting_assigned = False
+
+    @api.depends('topic_type')
+    def _compute_meet_type(self):
+        for rec in self:
+            if rec.topic_type in assemblyTopics:
+                rec.topic_meet='assembly'
+            elif rec.topic_type in directoryTopics:
+                rec.topic_meet='directory'
+        
     @api.depends('assembly_vote')
     def _compute_num_votes(self):
         votes_plus=0
@@ -52,6 +96,7 @@ class AssemblyMeetingTopic(models.Model):
             topic.num_votes_minus=votes_minus
             topic.num_votes_blank=votes_blank
 
+    active = fields.Boolean(string='Active', default=True)
     
     short_name = fields.Char(
         string='Referencia', required=True, index='trigram', copy=False, default='New')
@@ -69,7 +114,7 @@ class AssemblyMeetingTopic(models.Model):
     ], default='draft', required=True, readonly=True)
     topic_meet=fields.Selection(string='Tipo de Reunión', 
                                 selection=[('directory','Directorio'),('assembly','Asambleas')], 
-                                default='directory')
+                                default='directory', compute='_compute_meet_type')
     topic_type = fields.Selection(string='Tipo de Asunto', selection=[
         # Topicos de Asamblea
         ('balance', 'Balance General'),
@@ -104,7 +149,7 @@ class AssemblyMeetingTopic(models.Model):
         ('procedure', 'Reglamento Interno (Normas y Manuales de Procedimiento)'),
         ('finance', 'Planificacion Economico - Financiera'),
 
-    ], required=True, help='Asuntos correspondientes a asambleas ordinarias y extraordinarias, fijados por el Articulo 234 y 235 de la LGS')
+    ],store=True ,required=True, help='Asuntos correspondientes a asambleas ordinarias y extraordinarias, fijados por el Articulo 234 y 235 de la LGS')
     num_votes_plus=fields.Integer(string='Votos Positivos', 
                              help='Número de votos que este tópico ha recibido', 
                              compute='_compute_num_votes', 
@@ -119,7 +164,7 @@ class AssemblyMeetingTopic(models.Model):
                              default=0.0)
     # secuencia numerica
     # emision de acciones
-    share_issuance=fields.One2many(string='Emisión de Acciónes', comodel_name='account.share.issuance', readonly=True, inverse_name='topic')
+    share_issuance=fields.One2many(string='Emisión de Acciónes', comodel_name='account.share.issuance', readonly=False, inverse_name='topic')
 
     # onchanges
     # @api.onchange("topic_meet")
@@ -176,10 +221,22 @@ class AssemblyMeetingTopic(models.Model):
             else:
                 raise UserError(
                     'No puede Cancelarse un tópico que ya esta cancelado o aprobado')
-
+    
+    def action_archive(self):
+        for rec in self:
+            if any([not self.user_has_groups('top_management.top_management_group_manager'), self.state in ['draft','cancel']]):
+                raise AccessError(_('No puede archivar Temas de Reunión'))
+        return super().action_archive()
+    
     @api.model
     def create(self, vals):
         if vals.get('short_name', _('New')) == _('New'):
-            vals['short_name'] = self.env['ir.sequence'].next_by_code(
-                'assembly.meeting.topic') or _('New')
+                vals['short_name'] = self.env['ir.sequence'].next_by_code(
+                    'assembly.meeting.topic') or _('New')
         return super().create(vals)
+    
+    @api.ondelete(at_uninstall=False)
+    def _unlink_if_cancelled(self):
+        for order in self:
+            if order.state in ['new','approved','refused'] and order.active:
+                raise UserError(_('In order to delete a Topic, you must cancel it first.'))

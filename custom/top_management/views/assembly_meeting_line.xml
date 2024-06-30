@@ -8,7 +8,7 @@
             <field name="model">assembly.meeting.line</field>
             <field name="arch" type="xml">
                 <tree string="Reunión" decoration-success="priority=='low'"
-                    decoration-bf='priority=="urgent"' decoration-muted="priority=='normal'">
+                    decoration-bf='priority=="urgent"' decoration-muted="priority=='normal'" editable='bottom'>
                     <field name="name" />
                     <field name="topic" />
                     <button name="action_approve_topic" string="Aprobar"

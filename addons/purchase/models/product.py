@@ -40,7 +40,6 @@ class ProductTemplate(models.Model):
         action['display_name'] = _("Purchase History for %s", self.display_name)
         return action
 
-
 class ProductProduct(models.Model):
     _name = 'product.product'
     _inherit = 'product.product'

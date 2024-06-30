@@ -12,29 +12,31 @@ TOLERANCE = 0.02  # tolerance applied to the total when searching for a matching
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    suscription_id = fields.Many2one('purchase.order', store=False, readonly=True,
+    suscription_id = fields.Many2one('account.suscription.order', store=False, readonly=True,
         states={'draft': [('readonly', False)]},
-        string='Purchase Order',
-        help="Auto-complete from a past purchase order.")
-    suscription_order_count = fields.Integer(compute="_compute_origin_po_count", string='Purchase Order Count')
+        string='Suscription Order',
+        help="Auto-complete from a past Suscription order.")
+
+    suscription_order_count = fields.Integer(compute="_compute_suscription_count", string='Suscription Order Count')
 
     def _get_invoice_reference(self):
         self.ensure_one()
-        vendor_refs = [ref for ref in set(self.line_ids.mapped('purchase_line_id.order_id.partner_ref')) if ref]
+        lines_mapped=self.line_ids.mapped('suscription_cash_line_id.order_id.origin') or self.line_ids.mapped('suscription_cash_line_id.order_id.origin')
+        vendor_refs = [ref for ref in set(lines_mapped) if ref]
         if self.ref:
             return [ref for ref in self.ref.split(', ') if ref and ref not in vendor_refs] + vendor_refs
         return vendor_refs
 
     @api.onchange('partner_id', 'company_id')
-    def _onchange_partner_id(self):
+    def _onchange_partner_subscription_id(self):
         res = super(AccountMove, self)._onchange_partner_id()
         if self.partner_id and\
-                self.move_type in ['in_invoice', 'in_refund'] and\
+                self.move_type in ['suscription'] and\
                 self.currency_id != self.partner_id.property_purchase_currency_id and\
                 self.partner_id.property_purchase_currency_id.id:
             if not self.env.context.get('default_journal_id'):
                 journal_domain = [
-                    ('type', '=', 'purchase'),
+                    ('type', '=', 'suscription'),
                     ('company_id', '=', self.company_id.id),
                     ('currency_id', '=', self.partner_id.property_purchase_currency_id.id),
                 ]
@@ -47,33 +49,64 @@ class AccountMove(models.Model):
                 self.currency_id = self.partner_id.property_purchase_currency_id
         return res
 
-    @api.depends('line_ids.purchase_line_id')
-    def _compute_origin_po_count(self):
+    @api.depends('line_ids.suscription_cash_line_id')
+    def _compute_suscription_count(self):
         for move in self:
-            move.purchase_order_count = len(move.line_ids.purchase_line_id.order_id)
+            move.suscription_order_count = len(move.line_ids.suscription_cash_line_id.order_id) + len(move.line_ids.suscription_credit_line_id.order_id)+len(move.line_ids.suscription_product_line_id.order_id)
 
-    def action_view_source_purchase_orders(self):
+    def action_view_source_suscription_orders(self):
         self.ensure_one()
-        source_orders = self.line_ids.purchase_line_id.order_id
-        result = self.env['ir.actions.act_window']._for_xml_id('purchase.purchase_form_action')
+        source_orders = self.line_ids.suscription_order_id
+        result = self.env['ir.actions.act_window']._for_xml_id('account_suscription_order.account_suscription_order_action')
         if len(source_orders) > 1:
             result['domain'] = [('id', 'in', source_orders.ids)]
         elif len(source_orders) == 1:
-            result['views'] = [(self.env.ref('purchase.purchase_order_form', False).id, 'form')]
+            result['views'] = [(self.env.ref('account_suscription_order.account_suscription_order_view_form', False).id, 'form')]
             result['res_id'] = source_orders.id
         else:
             result = {'type': 'ir.actions.act_window_close'}
         return result
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        # OVERRIDE
+        moves = super(AccountMove, self).create(vals_list)
+        for move in moves:
+            if move.reversed_entry_id:
+                continue
+            subscriptions = move.line_ids.suscription_cash_line_id.order_id | move.line_ids.suscription_credit_line_id.order_id | \
+            move.line_ids.suscription_product_line_id.order_id
+
+            if not subscriptions:
+                continue
+            refs = [subscription._get_html_link() for subscription in subscriptions]
+            message = _("This entry has been created from: %s") % ','.join(refs)
+            move.message_post(body=message)
+        return moves
 
 class AccountMoveLine(models.Model):
     """ Override AccountInvoice_line to add the link to the Suscription order line it is related to"""
     _inherit = 'account.move.line'
 
-    suscription_line_id = fields.Many2one('account.suscription.order.line', 'Suscription Order Line', ondelete='set null', index='btree_not_null')
-    suscription_order_id = fields.Many2one('account.suscription.order', 'Suscription Order', related='suscription_line_id.order_id', readonly=True)
+    integration_cash_line_id = fields.Many2one(comodel_name= 'account.suscription.cash.line', string='Integration Order Cash Line', ondelete='set null', index='btree_not_null')
+    suscription_cash_line_id = fields.Many2one(comodel_name= 'account.suscription.cash.line', string='Suscription Order Cash Line', ondelete='set null', index='btree_not_null')
+
+    integration_credit_line_id = fields.Many2one(comodel_name= 'account.suscription.credit.line', string='Integration Order Credit Line', ondelete='set null', index='btree_not_null')
+    suscription_credit_line_id = fields.Many2one(comodel_name= 'account.suscription.credit.line', string='Suscription Order Credit Line', ondelete='set null', index='btree_not_null')
+
+    integration_product_line_id = fields.Many2one(comodel_name= 'account.suscription.product.line', string='Integration Order Credit Line', ondelete='set null', index='btree_not_null')
+    suscription_product_line_id = fields.Many2one(comodel_name= 'account.suscription.product.line', string='Suscription Order Credit Line', ondelete='set null', index='btree_not_null')
+
+    suscription_order_id = fields.Many2one(comodel_name= 'account.suscription.order',string= 'Suscription Order', related='suscription_cash_line_id.order_id', readonly=True)
+
 
     def _copy_data_extend_business_fields(self, values):
         # OVERRIDE to copy the 'purchase_line_id' field as well.
         super(AccountMoveLine, self)._copy_data_extend_business_fields(values)
-        values['suscription_line_id'] = self.suscription_line_id.id
+        values['suscription_cash_line_id'] = self.suscription_cash_line_id.id
+        values['integration_cash_line_id'] = self.integration_cash_line_id.id
+        values['suscription_credit_line_id'] = self.suscription_credit_line_id.id
+        values['integration_credit_line_id'] = self.integration_credit_line_id.id
+        values['suscription_product_line_id'] = self.suscription_product_line_id.id
+        values['integration_product_line_id'] = self.integration_product_line_id.id
+        values['suscription_order_id'] = self.suscription_order_id.id

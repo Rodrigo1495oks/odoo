@@ -8,6 +8,7 @@ class StockLocation(models.Model):
     _inherit = "stock.location"
 
     valuation_in_account_id = fields.Many2one(
+        # Esta es cuando salen materiales del almacen
         'account.account', 'Stock Valuation Account (Incoming)',
         domain=[('account_type', 'not in', ('asset_receivable', 'liability_payable', 'asset_cash', 'liability_credit_card')), ('deprecated', '=', False)],
         help="Used for real-time inventory valuation. When set on a virtual location (non internal type), "
@@ -21,6 +22,7 @@ class StockLocation(models.Model):
              "this account will be used to hold the value of products being moved out of this location "
              "and into an internal location, instead of the generic Stock Output Account set on the product. "
              "This has no effect for internal locations.")
+
 
     def _should_be_valued(self):
         """ This method returns a boolean reflecting whether the products stored in `self` should

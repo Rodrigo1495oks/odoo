@@ -311,7 +311,7 @@ class AccountAccount(models.Model):
 
         if self._cr.fetchone():
             raise ValidationError(_("You cannot change the type of an account set as Bank Account on a journal to Receivable or Payable."))
-
+    
     @api.depends('code')
     def _compute_account_root(self):
         # this computes the first 2 digits of the account.

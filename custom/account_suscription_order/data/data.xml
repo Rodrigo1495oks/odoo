@@ -10,6 +10,31 @@
             <field name='padding'>12</field>
             <field name='company_id' eval='False' />
         </record>
+                <!-- sequences for shares_issuance -->
+        <record id='seq_account_suscription_cash' model='ir.sequence'>
+            <field name='name'>Suscription Cash line</field>
+            <field name='code'>account.suscription.cash.line</field>
+            <field name='prefix'>SC</field>
+            <field name='suffix'>Line</field>
+            <field name='padding'>12</field>
+            <field name='company_id' eval='False' />
+        </record>
+        <record id='seq_account_suscription_credit' model='ir.sequence'>
+            <field name='name'>Suscription Credit line</field>
+            <field name='code'>account.suscription.credit.line</field>
+            <field name='prefix'>CR</field>
+            <field name='suffix'>Line</field>
+            <field name='padding'>12</field>
+            <field name='company_id' eval='False' />
+        </record>
+                <record id='seq_account_suscription_credit' model='ir.sequence'>
+            <field name='name'>Suscription Product line</field>
+            <field name='code'>account.suscription.product.line</field>
+            <field name='prefix'>SP</field>
+            <field name='suffix'>Line</field>
+            <field name='padding'>12</field>
+            <field name='company_id' eval='False' />
+        </record>
         <!-- sequences for shares_issuance -->
         <record id='seq_account_suscription_order_stage' model='ir.sequence'>
             <field name='name'>Suscription Order Stage</field>

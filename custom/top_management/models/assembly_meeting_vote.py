@@ -13,9 +13,6 @@ from odoo import models, fields, api, tools
 
 from odoo.osv.expression import get_unaccent_wrapper
 
-from odoo.exceptions import ValidationError
-# -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 
 from odoo.addons.base.models.res_partner import _tz_get
@@ -24,15 +21,15 @@ from odoo.addons.calendar.models.calendar_recurrence import weekday_to_field, RR
 from odoo.tools.translate import _
 from odoo.tools.misc import get_lang
 from odoo.tools import pycompat
-from odoo.exceptions import UserError, AccessError
+from odoo.exceptions import UserError, AccessError, ValidationError
 
 
 class AssemblyVote(models.Model):
     _name = 'assembly.meeting.vote'
     _description = 'Objeto Reunión de asamblea'
     _order = 'short_name desc'
-    _rec_name = 'short_name'
-
+    _rec_name = 'type'
+    
     name = fields.Char(string='Título', 
                        required=True)
     short_name = fields.Char(string='Referencia', 
@@ -71,7 +68,6 @@ class AssemblyVote(models.Model):
             'assembly_meeting':'',
             'type':'',
         }
-        
         res = super().create(vals)
         return res
 

@@ -82,6 +82,7 @@ class EstateProperty(models.Model):
             # 'analytic_tag_ids': [(6, 0, self.analytic_tag_ids.ids)],
             # 'sale_line_ids': [(4, self.id)],
         }
+
         if optional_values:
             res.update(optional_values)
 

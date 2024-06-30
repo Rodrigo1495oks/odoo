@@ -21,7 +21,7 @@ class WizardCreateVote(models.TransientModel):
     def assign_issue_ids(self):
         self.ensure_one()
         if len(self.share_issuance_ids)>0:
-            this_topic=self.env['account.share.issuance'].browse(self.topic.id)
+            this_topic=self.env['assembly.meeting.topic'].browse(self.topic.id)
             
             print('.....................', this_topic.fields_get())
             if this_topic.exists():
@@ -29,17 +29,19 @@ class WizardCreateVote(models.TransientModel):
                     this_topic.write({
                         "share_issuance": (4,issuance.id)
                     })
+            message_id = self.env['message.wizard'].create({'message': _("Órdenes Agregadas Correctamente!")})
         else:
             message_id = self.env['message.wizard'].create({'message': _("Error: Please Assign Issue Orders First!")})
-            return {
-                    'name': _('Assign issue orders first! 😙'),
-                    'type': 'ir.actions.act_window',
-                    'view_mode': 'form',
-                    'res_model': 'message.wizard',
-                    # pass the id
-                    'res_id': message_id.id,
-                    'target': 'new'
-                    }
+        return {
+            'name': _('Assign issue orders first! 😙'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'message.wizard',
+            # pass the id
+            'res_id': message_id.id,
+            'target': 'new'
+            }
+    
     @api.model
     def default_get(self, fields_list):
         # OVERRIDE

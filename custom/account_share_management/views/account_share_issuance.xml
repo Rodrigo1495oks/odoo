@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-
         <!-- vistas -->
         <record id="account_share_issuance_view_tree" model="ir.ui.view">
             <field name="name">account.share.issuance.tree</field>
@@ -26,6 +25,7 @@
                 </tree>
             </field>
         </record>
+
         <!-- formulario -->
         <record id="account_share_issuance_view_form" model="ir.ui.view">
             <field name="name">account.share.issuance.form</field>
@@ -227,7 +227,7 @@
         <record id="account_share_issuance_action" model="ir.actions.act_window">
             <field name="name">Crear Orden de Emisión</field>
             <field name="res_model">account.share.issuance</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,kanban</field>
             <field name="view_id" ref="account_share_issuance_view_tree" />
             <field name="domain">[]</field>
             <field name="context">{}</field>

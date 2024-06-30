@@ -600,7 +600,7 @@ class PurchaseOrderLine(models.Model):
             lines = lines.filtered(lambda l: l.name == name + '\n' + description_picking)
             if lines:
                 return lines[0]
-
+        
         return lines and lines[0] or self.env['purchase.order.line']
 
     def _get_outgoing_incoming_moves(self):

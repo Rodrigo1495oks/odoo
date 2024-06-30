@@ -7,6 +7,10 @@
         <field name="arch" type="xml">
             <!-- find field description and add the field
                 new_field after it -->
+            <xpath expr="//group[@id='header_right_group']" position="before">
+                    <button name="action_delete_topics" string="Delete Topic" default_focus="1"
+                        type="object" icon="fa-brands fa-vimeo" />
+            </xpath>
             <xpath expr="//group[@id='header_right_group']" position="after">
                 <group id='topic' name='topic' string='Reuniones'>
                     <field name='topic' attrs="{'invisible': [('topic', '=', 'False')]}"/>

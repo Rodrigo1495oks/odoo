@@ -29,10 +29,24 @@ class ResCompany(models.Model):
     
     io_double_validation_amount = fields.Monetary(string='Double validation amount', default=50000000,
         help="Minimum amount for which a double validation is required")
-    
+
+
+    #JOURNALS
+
+    subscription_journal_id=fields.Many2one('account.journal',company_dependent=True,
+                                           string="Subscription Journal",
+                                           domain="[('type', '=', 'suscription'), ('company_id', '=', current_company_id)]",
+                                           help="Diario para registrar suscripciones e integraciones",
+                                           )
+
+
     # ACCOUNTS
     share_price=fields.Float(string='Precio de las Acciones', help='Valor Nominal para emitir acciones', company_dependent=True, default=100.0)
-    
+    forecast_integration_account = fields.Many2one(string='Forecast Integration Account',
+                                                   comodel_name='account.account',
+                                                   help='Cuenta de Previsión para ingresos de materiales pendientes de Integración',
+                                                   domain="[('account_type','=','liability_payable_forecast'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+                                                   )
     property_account_subscription_id = fields.Many2one('account.account', company_dependent=True,
                                                        string="Cuenta de Acciones",
                                                        domain="[('account_type', '=', 'asset_receivable_others'), ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
@@ -138,9 +152,4 @@ class ResCompany(models.Model):
                                            domain="[('account_type', '=', 'legal_reserve'),('deprecated', '=', False), ('company_id', '=', current_company_id)]",
                                            help="Cuenta Única para registrar el saldo de la Reserva Legal",
                                            )
-    
-    # business_name=fields.Char(string='Razón Social', help='Denominación Social de la Empresa', required=True)
-    # # Datos de Constitución
-    # initial_street=fields.Char(string='Domicilio de Constitución')
-    # duration=fields.Char(string='Duración')
-    # registration_code=fields.Integer(string='Número de Registro', help='Número de Registro Público')
+

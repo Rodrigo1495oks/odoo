@@ -10,7 +10,7 @@ class AccountMove(models.Model):
 
     move_type = fields.Selection(
         selection_add=[
-            ('suscription', 'Suscription'),
+            ('subscription', 'Suscription'),
             ('integration', 'Integration'),
             ('contribution', 'Aporte Irrevocable'),
             ('redemption', 'Rescate de Acciones'),
@@ -21,7 +21,7 @@ class AccountMove(models.Model):
             ('certificate_refund', 'Reintegro de Bonos'),
             ('issue_premium_cancelation', 'Cancelación de Primas')
         ], ondelete = {
-        'suscription':  lambda recs: recs.write({'move_type': 'entry' }),
+        'subscription':  lambda recs: recs.write({'move_type': 'entry' }),
         'integration':  lambda recs: recs.write({'move_type': 'entry' }),
         'contribution':  lambda recs: recs.write({'move_type': 'entry' }),
         'redemption':  lambda recs: recs.write({'move_type': 'entry' }),

@@ -3,3 +3,5 @@ odoo-bin scaffold <module name> custom/account_reserve
 odoo-bin scaffold account_reserve custom/
 odoo-bin scaffold higher_authority_management custom/
 
+"C:\odoo\python\python.exe" "C:\odoo\odoo-bin" scaffold <module name here> "C:\Program Files (x86)\Odoo 11.0\server\odoo\addons"
+"C:\odoo\python\python.exe" "C:\odoo\odoo-bin" scaffold test_to_test_only "C:\odoo\custom"

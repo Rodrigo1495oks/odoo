@@ -8,18 +8,19 @@
     'license': 'LGPL-3',
     'category': 'Shareholding',
     'depends': [
-        'base', 'account','top_management','account_asset_management'
+        'base', 'account','top_management','account_asset_management','purchase','purchase_stock','account_payment_group'
     ],
     'data': [
         'security/security_rules.xml',
         'security/ir.model.access.csv',
         'data/data.xml',
         'data/order_stage.xml',
+        'views/account_move_views.xml',
         'views/account_stock_quote_views.xml',
         'views/res_config_settings_views.xml',
         'views/order_stage_views.xml',
-        'views/account_subscription_line.xml',
-        'views/account_subscription_order.xml',
+        'views/account_suscription_order.xml',
+        'views/order_line_views.xml',
         'views/assembly_meeting_topic.xml',
         'wizard/wizard_issuance_register.xml',
         'views/menu_item.xml',

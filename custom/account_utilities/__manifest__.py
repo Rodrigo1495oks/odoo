@@ -11,7 +11,7 @@
         'base', 'account','l10n_ar'
     ],
     'data': [
-
+        'views/res_company.xml',
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

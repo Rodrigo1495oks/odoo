@@ -85,7 +85,7 @@ class SuscriptionOrder(models.Model):
     nominal_value = fields.Float(related='share_issuance.nominal_value',
                                  string='Valor de Emisión', required=True, copy=True)
     price = fields.Float(related='share_issuance.price', string='Valor pactado en la suscripción',
-                         help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True, readonly=True, store=True)
+                         help='El el valor al cual se vendió la accion, el monto total que pago el accionista por adquirir la acción', readonly=True, copy=True,store=True)
 
     issue_premium = fields.Float(related='share_issuance.issue_premium',
                                  string='Prima de emision', help='Cotizacion sobre la par', readonly=True, store=True)

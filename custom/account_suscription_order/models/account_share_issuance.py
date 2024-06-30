@@ -10,7 +10,9 @@ from odoo.exceptions import UserError, AccessError, ValidationError
 class SharesIssuance(models.Model):
     _name = 'account.share.issuance'
     _inherit = 'account.share.issuance'
-    
+
+    suscription_id=fields.Many2one(string='Suscription Order', comodel_name='account.suscription.order', readonly=True, help='related subscription order')
+
     def action_approve(self):
         res =super().action_approve()
         for issuance in self:
@@ -20,7 +22,6 @@ class SharesIssuance(models.Model):
                 for i in range(self.shares_qty):
                     share_vals = issuance._prepare_share_values()
                     self.env['account.share'].create(share_vals)
-                
             else:
                 raise UserError(_('Orden de emision no autorizada'))
         return res
@@ -62,3 +63,10 @@ class SharesIssuance(models.Model):
             "share_issuance": []
         }
         return vals
+
+class SuscriptionOrder(models.Model):
+    _name = 'account.suscription.order'
+    _inherit = 'account.suscription.order'
+
+    share_issue_ids = fields.One2many(string='Share Issue', comodel_name='account.share.issuance',
+                                      inverse_name='suscription_id', help='share issue related')

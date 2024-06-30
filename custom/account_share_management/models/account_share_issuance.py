@@ -140,7 +140,7 @@ class SharesIssuance(models.Model):
     # totales
 
     total_nominal=fields.Float(string='Total Nominal',
-                               
+
                                store=True, readonly=True, 
                                compute='_amount_all')
     total_prime=fields.Float(string='Total Prima',
@@ -202,7 +202,9 @@ class SharesIssuance(models.Model):
                 raise UserError(
                     'Accion no permitida')
     # methods
-
+    def action_delete_topics(self):
+        for issuance in self:
+            issuance.topic = False
     def _prepare_share_values(self):
         self.ensure_one()
         res = {

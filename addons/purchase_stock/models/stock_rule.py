@@ -83,7 +83,7 @@ class StockRule(models.Model):
 
         if errors:
             raise ProcurementException(errors)
-
+        
         for domain, procurements_rules in procurements_by_po_domain.items():
             # Get the procurements for the current domain.
             # Get the rules for the current domain. Their only use is to create

@@ -11,14 +11,11 @@
         'base', 'account',
     ],
     'data': [
-        'security/top_management_security.xml',
+        'security/test_security.xml',
         'security/ir.model.access.csv',
         'data/data.xml',
-        'views/res_config_settings_views.xml',
-        'views/account_share_issuance.xml'
-        'views/menu_view.xml',
         'views/test_line_views.xml',
-        'views/test_line.xml',
+        'views/test_views.xml',
         'views/menu_view.xml',
     ],
     'demo': [

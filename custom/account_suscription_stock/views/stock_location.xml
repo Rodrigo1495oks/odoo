@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to Modify it -->
+    <record id="" model="ir.ui.view">
+        <field name="name">stock.location.integration.form.inherit</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='valuation_out_account_id']" position="">
+                <!-- Add your fields or attributes here -->
+                <field name="forecast_integration_account" options="{'no_create': True}"/>
+            </xpath>
+
+        </field>
+    </record>
+
+
+</odoo>
