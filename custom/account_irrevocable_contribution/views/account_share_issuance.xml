@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="account_share_issuance_so_view_tree" model="ir.ui.view">
+            <field name="name">account.share.issuance.so.tree</field>
+            <field name="model">account.share.issuance</field>
+            <field name="arch" type="xml">
+                <tree string="Emisión" decoration-success="state=='offer' or state=='accept'"
+                    decoration-bf='state=="accept"' decoration-muted="state=='suscribed'" editable="bottom">
+                    <field name="short_name" />
+                    <field name='makeup_date' widget='date' />
+                    <field name='date_of_issue' widget='date' />
+                    <field name="share_type" />
+                    <field name="activity_ids" widget="list_activity" optional="show" />
+                    <field name="votes_num" options='{"type": "number"}' />
+                    <field name="shares_qty" options='{"type": "number"}' />
+                    <field name="price" options='{"type": "number", "step": 0.1}' />
+                    <field name="state" optional="show" widget="badge" readonly="1"
+                        decoration-success="state == 'approved' or state == 'suscribed'"
+                        decoration-warning="state == 'draft'"
+                        decoration-info="state == 'approved' or state == 'new'"
+                        decoration-muted="state=='cancel'" />
+                </tree>
+            </field>
+        </record>
+    </data>
+</odoo>

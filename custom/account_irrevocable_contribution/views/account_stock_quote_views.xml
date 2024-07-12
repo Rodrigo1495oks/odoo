@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- vistas -->
+    <record id="account_stock_quote_view_tree" model="ir.ui.view">
+        <field name="name">account.stock.quote.tree</field>
+        <field name="model">account.stock.quote</field>
+        <field name="arch" type="xml">
+            <tree string="Rate">
+                <field name="date" class="mr-3" />
+                <field name="price" />
+            </tree>
+        </field>
+    </record>
+    <!-- formulario -->
+    <record id="account_stock_quote_view_form" model="ir.ui.view">
+        <field name="name">account.stock.quote.form</field>
+        <field name="model">account.stock.quote</field>
+        <field name="arch" type="xml">
+            <form string="Rate">
+                <header>
+
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label"
+                            >Stock Quote </span>
+                    </div>
+                    <newline />
+                    <group>
+                        <group id='header_left_group' name='company_info' string='Company Info'>
+                            <field name="company_id" />
+                            <field name="name" />
+                            <field name="currency_id" />
+                        </group>
+                        <group name='price_info' id='header_right_group' string='Price Info'>
+                            <br />
+                            <field name="date" />
+                            <field name="price" widget='monetary' />
+                        </group>
+                    </group>
+                    <newline />
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search view -->
+
+    <record id="account_stock_quote_view_search" model="ir.ui.view">
+        <field name="name">account.stock.quote.search</field>
+        <field name="model">account.stock.quote</field>
+        <field name="arch" type="xml">
+            <search string="Stock Quote">
+                <field name="date" string="Date" />
+                <separator />
+                <filter
+                    name="high_price" string="Higher Prices"
+                    domain="[('price','>=',2000)]" />
+                <filter
+                    name="low_price" string="Higher Prices"
+                    domain="[('price','&lt;=',2000)]" />
+                <separator />
+
+            </search>
+        </field>
+    </record>
+    <!-- Estate Property Kanban View  -->
+    <record model="ir.ui.view" id="view_account_stock_quote_kanban">
+        <field name="name">account.stock.quote.kanban</field>
+        <field name="model">account.stock.quote</field>
+        <field name="arch" type="xml">
+            <!-- class="o_kanban_mobile" js_class="property_kanban_dashboard" sample="1" -->
+            <kanban>
+                <field name="date" />
+                <field name="price" />
+                <templates>
+                    <t t-name="kanban-box">
+                        <div
+                            t-attf-class="d-flex flex-column p-0 oe_kanban_card oe_kanban_global_click">
+                            <div
+                                class="o_kanban_content p-0 m-0 position-relative row d-flex flex-fill">
+                                <div
+                                    class="o_kanban_record_top mb16 col-12 py-2 px-3 d-flex flex-column justify-content-between pt-3">
+                                    <div class="o_kanban_record_headings ml-1">
+                                        <div>
+                                            <strong class="o_kanban_record_title">
+                                                <h5 class="o_event_fontsize_11 p-0">
+                                                    <div t-if="record.price.raw_value">
+                                                        <div class="pt-2 pt-md-0">
+                                                            <br />
+                                                            <i class="fa fa-level-up fa-rotate-90"
+                                                                title="Confirmed" />
+                                                            <span>
+                                                                <t t-esc="record.price.raw_value" />
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </h5>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    <strong>
+                                        <div t-if="record.price.value">
+                                            <span>
+                                                <t t-esc="record.price.value" />
+                                            </span>
+                                        </div>
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <div class="o_kanban_record_title o_text_overflow"
+                                            t-att-title="record.date.value">
+                                            <a type="open">
+                                                <field name="date" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <newline />
+                                        <field name="company_id" />
+                                        <!-- options="{'classes': {'draft': 'default', 'new':
+                                'default', 'finished': 'success', 'canceled': 'warning'}}" -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <!-- Accion para crear la cotizacion -->
+    <record id="account_stock_quote_action" model="ir.actions.act_window">
+        <field name="name">Create Stock Quote</field>
+        <field name="res_model">account.stock.quote</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="view_id" ref="account_stock_quote_view_tree" />
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

@@ -267,24 +267,6 @@ class SoProductLine(models.Model):
         else:
             return self.move_lines_ids
 
-    @api.depends('move_lines_ids.move_id.state', 'move_lines_ids.quantity', 'order_id.state', 'price_total',
-                 'move_lines_ids.move_id.payment_state')
-    def _compute_amount_integrated(self):
-        """ determines the integrated amount of the cash and credit lines"""
-        for line in self:
-            if line.display_type:
-                # compute qty_invoiced
-                amount = 0.0
-                for inv_line in line._get_integrated_lines():
-                    if inv_line.move_id.state not in ['cancel'] or inv_line.move_id.payment_state == 'invoicing_legacy':
-                        if inv_line.move_id.move_type == 'integration':
-                            for payment in inv_line.payment_group_ids:
-                                amount += payment.payments_amount if payment else 0.0
-                line.amount_integrated = amount
-                line.amount_to_integrate = line.price_total - line.amount_integrated
-            else:
-                line.amount_integrated = 0
-
     @api.model
     def _prepare_suscription_order_line(self, product_id, product_qty, product_uom_id, company_id, supplier, po):
         partner = supplier.partner_id
@@ -786,15 +768,42 @@ class SoProductLine(models.Model):
             'product_uom_id': self.product_uom_id.id,
             'display_type': self.display_type or 'product',
             'name': '%s: %s - %s' % (self.order_id.name, self.name, self.order_id.short_name),
-            'quantity': 1,
+            'quantity': self.product_qty,
             'partner_id': self.order_id.partner_id,
             'price_unit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
             # 'tax_ids': [(6, 0, self.taxes_id.ids)],
-            'suscription_cash_line_id': self.id,
+            'suscription_product_line_id': self.id,
             'date_maturity': self.date_maturity,
         }
         return res
 
+    def _prepare_account_move_line_integration(self, move=False,):
+        self.ensure_one()
+        aml_currency = move and move.currency_id or self.currency_id
+        date = move and move.date or fields.Date.today()
+        # Si la contabilifaf anglosajona esta activada
+        if self.product_id.product_tmpl_id.categ_id.property_valuation=='real_time':
+            account_id=self.product_id.product_tmpl_id.get_product_accounts()['forecast_integration_account'].id or self.product_id.product_tmpl_id.categ_id.forecast_integration_account.id \
+                        or self.company_id.forecast_integration_account.id or \
+                        self.env['account.account'].search(domain=[('account_type','=','liability_payable_forecast'),
+                        ('deprecated', '=', False),
+                        ('company_id', '=', self.env.company.id)], limit=1).id
+        else:
+            account_id=self.product_id.product_tmpl_id.get_product_accounts()['expense'].id or self.product_id.product_tmpl_id.categ_id.property_account_expense_categ_id.id \
+                        or self.env['account.account'].search(domain=[('account_type','=','expense'),
+                        ('deprecated', '=', False),
+                        ('company_id', '=', self.env.company.id)], limit=1).id
+        res = {
+            'account_id': account_id,
+            'display_type': self.display_type or 'product',
+            'name': '%s: %s - %s' % (self.order_id.name, self.name, self.order_id.short_name),
+            'partner_id': self.order_id.partner_id,
+            'debit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
+            # 'tax_ids': [(6, 0, self.taxes_id.ids)],
+            'integration_cash_line_id': self.id,
+            'date_maturity': self.date_maturity,
+        }
+        return res
     # low level methods
 
     @api.model

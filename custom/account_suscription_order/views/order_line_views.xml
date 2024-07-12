@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-
         <!-- VIEWS TREE-->
         <record id="view_cash_line_tree" model="ir.ui.view">
             <field name="name">view.cash.line.tree</field>
@@ -146,6 +145,8 @@
                             <field name="money_type"/>
                             <field name="ref"/>
                             <field name="company_id"/>
+                            <field name="state" string="Estado"/>
+
                         </group>
                         <group id="main_info" name="main_info" title="Main Info" string="Main Info">
                             <field name="currency_id"/>
@@ -194,20 +195,14 @@
                         <group id="basic_info" name="basic_info" title="Basic Info" string="Basic Info">
                             <field name="order_id"/>
                             <field name="active" widget="toggle"/>
-                            <field name="date_planned"/>
+                            <field name="date_maturity"/>
                             <field name="date"/>
                             <field name="ref"/>
                             <field name="company_id"/>
                             <field name="currency_id"/>
+                            <field name="state" string="Estado"/>
                         </group>
                         <group id="main_info" name="main_info" title="Main Info" string="Main Info">
-                            <field name="product_id"/>
-                            <field name="product_uom_id"/>
-                            <field name="product_uom_qty"/>
-                            <field name="product_qty"/>
-                            <field name="product_packaging_qty"/>
-                            <field name="qty_received"/>
-                            <field name="asset_profile_id"/>
                             <field name="amount_integrated" widget="monetary"/>
                             <field name="amount_to_integrate" widget="monetary"/>
                         </group>
@@ -215,6 +210,18 @@
                             <field name="price_unit" widget="monetary"/>
                             <field name="price_total" widget="monetary"/>
                         </group>
+                        <notebook>
+                            <page string="Integration Lines" name="integrations" id="integrations_lines">
+                                <group id="move_lines_info" name="move_lines_info" title="Moves Info" string="Moves Info">
+                                    <field name="move_lines_ids"/>
+                                </group>
+                            </page>
+                            <page>
+                                <group id="suscription_line_info" name="suscription_line_info" title="Suscription Info" string="Suscription Info">
+                                    <field name="suscription_line_ids"/>
+                                </group>
+                            </page>
+                        </notebook>
                         <section colspan="6">
                             <field name="narration" placeholder="Write some......"/>
                         </section>
@@ -250,9 +257,10 @@
                             <field name="order_id"/>
                             <field name="active" widget="toggle"/>
                             <field name="order_id"/>
-                            <field name="doc_source"/>
                             <field name="ref"/>
                             <field name="company_id"/>
+                            <field name="product_uom_category_id" invisible="1"/>
+                            <field name="state" string="Estado"/>
                         </group>
                         <group id="main_info" name="main_info" title="Main Info" string="Main Info">
                             <field name="product_id"/>
@@ -261,6 +269,10 @@
                             <field name="product_uom_id"/>
                             <field name="amount_integrated" widget="monetary"/>
                             <field name="amount_to_integrate"/>
+                            <field name="product_qty"/>
+                            <field name="qty_received"/>
+                            <field name="asset_profile_id"/>
+
                         </group>
                         <group id="price_info" name="price_info" title="Price Info" string="Price Info">
                             <field name="price_unit"/>
@@ -270,7 +282,7 @@
                             <field name="narration" placeholder="Write some......"/>
                         </section>
                         <notebook>
-                            <page>
+                            <page string="Integration Lines" name="integrations" id="integrations_lines">
                                 <group id="move_lines_info" name="move_lines_info" title="Moves Info" string="Moves Info">
                                     <field name="move_lines_ids"/>
                                 </group>
@@ -285,18 +297,22 @@
                 </form>
             </field>
         </record>
+
         <record id="view_cash_line_search" model="ir.ui.view">
             <field name="name">view.cash.line.search</field>
             <field name="model">account.suscription.cash.line</field>
             <field name="arch" type="xml">
                 <search string="Cash Line">
-                    <field name="name" string="string" domain="[('name','ilike',self)]" filter_domain="['|', '|',
+                    <!--domain="[('name','ilike',self)]"-->
+                    <field name="name" string="string" filter_domain="['|', '|',
                             ('name', 'ilike', self),
                             ('short_name', '=', self),
                             ('description', 'ilike', self),"/>
-                    <field name="active" string="Active" domain="[('active','=',True)]"/>
+                    <field name="active" string="Active"/>
                     <field name="short_name" string="Referencia"/>
+                    <field name="state" invisible="1"/>
                     <separator/>
+                    <!--domain="[('active','=',True)]"-->
                     <filter name="active" string="Activos" domain="[('active','=',True)]"/>
                     <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>
                     <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>
@@ -318,14 +334,17 @@
             <field name="model">account.suscription.credit.line</field>
             <field name="arch" type="xml">
                 <search string="Credit Line">
-                    <field name="name" string="string" domain="[('name','ilike',self)]" filter_domain="['|', '|',
+                    <!--domain="[('name','ilike',self)]"-->
+                    <field name="name" string="string" filter_domain="['|', '|',
                             ('name', 'ilike', self),
                             ('short_name', '=', self),
                             ('doc_source', 'ilike', self),"/>
-                    <field name="active" string="Active" domain="[('active','=',True)]"/>
+                    <field name="active" string="Active"/>
                     <field name="short_name" string="Referencia"/>
+                    <field name="state" invisible="1"/>
                     <separator/>
-                    <filter name="active" string="Activos" domain="[('active','=',True)]"/>
+                    <!--domain="[('active','=',True)]"-->
+                    <filter name="active" string="Activos"/>
                     <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>
                     <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>
                     <filter name="integrated" string="Integrated" domain="[('state','=','integrated')]"/>
@@ -348,13 +367,17 @@
             <field name="model">account.suscription.product.line</field>
             <field name="arch" type="xml">
                 <search string="Product Line">
-                    <field name="name" string="string" domain="[('name','ilike',self)]" filter_domain="['|', '|',
+                    <!--domain="[('name','ilike',self)]"-->
+                    <field name="name" string="string" filter_domain="['|', '|',
                             ('name', 'ilike', self),
                             ('short_name', '=', self),
                             ('narration', 'ilike', self),"/>
-                    <field name="active" string="Active" domain="[('active','=',True)]"/>
+                    <field name="active" string="Active"/>
                     <field name="short_name" string="Referencia"/>
+                    <field name="state" invisible="1"/>
+
                     <separator/>
+                    <!--domain="[('active','=',True)]"-->
                     <filter name="active" string="Activos" domain="[('active','=',True)]"/>
                     <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>
                     <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>
@@ -368,7 +391,6 @@
                         <filter string="Currency" name="currency" context="{'group_by':'currency_id'}"/>
                         <filter string="Company" name="company" context="{'group_by':'company_id'}"/>
                         <filter string="Product" name="product_id" context="{'group_by':'product_id'}"/>
-
                     </group>
                 </search>
             </field>

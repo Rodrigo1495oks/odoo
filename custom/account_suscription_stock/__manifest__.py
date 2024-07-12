@@ -8,14 +8,14 @@
     'license': 'LGPL-3',
     'category': 'Shareholding',
     'depends': [
-        'base', 'account','top_management','account_asset_management','purchase','purchase_stock','account_payment_group'
+        'base', 'account_suscription_order'
     ],
     'data': [
-        'views/account_move_views.xml',
-        'views/account_suscription_order.xml',
+        'views/product_views.xml',
+        'views/stock_location.xml',
         'views/stock_lot_views.xml',
-        'views/stock_moves.xml',
-
+        'views/account_suscription_order.xml',
+        'views/stock_move.xml',
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

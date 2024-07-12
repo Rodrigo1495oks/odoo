@@ -22,5 +22,4 @@
         <field name="implied_ids" eval="[(4, ref('account_financial_policies_stock_market_group_manager'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
-
 </odoo>

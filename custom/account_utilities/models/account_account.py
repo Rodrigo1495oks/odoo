@@ -28,7 +28,7 @@ class AccountAccount(models.Model):
         ("liability_payable_fiscal", "Cargas Fiscales"),
         ("liability_payable_advance", "Anticipos de Clientes"),
         ("liability_payable_others", "Otros Pasivos"),
-        ("liability_payable_forecast", 'Previsiones del Pasivo')
+        ("liability_payable_forecast", 'Previsiones del Pasivo'),
 
         # Patrimonio Neto
         ('equity_adjustment','Ajuste al Capital'),

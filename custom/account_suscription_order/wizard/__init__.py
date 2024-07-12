@@ -1,1 +1,1 @@
-from . import wizard_issuance_register
+from . import wizard_confirm

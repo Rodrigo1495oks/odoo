@@ -79,6 +79,7 @@ class SoCreditLine(models.Model):
         ('line_note', "Note")], default=False, help="Technical field for UX purpose.")
     # Credit fields
     doc_source = fields.Char(string='Document')
+    backup_doc=fields.Boolean(string='Backup Document', help='This box is checked if the documents corresponding to the existence of the credit have been received.')
     credit_type = fields.Selection(string='Type', selection=[
         ('will_pay', 'Pagaré'),
         ('invoice', 'Invoice'),
@@ -141,9 +142,8 @@ class SoCreditLine(models.Model):
                 # compute qty_invoiced
                 amount = 0.0
                 for inv_line in line._get_integrated_lines():
-                    if inv_line.move_id.state not in ['cancel'] or inv_line.move_id.payment_state == 'invoicing_legacy':
-                        if inv_line.move_id.move_type == 'integration':
-                            amount+=inv_line.debit
+                    if inv_line.move_id.state not in ['cancel'] and inv_line.move_id.move_type == 'integration':
+                        amount += inv_line.debit
                 line.amount_integrated = amount
                 line.amount_to_integrate = line.price_total - line.amount_integrated
             else:
@@ -212,7 +212,28 @@ class SoCreditLine(models.Model):
             'partner_id': self.partner_id,
             'price_unit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
             # 'tax_ids': [(6, 0, self.taxes_id.ids)],
-            'suscription_cash_line_id': self.id,
+            'suscription_credit_line_id': self.id,
+            'date_maturity': self.date_maturity,
+        }
+        return res
+
+    def _prepare_account_move_line_integration(self, move=False,):
+        self.ensure_one()
+        aml_currency = move and move.currency_id or self.currency_id
+        date = move and move.date or fields.Date.today()
+        account_id=self.env['account.account'].browse(self.partner_id.proproperty_account_receivable_id) or \
+            self.env['account.account'].search(domain=[
+                ('account_type', '=', 'asset_receivable'),
+                ('deprecated', '=', False),
+                ('company_id', '=', self.env.company.id)], limit=1)
+        res = {
+            'account_id': account_id.id,
+            'display_type': self.display_type or 'product',
+            'name': '%s: %s - %s' % (self.order_id.name, self.name, self.order_id.short_name),
+            'partner_id': self.order_id.partner_id,
+            'debit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
+            # 'tax_ids': [(6, 0, self.taxes_id.ids)],
+            'integration_cash_line_id': self.id,
             'date_maturity': self.date_maturity,
         }
         return res

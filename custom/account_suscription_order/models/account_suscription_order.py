@@ -123,6 +123,7 @@ class SuscriptionOrder(models.Model):
     reminder_date_before_receipt = fields.Integer('Days Before Receipt',
                                                   related='partner_id.reminder_date_before_receipt', readonly=False)
 
+    account_share_issuance_ids=fields.One2many(string='Share Issuance', comodel_name='account.share.issuance',inverse_name='suscription_id',readonly=True )
     # metodos computados
     # campos computados
     @api.model
@@ -260,29 +261,28 @@ class SuscriptionOrder(models.Model):
                 continue
             # Cash lines
             if any(
-                    [not float_is_zero(line.amount_to_integrate, precision_digits=precision)
+                    [not float_is_zero(line.amount_to_pay, precision_digits=precision)
                      for line in order.cash_lines.filtered(lambda l: not l.display_type)],
-                    [not float_is_zero(line.amount_to_integrate, precision_digits=precision)
-                     for line in order.credit_lines.filtered(lambda l: not l.display_type)],
-                    [not float_is_zero(line.amount_to_integrate, precision_digits=precision)
+                    [not float_is_zero(line.price_total, precision_digits=precision)
+                     for line in order.credit_lines.filtered(lambda l: not l.display_type) if not line.backup_doc],
+                    [not float_is_zero((line.product_qty - line.qty_received), precision_digits=precision)
                      for line in order.product_lines.filtered(lambda l: not l.display_type)]
             ):
                 order.integration_status = 'to integrate'
             elif (
                     all(
-                        [float_is_zero(line.amount_to_integrate, precision_digits=precision)
+                        [float_is_zero(line.amount_to_pay, precision_digits=precision)
                          for line in order.cash_lines.filtered(lambda l: not l.display_type)],
-                        [float_is_zero(line.amount_to_integrate, precision_digits=precision)
-                         for line in order.credit_lines.filtered(lambda l: not l.display_type)],
-                        [float_is_zero(line.amount_to_integrate, precision_digits=precision)
+                        [float_is_zero(line.price_total, precision_digits=precision)
+                         for line in order.credit_lines.filtered(lambda l: not l.display_type) if line.backup_doc],
+                        [float_is_zero((line.product_qty - line.qty_received), precision_digits=precision)
                          for line in order.product_lines.filtered(lambda l: not l.display_type)]
                     )
                     and order.integration_move
             ):
-                self.mapped()
-                mapped_int = [line.mapped('amount_integrated') for line in order.cash_lines]
-                +[line.mapped('amount_integrated') for line in order.credit_lines]
-                +[line.mapped('amount_integrated') for line in order.product_lines]
+                mapped_int = [line.mapped('amount_paid') for line in order.cash_lines]
+                +[line.mapped('price_total') for line in order.credit_lines]
+                +[line.product_qty - line.qty_received for line in order.product_lines]
                 qty_int = sum(mapped_int)
                 if order.price_total == qty_int:
                     order.integration_status = 'integrated'
@@ -293,6 +293,7 @@ class SuscriptionOrder(models.Model):
 
     @api.depends('cash_lines.suscription_line_ids.move_id', 'credit_lines.suscription_line_ids.move_id',
                  'product_lines.suscription_line_ids.move_id')
+
     def _compute_invoice(self):
         for order in self:
             invoices = order.mapped('cash_lines.move_lines_ids.move_id') + order.mapped(
@@ -328,7 +329,7 @@ class SuscriptionOrder(models.Model):
     @api.constrains('date_due')
     def _check_date_due(self):
         for order in self:
-            if order.date_due > (order.date_due + relativedelta(years=2)):
+            if order.date_due > (order.date_order + relativedelta(years=2)):
                 raise ValidationError(_("The deadline for integration cannot be more than 2 years"))
 
     # ACTIONS METHODS
@@ -447,23 +448,24 @@ class SuscriptionOrder(models.Model):
 
     def button_cancel(self):
         for order in self:
-            if order.state == 'draft':
+            if order.state=='draft':
+                order.write({"state": "canceled"})
+
+            if order.state == 'new':
                 if order.user_has_groups(
                         'account_financial_policies.account_financial_policies_stock_market_group_manager'):
                     order.write({"state": "canceled"})
                 else:
-                    raise AccessError(_("Operation not allowed"))
-            elif order.state == 'suscribed':
-                # se puede cancelar solo si hay saldos vencidos
-                if order.qty_pending and order.date_due > fields.datetime.now():
-                    # 1. habrá que dar de baja la suscripcion primero por el monto no aportado
-                    # 2. se cancelan las acciones sumando su precio total hasta superar el monto pendiente cancelado
-                    # 3. los aportes realizados, no se tocan y se integran (asiento de integración)
-                    # 4. se suman las amount_to_integrate, y con ellas se crea una asiento de deuda como contrapartida
+                    raise AccessError(_("Operation not allowed. "))
+            if order.state=='approved':
+                if order.user_has_groups(
+                        'account.group_account_manager'):
                     order.write({"state": "canceled"})
                 else:
-                    return {
-                        "warning": {'title': 'Warning!', 'message': "no pending overdue balances"}
+                    raise AccessError(_("Operation not allowed. "))
+            elif order.state == 'suscribed':
+                return {
+                        "warning": {'title': 'Warning!', 'message': "a subscribed order cannot be canceled"}
                     }
             elif order.state in ['finished', 'canceled', 'approved', 'new']:
                 return {'warning': {'title': 'Warning!!', 'message': 'In this state, the order cannot be canceled'}}
@@ -472,7 +474,6 @@ class SuscriptionOrder(models.Model):
         for order in self:
             if not order.state == 'new':
                 continue
-
 
             if not self.env['account.share.issuance'].search_count(domain=[('suscription_id','=',order.id),('state','=','approved')])>0:
                 raise UserError(_('Cannot be authorized without an issue order'))
@@ -508,7 +509,7 @@ class SuscriptionOrder(models.Model):
                         "name": "Automatic extra line",
                         'order_id': order.id,
                         'state': 'draft',
-                        'description': 'New Line fir fill order',
+                        'description': 'New Line for fill order',
                         'money_type': 'money',
                         'company_id': lambda self: self.env.company.id,
                         'currency_id': order.currency_id.id,
@@ -533,18 +534,41 @@ class SuscriptionOrder(models.Model):
         return {}
     
     def button_integrate(self):
+        """Funcion que crea e asiento de integracion y estblece el estado de la orden a finished
+            1. Comprobar si todas las lineas de efectivo cuentan con pagos realizados
+            2. Comprobar la fecha de vencimiento de la integracion
+            3. Crear el asiento
+            4. Establecer el estado a finished
+        """
+        for order in self:
+            if order.state !='suscribed':
+                continue
+            shares = _get_all_related_shares() or False
+            if order.integration_status!='integrated' or \
+                    not float_is_zero(order.qty_pending, precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')) \
+                    and order.date_due > fields.datetime.now():
+                # tiende saldos pendientes
+                # por ahora manejo solo las lineas de efectivo,
+                # las lineas de credito se pueden integrar siempre, dado que el unico requisito es que me entreguen el comprobante pactado
+                # ¿cuando me tienen que entregar el comprobante? antes de integrar? creo que si. Entonces ya no debo hacer nada mas.
+                # Creo un wizard que me pregunte, en primera instancia su deseo cancelar la orden o solo cancelo la parte pendiente y la finaliso en la parte
+                # efectivamente integrada
+                order._set_share_state_integrated(order,type='partial')
+                order.action_confirm_partial_integration()
+            elif order.integration_status=='integrated':
+                order._set_share_state_integrated(order, type='complete')
+                order._action_create_integration(partial=False)
+            else:
+                raise UserWarning("The integration must be complete.")
+            order.write({'state': 'finished'})
         return True
-    
-    def _process_line(self, sequence, lines):
+
+    def _process_line(self, sequence, lines,account_id=False, move_type='suscription'):
         """helper to build lines for invoices
         :param sequence: we write the sequence
         :param lines: recordset
         :returns: list of lines
         """
-        account_id = self.partner_id.property_account_subscription_id or self.company_id.property_account_subscription_id or \
-                     self.env['account.account'].search(
-                         [('type', '=', 'asset_receivable_others'), ('deprecated', '=', False),
-                          ('company_id', '=', lambda self: self.env.company.id,)], limit=1)
         precision = self.env['decimal.precision'].precision_get(
             'Product Unit of Measure')
         line_ids = []
@@ -554,13 +578,22 @@ class SuscriptionOrder(models.Model):
                 continue
             if not float_is_zero(line.price_total, precision_digits=precision):
                 if pending_section:
-                    line_vals = pending_section._prepare_account_move_line()
-                    line_vals.update({'account_id': account_id.id, 'sequence': sequence})
+                    if move_type=='suscription':
+                        line_vals = pending_section._prepare_account_move_line()
+                        line_vals.update({'account_id':account_id.id, 'sequence': sequence})
+                    elif move_type=='integration':
+                        line_vals = pending_section._prepare_account_move_line_integration()
+                        line_vals.update({'sequence': sequence})
                     line_ids.append((0, 0, line_vals))
                     sequence += 1
                     pending_section = None
-                line_vals = line._prepare_account_move_line()
-                line_vals.update({'sequence': sequence})
+
+                if move_type == 'suscription':
+                    line_vals = pending_section._prepare_account_move_line()
+                    line_vals.update({'account_id': account_id.id, 'sequence': sequence})
+                elif move_type == 'integration':
+                    line_vals = pending_section._prepare_account_move_line_integration()
+                    line_vals.update({'sequence': sequence})
                 line_ids.append((0, 0, line_vals))
                 sequence += 1
         return line_ids
@@ -594,9 +627,12 @@ class SuscriptionOrder(models.Model):
                                 order.env['account.account'].search(
                                     domain=[('account_type', '=', 'equity'), ('deprecated', '=', False),
                                             ('company_id', '=', lambda self: self.env.company.id,)], limit=1)
-            cash_vals = order._process_line(sequence, order.cash_lines)
-            credit_vals = order._process_line(sequence, order.credit_lines_lines)
-            product_lines_vals = order._process_line(sequence, order.product_lines_lines_lines, )
+
+            receivable_account_id=self.partner_id.property_account_subscription_id or self.company_id.property_account_subscription_id or \
+                    self.env['account.account'].search(domain=[('account_type', '=', 'asset_receivable_others'), ('deprecated', '=', False), ('company_id', '=', current_company_id)], limit=1)
+            cash_vals = order._process_line(sequence, order.cash_lines,receivable_account_id, line_type='cash', move_type='suscription')
+            credit_vals = order._process_line(sequence, order.credit_lines_lines,receivable_account_id, line_type='credit', move_type='suscription')
+            product_lines_vals = order._process_line(sequence, order.product_lines_lines_lines,receivable_account_id, line_type='product', move_type='suscription')
             sequence += 1
 
             equity_line={
@@ -609,11 +645,11 @@ class SuscriptionOrder(models.Model):
                 'price_unit': order.price_total,
                 'price_subtotal': 1 * order.price_total,
                 'amount_currency': 1 * order.price_total,
-                'balance': order.currency_id._convert(
+                'balance': -(order.currency_id._convert(
                     1 * order.price_total,
                     order.company_currency_id,
                     order.company_id, fields.Date.today(),
-                ),
+                )),
                 'account_id': equity_account_id.id,
                 # 'analytic_distribution': line.analytic_distribution,
             }
@@ -665,6 +701,170 @@ class SuscriptionOrder(models.Model):
 
         return self.action_view_suscription(SusMoves)
 
+    def _action_create_integration(self, partial=False):
+        suscription_move=self.suscription_move
+        aml_currency = suscription_move and suscription_move.currency_id or self.currency_id
+        date = suscription_move and suscription_move.date or fields.Date.today()
+        """Create the suscription associated to the SO.
+        """
+        # 0) Prepare suscription vals and clean-up the section lines
+        if not self.env['account.move'].check_access_rights('create', False):
+            try:
+                self.check_access_rights('write')
+                self.check_access_rule('write')
+            except AccessError:
+                return self.env['account.move']
+
+        raise ValueError("There are no associated subscription movements or they are in draft status") \
+            if any(not self.suscription_move, self.suscription_move.reversal_move_id,
+                   self.suscription_move.state!='posted') else {}
+
+        # 1) Create invoices.
+
+        integration_vals_list = []
+        sequence = 1
+        for order in self:
+            if order.state != 'approved':
+                continue
+            if not partial:
+                # si el metodo partial no es llamado, entonces debo corroborar que se halla integrado en su totalidad
+                if order.qty_pending>0:
+                    raise UserError('Si la integracion no es parcial, entonces todas las líneas deben estar completadas')
+
+
+            order = order.with_company(order.company_id)
+            pending_section = None
+            # Invoice values.
+            integration_vals = order._prepare_integration()
+            # Invoice line values (keep only necessary sections).
+
+
+            receivable_account_id = order.partner_id.property_account_subscription_id \
+                                    or order.company_id.property_account_subscription_id or \
+                                order.env['account.account'].search(
+                                    domain=[('account_type', '=', 'asset_receivable_others'), ('deprecated', '=', False),
+                                            ('company_id', '=', lambda self: self.env.company.id,)], limit=1)
+
+            cash_to_process= order.cash_lines.filtered(lambda l: l.amount_paid>0)
+            credit_to_process=order.credit_lines_lines.filtered(lambda l:l.backup_doc)
+            product_to_process= order.product_lines.filtered(lambda l: l.qty_received>0)
+
+            amount_to_integrate= sum([line.amount_paid for line in cash_to_process] + \
+                                     [line.price_total for line in credit_to_process] + \
+                                     [line.price_unit * line.qty_received for line in product_to_process])
+
+            # Lineas para cancelar en la suscripcion
+            lines_to_cancel=[order.mapped('cash_lines') - cash_to_process,
+                             order.mapped('credit_lines') - credit_to_process,
+                             order.mapped('product_lines') - product_to_process]
+
+            for group in lines_to_cancel:
+                group_name=group._name
+                self.env[group_name].browse(group.mapped('id')).write({
+                    'state': 'canceled',
+                    'description': 'Entry removed due to partial integration - s%' % (fields.Date.today()),
+                    'suscription_line_ids': [(5,)]
+                })
+            # cash_to_cancel=order.mapped('cash_lines') - cash_to_process
+            # credit_to_cacel=order.mapped('credit_lines') - credit_to_process
+            # product_to_cancel=order.mapped('product_lines') - product_to_process
+
+            # Algunas lineas, si es que tienen pagos o recepciones parciales,
+            # deberán actuaizarse las lineas de suscripcion por el monto efectivamente
+            # ... suscrito e integrado.
+            lines_qty_done = defaultdict(lambda: 0)
+            cash_modify_lines=order.cash_lines.filtered(lambda l: l.amount_paid > 0 and l.amount_paid < l.price_total)
+
+            # for line, amount_paid in zip(cash_modify_lines, cash_modify_lines.mapped('amount_paid')):
+            #    lines_qty_done[line.id]+=amount_paid
+
+            # for id, amount in lines_qty_done.items():
+            #    [s_line.write({
+            #        'price_unit': self.currency_id._convert(amount, aml_currency, self.company_id, date, round=False),
+            #    }) for s_line in self.env['account.move.line'].search(domain=[('suscription_cash_line_id','=',id)])]
+
+            for cash in order.cash_lines.filtered(lambda l: l.amount_paid > 0 and l.amount_paid < l.price_total):
+                cash.mapped('suscription_line_ids').write({
+                    'price_unit': self.currency_id._convert(cash.amount_paid, aml_currency, self.company_id, date, round=False),
+                })
+            for product in order.product_lines.filtered(lambda l: l.qty_received > 0 and l.qty_received<l.product_qty):
+                cash.mapped('suscription_line_ids').write({
+                    'product_qty': cash.product_qty,
+                })
+
+
+
+            cash_vals = order._process_line(sequence, cash_to_process, line_type='cash', move_type='integration')
+            credit_vals = order._process_line(sequence, credit_to_process, line_type='credit', move_type='integration')
+            product_lines_vals = order._process_line(sequence, product_to_process, line_type='product', move_type='integration')
+            sequence += 1
+
+            receivable_line={
+                "display_type":'product',
+                "sequence": sequence,
+                'name': "shareholder credit counterparty line for s% - (s%)"%(order.short_name, order.name),
+                'partner_id': order.partner_id.id,
+                'currency_id': order.currency_id.id,
+                'quantity': 1,
+                'price_unit': amount_to_integrate, # calcular en base a los importes de las lineas de credito y efectivo
+                'price_subtotal': 1 * amount_to_integrate,
+                'amount_currency': 1 * amount_to_integrate,
+                'balance': -(order.currency_id._convert(
+                    1 * amount_to_integrate,
+                    order.company_currency_id,
+                    order.company_id, fields.Date.today(),
+                )),
+                'account_id': receivable_account_id.id,
+                # 'analytic_distribution': line.analytic_distribution,
+            }
+
+            integration_vals['line_ids'] = cash_vals + credit_vals + product_lines_vals+[receivable_line]
+            integration_vals_list.append(integration_vals)
+
+            if not integration_vals_list:
+                raise UserError(
+                    _('There is no invoiceable line. If a product has a control policy based on received quantity, please make sure that a quantity has been received.'))
+
+        # 2) group by (company_id, partner_id, currency_id) for batch creation
+        new_invoice_vals_list = []
+        for grouping_keys, invoices in groupby(suscription_vals_list, key=lambda x: (
+                x.get('company_id'), x.get('partner_id'), x.get('currency_id'))):
+            origins = set()
+            payment_refs = set()
+            refs = set()
+            ref_invoice_vals = None
+            for invoice_vals in invoices:
+                if not ref_invoice_vals:
+                    ref_invoice_vals = invoice_vals
+                else:
+                    ref_invoice_vals['line_ids'] += invoice_vals['line_ids']
+                origins.add(invoice_vals['invoice_origin'])
+                payment_refs.add(invoice_vals['payment_reference'])
+                refs.add(invoice_vals['ref'])
+            ref_invoice_vals.update({
+                'ref': ', '.join(refs)[:2000],
+                'invoice_origin': ', '.join(origins),
+                'payment_reference': len(payment_refs) == 1 and payment_refs.pop() or False,
+            })
+            new_invoice_vals_list.append(ref_invoice_vals)
+        suscription_vals_list = new_invoice_vals_list
+
+        # 3) Create invoices.
+        SusMoves = self.env['account.move']
+        AccountMove = self.env['account.move'].with_context(
+            default_move_type='suscription')
+        for vals in suscription_vals_list:
+            SusMoves |= AccountMove.with_company(
+                vals['company_id']).create(vals)
+
+        # 4) Some moves might actually be refunds: convert them if the total amount is negative
+        # We do this after the moves have been created since we need taxes, etc. to know if the total
+        # is actually negative or not
+        SusMoves.filtered(lambda m: m.currency_id.round(m.price_total)
+                                    < 0).action_switch_invoice_into_refund_credit_note()
+
+        return self.action_view_integration(SusMoves)
+
     def _prepare_suscription(self):
         """Prepare the dict of values to create the new invoice for a purchase order.
         """
@@ -677,6 +877,39 @@ class SuscriptionOrder(models.Model):
             ['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)])[:1]
         journal_id = self.company_id.subscription_journal_id or self.env['account.journal'].search(
             ['type', '=', 'suscription'], limit=1)
+
+        suscription_vals = {
+            'ref': self.partner_ref or '',
+            'move_type': move_type,
+            'narration': self.notes,
+            'currency_id': self.currency_id.id,
+            'user_id': self.user_id and self.user_id.id or self.env.user.id,
+            'partner_id': self.partner_id.id,
+            'payment_reference': self.origin or '',
+            'partner_bank_id': partner_bank_id.id,
+            'invoice_date_due': self.date_due,
+            'invoice_payment_term_id': self.payment_term_id.id,
+            'invoice_origin': 'Source: (%s)  Order N° %s'%(self.name,self.short_name),
+            'suscription_id': self.id,
+            'line_ids': [],
+            'invoice_line_ids': [],
+            'company_id': self.company_id.id,
+            'journal_id': journal_id.id,
+        }
+        return suscription_vals
+
+    def _prepare_integration(self):
+        """Prepare the dict of values to create the new invoice for a purchase order.
+        """
+        self.ensure_one()
+        move_type = self._context.get('default_move_type', 'integration')
+
+        partner_invoice = self.env['res.partner'].browse(
+            self.partner_id.partner_id.address_get(['invoice'])['invoice'])
+        partner_bank_id = self.partner_id.partner_id.commercial_partner_id.bank_ids.filtered_domain(
+            ['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)])[:1]
+        journal_id = self.company_id.subscription_journal_id or self.env['account.journal'].search(
+            ['type', '=', 'integration'], limit=1)
 
         suscription_vals = {
             'ref': self.partner_ref or '',
@@ -711,7 +944,7 @@ class SuscriptionOrder(models.Model):
             self.sudo()._read(['account_move'])
             suscriptions = self.suscription_move
         result = self.env['ir.actions.act_window']._for_xml_id(
-            'account_suscription_order.action_move_in_subscription_type')
+            'account_suscription_order.action_move_in_suscription_type')
         # choose the view_mode accordingly
         if len(suscriptions) > 1:
             result['domain'] = [('id', 'in', suscriptions.ids)]
@@ -728,6 +961,73 @@ class SuscriptionOrder(models.Model):
         else:
             result = {'type': 'ir.actions.act_window_close'}
         return result
+
+    def action_view_integration(self, integrations=False):
+        """This function returns an action that display existing  integrations entries of
+        given integration order ids. When only one found, show the integrations entries
+        immediately.
+        """
+        if not integrations:
+            # Invoice_ids may be filtered depending on the user. To ensure we get all
+            # integrations related to the integration order, we read them in sudo to fill the00
+            # cache.
+            self.invalidate_model(['account_move'])
+            self.sudo()._read(['account_move'])
+            integrations = self.integration_move
+        result = self.env['ir.actions.act_window']._for_xml_id(
+            'account_suscription_order.action_move_in_integration_type')
+        # choose the view_mode accordingly
+        if len(integrations) > 1:
+            result['domain'] = [('id', 'in', integrations.ids)]
+        elif len(integrations) == 1:
+            res = self.env.ref('account_integration_order.view_integration_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + \
+                                  [(state, view)
+                                   for state, view in result['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            result['res_id'] = integrations.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+
+    def action_confirm_partial_integration(self):
+        ''' Open the account.payment.register wizard to pay the selected journal entries.
+        :return: An action opening the account.payment.register wizard.
+        '''
+        return {
+            'name': _('Confirma la integración Parcial'),
+            'res_model': 'wizard.confirm.partial.integration',
+            'view_mode': 'form',
+            'context': {
+                'active_model': 'account.suscription.order',
+                'active_ids': self.ids,
+                'suscription_order':self.order.id,
+                'action':'confirm_cancel',
+            },
+            'target': 'new',
+            'type': 'ir.actions.act_window',
+        }
+
+    def _action_confirm_partial_integration(self, order):
+        self.ensure_one()
+        # 1. obtengo la cantidad integrada hasta el momento
+        # 2. creo las lineas de integracion por cada linea de efectivoque se halla recibido algo
+        # 3. registro el asiento
+        if order.qty_pending==0:
+            raise UserWarning("La integracion no puede ser parcial si se ha integrado todo")
+        order._action_create_integration(partial=True)
+
+    def _action_confirm_cancel_integration(self, order):
+        if order.user_has_groups(
+                'account.group_account_manager'):
+            order.write({"state": "canceled"})
+
+            order.mapped('account_share_issuance_ids.share').share_cancel()
+        else:
+            raise AccessError("Operation not Allowed")
 
     # metodos
     def _add_supplier_to_product(self):
@@ -781,69 +1081,6 @@ class SuscriptionOrder(models.Model):
         self.env['shares.issuance'].create(vals)
         return True
 
-    def action_create_integration(self):
-        precision = self.env['decimal.precision'].precision_get(
-            'Product Unit of Measure')
-
-        # 1) Prepare integration vals
-
-        integration_vals_list = []
-
-        for order in self:
-            if order.state != 'approved':
-                continue
-
-            order = order.with_company(self.company_id)
-            # integration_vals
-            integration_vals = self._prepare_integration_order()
-            # lines
-            # primero las lineas de crédito
-            for credit_line in order.credit_lines:
-                if not float_is_zero(credit_line.amount, precision_digits=precision):
-                    continue
-                line_credit_vals = credit_line._prepare_credit_line_vals()
-                integration_vals['credit_lines'].append(
-                    (0, 0, line_credit_vals))
-            # luego las lineas de productos y activos fijos y/o intagibles
-
-            for line in order.product_lines:
-                if not float_is_zero(line.price_total, precision_digits=precision):
-                    continue
-                line_vals = line._prepare_order_line()
-                integration_vals['product_lines'].append((0, 0, line_vals))
-        integration_vals_list.append(integration_vals)
-
-        # 3) Create invoices.
-        intOrder = IntegrationOrder = self.env['integration.order']
-
-        for vals in integration_vals_list:
-            intOrder |= IntegrationOrder.with_company(
-                vals['company_id']).create(vals)
-
-        return self.action_view_integration(integrations=intOrder)
-
-    def _prepare_integration_order(self):
-        self.ensure_one()
-        res = {
-            'nominal_value': self.nominal_value,
-            'price': self.price,
-            'issue_premium': self.issue_premium,
-            'issue_discount': self.issue_discount,
-            'cash_subscription': self._compute_total_cash(),
-            'subscription_order': self.id,
-            'partner_id': self.partner_id.id,
-            'origin': self.number,
-            'date_order': fields.Datetime.now(),
-            'partner_id': self.partner_id.partner_id,
-            'state': 'draft',
-            'order_line': [],
-            'date_planned': self.integration_date_due,
-            'payment_term_id': self.payment_term_id,
-            'share_issuance': self.share_issuance,
-            'credit_lines': []
-        }
-        return res
-
     def _approval_allowed(self):
         """Returns whether the order qualifies to be approved by the current user"""
         self.ensure_one()
@@ -871,16 +1108,13 @@ class SuscriptionOrder(models.Model):
     @api.ondelete(at_uninstall=False)
     def _unlink_if_cancelled(self):
         for order in self:
-
             if order.active:
                 return {'warning': {'title': 'Warning!!', 'message': 'You must cancel it and archive it first'}}
             if any(not order.state in ( 'canceled' ,'suscribed','finished') or order.suscription_move_count>0 or order.integration_move_count>0):
                 raise UserError(
                     _('In order to delete a suscription order, you must cancel it and archive it first. To cancel it, you must also delete all associated entries.'))
 
-
     # restricciones
-
     @api.constrains('price_total')
     def _check_amount_total(self):
         precision = self.env['decimal.precision'].precision_get(
@@ -920,3 +1154,25 @@ class SuscriptionOrder(models.Model):
                     quote_company=order.company_id.display_name,
                     bad_products=', '.join(bad_products.mapped('display_name')),
                 ))
+
+    def _get_all_related_shares(self):
+        return self.mapped('account_share_issuance_ids.shares')
+
+    def _set_share_state_integrated(self, order, type):
+        self.ensure_one()
+        total_share_integrated=0
+        if type=='partial':
+            total_integrated=order.price_total - order.qty_pending
+            for share in order._get_all_related_shares():
+                share.write({
+                    'state': 'integrated' if total_share_integrated < total_integrated else 'canceled',
+                    'date_of_integration': fields.Date.today(),
+                })
+                total_share_integrated+=share.price if total_share_integrated<total_integrated else 0
+                if total_share_integrated >= total_integrated:
+                    share.share_cancel()
+        elif type=='complete':
+            order._get_all_related_shares().write({
+                'state': 'integrated',
+                'date_of_integration': fields.Date.today(),
+            })

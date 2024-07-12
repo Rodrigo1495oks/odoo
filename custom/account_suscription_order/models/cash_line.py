@@ -182,9 +182,8 @@ class SoCashLine(models.Model):
                 # compute qty_invoiced
                 amount = 0.0
                 for inv_line in line._get_integrated_lines():
-                    if inv_line.move_id.state not in ['cancel'] or inv_line.move_id.payment_state == 'invoicing_legacy':
-                        if inv_line.move_id.move_type == 'integration':
-                            amount+=inv_line.debit
+                    if inv_line.move_id.state not in ['cancel'] and inv_line.move_id.move_type == 'integration':
+                        amount+=inv_line.debit
                 line.amount_integrated = amount
                 line.amount_to_integrate = line.price_total - line.amount_integrated
             else:
@@ -200,7 +199,7 @@ class SoCashLine(models.Model):
                 amount = 0.0
                 for inv_line in line._get_subscribed_lines():
                     if inv_line.move_id.state not in ['cancel'] or inv_line.move_id.payment_state == 'invoicing_legacy':
-                        if inv_line.move_id.move_type == 'integration':
+                        if inv_line.move_id.move_type == 'suscription':
                             for payment in inv_line.payment_group_ids:
                                 amount += payment.payments_amount if payment else 0.0
                 line.amount_paid = amount
@@ -229,9 +228,9 @@ class SoCashLine(models.Model):
                 [len(line.suscription_line_ids) > 0, line.amount_integrated < 1]) else 'draft'
             line.state = 'partial_contributed' if all(
                 [len(line.suscription_line_ids) > 0, line.amount_integrated > 0,
-                 line.amount_to_integrate > 0]) else 'draft'
+                 line.amount_paid > 0]) else 'draft'
             line.state = 'contributed' if all([len(line.suscription_line_ids) > 0, line.amount_integrated > 0,
-                                                   line.amount_to_integrate == 0]) else 'draft'
+                                                   line.amount_to_pay == 0]) else 'draft'
     # HELPERS
     def _prepare_account_move_line(self, move=False,):
         self.ensure_one()
@@ -246,6 +245,23 @@ class SoCashLine(models.Model):
             'price_unit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
             # 'tax_ids': [(6, 0, self.taxes_id.ids)],
             'suscription_cash_line_id': self.id,
+            'date_maturity': self.date_maturity,
+        }
+        return res
+
+    def _prepare_account_move_line_integration(self, move=False,):
+        self.ensure_one()
+        aml_currency = move and move.currency_id or self.currency_id
+        date = move and move.date or fields.Date.today()
+        account_id=self.company_id.account_journal_payment_debit_account_id or self.env['account.account'].search(domain=[()],limit=1)
+        res = {
+            'account_id': account_id.id,
+            'display_type': self.display_type or 'product',
+            'name': '%s: %s - %s' % (self.order_id.name, self.name, self.order_id.short_name),
+            'partner_id': self.order_id.partner_id,
+            'debit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
+            # 'tax_ids': [(6, 0, self.taxes_id.ids)],
+            'integration_cash_line_id': self.id,
             'date_maturity': self.date_maturity,
         }
         return res

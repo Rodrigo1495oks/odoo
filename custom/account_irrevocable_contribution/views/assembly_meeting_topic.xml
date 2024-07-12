@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="assembly_meeting_topic_view_suscription_form" model="ir.ui.view">
+            <field name="name">assembly.meeting.topic.form.suscription</field>
+            <field name="model">assembly.meeting.topic</field>
+            <field name="priority" eval="1" />
+            <field name="inherit_id" ref="top_management.assembly_meeting_topic_view_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='share_issuance']" position="before">
+                    <div class="row col-2">
+                        <button name="action_load_issuance" string="Cargar Ordenes de Emisión." default_focus="1" type="object" groups='top_management.top_management_group_manager' attrs="{'invisible': [('state', 'not in', ('draft', 'new'))]}"/>
+                        <!-- attrs="{'invisible': ['|', ('state', 'not in', ('draft', 'new')), ('topic_type', 'not like', 'issuance')]}" -->
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
