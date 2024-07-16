@@ -121,6 +121,7 @@ class SoProductLine(models.Model):
                                            string="Suscription Lines",
                                            readonly=True, copy=False,
                                            domain=[('move_id.move_type', '=', 'suscription')])
+    partner_id=fields.Many2one(string='Partner', comodel_name='res.partner', default=lambda l: l.order_id.partner_id)
 
     # product or asset fields
 
@@ -783,13 +784,15 @@ class SoProductLine(models.Model):
         date = move and move.date or fields.Date.today()
         # Si la contabilifaf anglosajona esta activada
         if self.product_id.product_tmpl_id.categ_id.property_valuation=='real_time':
-            account_id=self.product_id.product_tmpl_id.get_product_accounts()['forecast_integration_account'].id or self.product_id.product_tmpl_id.categ_id.forecast_integration_account.id \
+            account_id=self.product_id.product_tmpl_id.get_product_accounts()['forecast_integration_account'].id \
+                       or self.product_id.product_tmpl_id.categ_id.forecast_integration_account.id \
                         or self.company_id.forecast_integration_account.id or \
                         self.env['account.account'].search(domain=[('account_type','=','liability_payable_forecast'),
                         ('deprecated', '=', False),
                         ('company_id', '=', self.env.company.id)], limit=1).id
         else:
-            account_id=self.product_id.product_tmpl_id.get_product_accounts()['expense'].id or self.product_id.product_tmpl_id.categ_id.property_account_expense_categ_id.id \
+            account_id=self.product_id.product_tmpl_id.get_product_accounts()['expense'].id \
+                       or self.product_id.product_tmpl_id.categ_id.property_account_expense_categ_id.id \
                         or self.env['account.account'].search(domain=[('account_type','=','expense'),
                         ('deprecated', '=', False),
                         ('company_id', '=', self.env.company.id)], limit=1).id

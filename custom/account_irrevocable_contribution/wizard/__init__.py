@@ -1,1 +1,1 @@
-from . import wizard_confirm
+from . import wizard_show_pendings

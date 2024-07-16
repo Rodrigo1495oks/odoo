@@ -1,28 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
+
 <odoo noupdate="1">
-    <!-- Los usuarios solo pueden ver los registros que han creado -->
-    <record model="ir.rule" id="suscription_order_user_rule_issue">
-        <field name="name">Jefatura: Solo ver Registros propios</field>
-        <field name="model_id" ref="model_account_suscription_order" />
-        <field name="groups" eval="[(4, ref('account_financial_policies.account_financial_policies_stock_market_group_user'))]" />
+    <record model="ir.rule" id="account_contribution_user_rule">
+        <field name="name">Contribution: see only Public Records</field>
+        <field name="model_id" ref="model_account_irrevocable_contribution"/>
+        <field name="groups"
+               eval="[(4, ref('account_financial_policies.account_financial_policies_stock_market_group_user')),
+                        (4, ref('account_financial_policies.account_financial_policies_stock_market_group_manager'))]"/>
         <field name="domain_force">
-            [('user_id', '=', user.id)]
+            [('is_public', '=', True)]
         </field>
     </record>
-        <!-- Los usuarios solo pueden ver los registros que han creado -->
-        <record model="ir.rule" id="suscription_order_user_rule_company">
-            <field name="name">Jefatura: Solo ver Registros de la companía</field>
-            <field name="model_id" ref="model_account_suscription_order" />
-            <field name="groups" eval="[(4, ref('account_financial_policies.account_financial_policies_stock_market_group_user'))]" />
-            <field name="domain_force">
-                [('company_id', '=', user.company_id.id)]
-            </field>
-        </record>
-    <!-- Regla que habilita al presidente y Gerente a ver todos los registros -->
-    <record model="ir.rule" id="suscription_order_all_rule">
-        <field name="name">Jefatura: Ver Todas las órdenes de suscripción</field>
-        <field name="model_id" ref="model_account_suscription_order" />
-        <field name="groups" eval="[(4, ref('account_financial_policies.account_financial_policies_group_manager'))]"/>
+    <record model="ir.rule" id="account_contribution_all_rule">
+        <field name="name">Contribution: see All Records</field>
+        <field name="model_id" ref="model_account_irrevocable_contribution"/>
+        <field name="groups"
+               eval="[(4, ref('account_financial_policies.account_financial_policies_group_manager'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 </odoo>

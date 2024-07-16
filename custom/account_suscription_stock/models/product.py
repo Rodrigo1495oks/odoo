@@ -42,7 +42,7 @@ class ProductTemplate(models.Model):
         accounts = super(ProductTemplate, self)._get_product_accounts()
         res = self._get_asset_accounts()
         accounts.update({
-            'stock_integration_forecast': res['stock_integration_forecast'] or self.categ_id.property_stock_account_integration_categ_id
+            'stock_integration_forecast': self.forecast_integration_account or self.categ_id.forecast_integration_account
         })
         return accounts
 

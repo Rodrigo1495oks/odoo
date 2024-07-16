@@ -214,6 +214,7 @@ class AssemblyMeeting(models.Model):
                 meet._create_event()
         else:
             raise UserError('Ya ha sido confirmada previamente o no reune el quorum necesario')
+
     def action_start(self):
         """Comenzar reunion"""
         for meet in self:

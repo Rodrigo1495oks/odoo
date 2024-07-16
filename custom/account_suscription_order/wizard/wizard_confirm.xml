@@ -23,7 +23,7 @@
         <!-- Accion para crear la emisíon -->
         <record id="action_confirm_partial_integration" model="ir.actions.act_window">
             <field name="name">Associate Issuance of shares with issues</field>
-            <field name="res_model">wizard.issuance.register</field>
+            <field name="res_model">wizard.confirm.partial.integration</field>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_confirm_partial_integration_form" />
             <field name="domain">[]</field>

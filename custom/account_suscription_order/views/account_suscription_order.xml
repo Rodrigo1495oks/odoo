@@ -20,6 +20,7 @@
                     <field name="state"/>
                     <field name="stage_id"/>
                     <field name="qty_progress"/>
+                    <field name="integration_status" invisible="1"/>
                 </tree>
             </field>
         </record>
@@ -82,6 +83,7 @@
                                 <field name="name"/>
                                 <field name='date_order'/>
                                 <field name='date_due'/>
+                                <field name="integration_status"/>
                                 <label for="date_approve"
                                        attrs="{'invisible': [('state','not in',('suscribed','finished'))]}"/>
                                 <div name="date_approve"

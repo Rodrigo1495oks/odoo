@@ -69,9 +69,13 @@
                     <field name="name" widget="section_and_note_text"/>
                     <field name="display_type" invisible="1"/>
                     <field name="product_type" invisible="1"/>
+                    <field name="move_lines_ids" invisible="1"/>
+
                     <field name="date" optional="show"
                            attrs="{'required': [('display_type', '=', False)]}" force_save="1"/>
+                     <field name="date_planned" optional="show"/>
                     <field name="product_uom_category_id" invisible="1"/>
+                    <field name="currency_rate" invisible="1"/>
                     <field name="currency_id"
                            attrs="{
                                                 'readonly': [('state', '!=', 'draft')],
@@ -303,20 +307,15 @@
             <field name="model">account.suscription.cash.line</field>
             <field name="arch" type="xml">
                 <search string="Cash Line">
-                    <!--domain="[('name','ilike',self)]"-->
-                    <field name="name" string="string" filter_domain="['|', '|',
-                            ('name', 'ilike', self),
-                            ('short_name', '=', self),
-                            ('description', 'ilike', self),"/>
+                    <field name="name"/>
                     <field name="active" string="Active"/>
                     <field name="short_name" string="Referencia"/>
                     <field name="state" invisible="1"/>
                     <separator/>
-                    <!--domain="[('active','=',True)]"-->
-                    <filter name="active" string="Activos" domain="[('active','=',True)]"/>
-                    <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>
-                    <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>
-                    <filter name="integrated" string="Integrated" domain="[('state','=','integrated')]"/>
+<!--                    <filter name="active" string="Activos" domain="[('active','=',True)]"/>-->
+<!--                    <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>-->
+<!--                    <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>-->
+<!--                    <filter name="integrated" string="Integrated" domain="[('state','=','integrated')]"/>-->
                     <filter name="display" string="Not Display" domain="[('display_type','=',False)]"/>
                     <separator/>
                     <filter name="bigger" string="Biggest" domain="[('price_total','&gt;=',1000000)]"/>
@@ -345,9 +344,9 @@
                     <separator/>
                     <!--domain="[('active','=',True)]"-->
                     <filter name="active" string="Activos"/>
-                    <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>
-                    <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>
-                    <filter name="integrated" string="Integrated" domain="[('state','=','integrated')]"/>
+<!--                    <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>-->
+<!--                    <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>-->
+<!--                    <filter name="integrated" string="Integrated" domain="[('state','=','integrated')]"/>-->
                     <filter name="display" string="Not Display" domain="[('display_type','=',False)]"/>
                     <separator/>
                     <filter name="bigger" string="Biggest" domain="[('price_total','&gt;=',1000000)]"/>
@@ -379,9 +378,9 @@
                     <separator/>
                     <!--domain="[('active','=',True)]"-->
                     <filter name="active" string="Activos" domain="[('active','=',True)]"/>
-                    <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>
-                    <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>
-                    <filter name="integrated" string="Integrated" domain="[('state','=','integrated')]"/>
+<!--                    <filter name="partial" string="Partial Contributed" domain="[('state','=','partial_contributed')]"/>-->
+<!--                    <filter name="contributed" string="Totally Contributed" domain="[('state','=','contributed')]"/>-->
+<!--                    <filter name="integrated" string="Integrated" domain="[('state','=','integrated')]"/>-->
                     <filter name="display" string="Not Display" domain="[('display_type','=',False)]"/>
                     <separator/>
                     <filter name="bigger" string="Biggest" domain="[('price_total','&gt;=',1000000)]"/>

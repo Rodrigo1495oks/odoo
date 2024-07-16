@@ -11,9 +11,9 @@
                     attrs="{'invisible': ['|', '|' , ('is_shipped', '=', True), ('state','not in', ('purchase','done')), ('incoming_picking_count', '=', 0)]}" 
                     data-hotkey="y" groups="stock.group_stock_user"/>
             </xpath>
-            <xpath expr="//header/button[@name='confirm_reminder_mail']" position="attributes">
-                <attribute name="attrs">{'invisible': ['|', '|', '|', ('state', 'not in', ('purchase', 'done')), ('mail_reminder_confirmed', '=', True), ('date_planned', '=', False), ('effective_date', '!=', False)]}</attribute>
-            </xpath>
+<!--            <xpath expr="//header/button[@name='confirm_reminder_mail']" position="attributes">-->
+<!--                <attribute name="attrs">{'invisible': ['|', '|', '|', ('state', 'not in', ('purchase', 'done')), ('mail_reminder_confirmed', '=', True), ('date_planned', '=', False), ('effective_date', '!=', False)]}</attribute>-->
+<!--            </xpath>-->
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
                 <button type="object"
                     name="action_view_picking"
@@ -25,9 +25,7 @@
             <xpath expr="//field[@name='currency_id']" position="after">
                 <field name="is_shipped" invisible="1"/>
             </xpath>
-            <xpath expr="//field[@name='product_lines']/tree//field[@name='date_planned']" position="after">
-                <field name="move_dest_ids" invisible="1"/>
-            </xpath>
+
             <xpath expr="//label[@for='receipt_reminder_email']" position="attributes">
                 <attribute name="attrs">{'invisible': [('effective_date', '!=', False)]}</attribute>
             </xpath>
@@ -37,27 +35,18 @@
             <xpath expr="//div[@name='reminder']" position="after">
                 <field name="effective_date" attrs="{'invisible': [('effective_date', '=', False)]}"/>
             </xpath>
-            <xpath expr="//field[@name='product_lines']/form//field[@name='invoice_lines']" position="after">
-                <field name="move_ids"/>
-            </xpath>
-            <field name="invoice_status" position="before">
+            <field name="integration_status" position="before">
                 <field name="receipt_status" attrs="{'invisible': [('state', 'not in', ('purchase', 'done'))]}"/>
             </field>
-            <xpath expr="//field[@name='product_lines']/form//field[@name='currency_rate']" position="before">
-                <field name="propagate_cancel" groups="base.group_no_one"/>
-            </xpath>
-            <xpath expr="//field[@name='product_lines']/tree//field[@name='qty_received']" position="attributes">
-                <attribute name="attrs">{'column_invisible': [('parent.state', 'not in', ('suscribed', 'finished'))], 'readonly': [('product_type', 'in', ('consu', 'product'))]}</attribute>
-            </xpath>
-            <xpath expr="//page[@name='reminder_date_before_receipt']/group/group" position="inside">
-                <field name="default_location_dest_id_usage" invisible="1"/>
-                <field name="incoterm_id"/>
-                <field name="incoterm_location" />
-            </xpath>
-            <xpath expr="//div[@name='reminder']" position="after">
-                <field name="picking_type_id" domain="[('code','=','incoming'), '|', ('warehouse_id', '=', False), ('warehouse_id.company_id', '=', company_id)]" options="{'no_create': True}" groups="stock.group_stock_multi_locations"/>
-                <field name="dest_address_id" groups="stock.group_stock_multi_locations" attrs="{'invisible': [('default_location_dest_id_usage', '!=', 'customer')], 'required': [('default_location_dest_id_usage', '=', 'customer')]}"/>
-            </xpath>
+<!--            <xpath expr="//page[@name='reminder_date_before_receipt']/group/group" position="inside">-->
+<!--                <field name="default_location_dest_id_usage" invisible="1"/>-->
+<!--                <field name="incoterm_id"/>-->
+<!--                <field name="incoterm_location" />-->
+<!--            </xpath>-->
+<!--            <xpath expr="//div[@name='reminder']" position="after">-->
+<!--                <field name="picking_type_id" domain="[('code','=','incoming'), '|', ('warehouse_id', '=', False), ('warehouse_id.company_id', '=', company_id)]" options="{'no_create': True}" groups="stock.group_stock_multi_locations"/>-->
+<!--                <field name="dest_address_id" groups="stock.group_stock_multi_locations" attrs="{'invisible': [('default_location_dest_id_usage', '!=', 'customer')], 'required': [('default_location_dest_id_usage', '=', 'customer')]}"/>-->
+<!--            </xpath>-->
         </field>
     </record>
 
@@ -75,13 +64,14 @@
         </field>
     </record>
 
-    <record id="view_product_line_tree_inherit" model="ir.ui.view">
-        <field name="name">view.product.line.tree.inherit</field>
-        <field name="model">account.suscription.product.line</field>
-        <field name="inherit_id" ref="account_suscription_order.view_product_line_tree"/>
+    <record id="view_suscription_order_tree_inherit" model="ir.ui.view">
+        <field name="name">view.suscription.order.tree.inherit</field>
+        <field name="model">account.suscription.order</field>
+        <field name="inherit_id" ref="account_suscription_order.account_suscription_order_view_tree"/>
         <field name="arch" type="xml">
-            <field name="invoice_status" position="before">
-                <field name="effective_date" invisible="1"/>
+            <field name="state" position="before">
+                <field name="effective_date"/>
+                <field name="date_planned"/>
                 <field name="receipt_status" optional="hide" widget="badge"
                 decoration-success="date_planned and (date_planned &gt; datetime.datetime.combine(datetime.date.today(), datetime.time(23,59,59)).to_utc().strftime('%Y-%m-%d %H:%M:%S') or receipt_status=='full' and effective_date &lt;= date_planned)"
                 decoration-danger="date_planned and (date_planned &lt; effective_date or date_planned &lt; datetime.datetime.combine(datetime.date.today(), datetime.time(0,0,0)).to_utc().strftime('%Y-%m-%d %H:%M:%S') and receipt_status!='full' and effective_date &lt;= date_planned)"

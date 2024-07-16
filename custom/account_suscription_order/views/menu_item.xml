@@ -19,7 +19,7 @@
 
     <!-- Account items-->
 
-    <menuitem id="menu_action_move_journal_suscription" action="action_move_in_subscription_type" groups="account.group_account_readonly" sequence="11" parent="account.menu_finance_entries_accounting_miscellaneous"/>
+    <menuitem id="menu_action_move_journal_suscription" action="action_move_in_suscription_type" groups="account.group_account_readonly" sequence="11" parent="account.menu_finance_entries_accounting_miscellaneous"/>
     <!-- Configuraciones -->
     <menuitem id="menu_account_suscription_order_config" name="Suscription Orders" sequence="3" groups="account_financial_policies.account_financial_policies_group_manager,account_financial_policies.account_financial_policies_stock_market_group_manager" parent="account.menu_finance_configuration"/>
     <menuitem id="menu_account_suscription_order_stage_config" name="Suscription Orders Stages" action="account_suscription_order_stage_action" groups="account_financial_policies.account_financial_policies_group_manager,account_financial_policies.account_financial_policies_stock_market_group_manager" sequence="1" parent="menu_account_suscription_order_config"/>

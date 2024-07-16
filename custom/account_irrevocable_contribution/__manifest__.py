@@ -1,7 +1,7 @@
 {
-    'name': 'Account Irrevocable Contribution',
+    'name': 'Irrevocable contributions for future share subscriptions',
     'version': '16.0',
-    'description': 'Module that allows the management of Account Irrevocable Contribution',
+    'description': 'Module that allows the management of Irrevocable contributions for future share subscriptions',
     'summary': 'Shareholders, Shares, Subscriptions, integrations, investments',
     'author': 'Rivas Rodrigo',
     'website': '',

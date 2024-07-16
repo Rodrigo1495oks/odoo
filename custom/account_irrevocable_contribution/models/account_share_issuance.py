@@ -11,62 +11,8 @@ class SharesIssuance(models.Model):
     _name = 'account.share.issuance'
     _inherit = 'account.share.issuance'
 
-    suscription_id=fields.Many2one(string='Suscription Order', comodel_name='account.suscription.order', readonly=True, help='related subscription order')
+    contribution_id=fields.One2many(string='Contribution Order',
+                                    comodel_name='account.irrevocable.contribution',
+                                    inverse_name='share_issuance_id'
+                                    ,readonly=True, help='Related Contribution Order')
 
-    def action_approve(self):
-        res =super().action_approve()
-        for issuance in self:
-            if issuance.state not in ['draft', 'cancel', 'suscribed', 'approved'] and self.user_has_groups('account_financial_policies.account_financial_policies_group_manager') and issuance.topic.state == 'approved':
-                issuance.state = 'approved'
-                # creo las acciones
-                for i in range(self.shares_qty):
-                    share_vals = issuance._prepare_share_values()
-                    self.env['account.share'].create(share_vals)
-            else:
-                raise UserError(_('Orden de emision no autorizada'))
-        return res
-    
-    def action_confirm(self):
-        res=super().action_confirm()
-        for issue in self:
-            if issue.state == 'draft' and self.user_has_groups('account_financial_policies.account_financial_policies_stock_market_group_manager'):
-                topic_vals=issue._prepare_topic_values()
-                topic_vals['share_issuance'].append((6,0,issue.id))
-                # ValueError: dictionary update sequence element #0 has length 1; 2 is required Python Dictionary
-                newTopic=issue.env['assembly.meeting.topic'].create(topic_vals)
-                issue.state='new'
-        return res
-    
-    def action_suscribe(self):
-        res=super().action_suscribe()
-        for issuance in self:
-            if issuance.state == 'approved' and issuance.topic.state:
-                if issuance.topic.state=="approved":
-                    issuance.state == 'suscribed'
-                    for share in issuance.shares:
-                        share.share_aprove()
-            else:
-                for share in issuance.shares:
-                    share.state='new'
-        return res
-    
-
-    # Action helpers
-    def _prepare_topic_values(self):
-        self.ensure_one()
-        vals = {
-            "name": " Emisión N°: %s /= %s"%(self.short_name, self.makeup_date),
-            'state': 'draft',
-            "description": 'Emisión de acciones',
-            "topic_type": "issuance",
-            'topic_meet':'assembly',
-            "share_issuance": []
-        }
-        return vals
-
-class SuscriptionOrder(models.Model):
-    _name = 'account.suscription.order'
-    _inherit = 'account.suscription.order'
-
-    share_issue_ids = fields.One2many(string='Share Issue', comodel_name='account.share.issuance',
-                                      inverse_name='suscription_id', help='share issue related')
