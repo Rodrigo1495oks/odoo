@@ -13,5 +13,5 @@ class AccountJournal(models.Model):
     type=fields.Selection(selection_add=[
         ('suscription','Suscription'),
     ], ondelete = {
-        'suscription': lambda recs: recs.write({'move_type': 'entry'}),
+        'suscription': lambda recs: recs.write({'type': 'entry'}),
     })

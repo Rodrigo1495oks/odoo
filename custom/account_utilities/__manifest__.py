@@ -12,6 +12,7 @@
     ],
     'data': [
         'views/res_company.xml',
+        'views/account_reconcile_partial.xml',
     ],
     'demo': [
         # 'demo/estate.property.demo.xml',

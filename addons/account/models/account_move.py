@@ -1091,6 +1091,9 @@ class AccountMove(models.Model):
 
     @api.depends('move_type', 'line_ids.amount_residual')
     def _compute_payments_widget_reconciled_info(self):
+        """Obtiene los pagos asociados con la factura, desde las concilizaciones parciales (contrapartidas
+        :return una lista de diccionario, cada uno conteninedo las informacion de los pagos
+        )"""
         for move in self:
             payments_widget_vals = {'title': _('Less Payment'), 'outstanding': False, 'content': []}
 
@@ -3111,8 +3114,19 @@ class AccountMove(models.Model):
         return self._get_reconciled_amls().move_id.filtered(lambda move: move.is_invoice(include_receipts=True))
 
     def _get_all_reconciled_invoice_partials(self):
+        """fUNCION QUE reune las cuentas conciliables (creditos por ventas y proveedores
+            y busca los pagos realizados, identifica las lineas y las devueelve en un diccionario
+            :return dict() {
+                'aml_id': values['counterpart_line_id'],
+                'partial_id': values['id'],
+                'amount': values['amount'],
+                'currency': self.currency_id,
+                'aml' :counterpart_lines[partial_values['aml_id']],
+            }
+        """
         self.ensure_one()
         reconciled_lines = self.line_ids.filtered(lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable'))
+        # Todas las lineas del asiento que son créditos por venta o pasivos por venta
         if not reconciled_lines:
             return {}
 
@@ -3141,9 +3155,9 @@ class AccountMove(models.Model):
         '''
         self._cr.execute(query, [tuple(reconciled_lines.ids)] * 2)
 
-        partial_values_list = []
-        counterpart_line_ids = set()
-        exchange_move_ids = set()
+        partial_values_list = [] # lista de diccionarios de la conciliacion parcial
+        counterpart_line_ids = set() # listado (recordset?) de lineas de pago
+        exchange_move_ids = set() # (no se usa practicamente)
         for values in self._cr.dictfetchall():
             partial_values_list.append({
                 'aml_id': values['counterpart_line_id'],

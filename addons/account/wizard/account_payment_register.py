@@ -591,7 +591,7 @@ class AccountPaymentRegister(models.TransientModel):
                 if line.move_id.state != 'posted':
                     raise UserError(_("You can only register payment for posted journal entries."))
 
-                if line.account_type not in ('asset_receivable', 'liability_payable','liability_payable_redemption_shares'):
+                if line.account_type not in ('asset_receivable', 'liability_payable'):
                     continue
                 if line.currency_id:
                     if line.currency_id.is_zero(line.amount_residual_currency):

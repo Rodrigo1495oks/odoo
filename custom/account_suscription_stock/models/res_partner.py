@@ -16,7 +16,7 @@ class ResPartner(models.Model):
     def _compute_on_time_rate(self):
         suscription_lines = self.env['account.suscription.product.line'].search([
             ('partner_id', 'in', self.ids),
-            ('date_order', '>', fields.Date.today() - timedelta(365)),
+            ('date', '>', fields.Date.today() - timedelta(365)),
             ('qty_received', '!=', 0),
             ('order_id.state', 'in', ['finished'])
         ]).filtered(lambda l: l.product_id.sudo().product_tmpl_id.type != 'service')

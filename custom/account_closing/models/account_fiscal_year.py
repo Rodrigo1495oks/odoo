@@ -37,6 +37,7 @@ class AccountFiscalYear(models.Model):
     balance=fields.Float(string='Saldo del Período', default=0.0, readonly=True, )
     reduction_ids = fields.One2many(
         string='Reducciones', comodel_name='capital.reduction', inverse_name='fiscal_year', readonly=True)
+
     def name_get(self):
         result = []
         for fy in self:
@@ -73,6 +74,7 @@ class AccountFiscalYear(models.Model):
             'fiscal_year': self.id,
         }
         return period_vals
+
     def create_monthly_periods(self):
         "los periodos serán siempre anuales (12 meses, 365 dias)"
         for fy in self:
@@ -92,6 +94,7 @@ class AccountFiscalYear(models.Model):
                     fy.periods += new_p
                     
         return UserWarning('Períodos Mensuales Creados correctamente')
+
     def create_quaterly_periods(self):
         "los periodos serán siempre anuales (12 meses, 365 dias)"
         for fy in self:

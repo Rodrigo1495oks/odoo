@@ -110,10 +110,10 @@ class SoCashLine(models.Model):
     amount_to_integrate = fields.Monetary(string='Credit to Integrate', currency_field='company_currency_id',
                                           store=True, compute='_compute_amount_integrated', default=0)
 
-    amount_to_pay= fields.Monetary(string='Cash to Pay', currency_field='company_currency_id',
-                                          store=True, compute='_compute_amount_paid', default=0)
-    amount_paid= fields.Monetary(string='Cash to Pay', currency_field='company_currency_id',
-                                          store=True, compute='_compute_amount_paid', default=0)
+    amount_to_pay = fields.Monetary(string='Cash to Pay', currency_field='company_currency_id',
+                                    store=True, compute='_compute_amount_paid', default=0)
+    amount_paid = fields.Monetary(string='Cash to Pay', currency_field='company_currency_id',
+                                  store=True, compute='_compute_amount_paid', default=0)
     currency_rate = fields.Float(
         compute='_compute_currency_rate', default=0.0,
         help="Currency rate from company currency to document currency.",
@@ -155,7 +155,8 @@ class SoCashLine(models.Model):
                     date=line.order_id.date_order or line.date or fields.Date.context_today(line),
                 )
             else:
-                line.currency_rate=0
+                line.currency_rate = 0
+
     def _get_integrated_lines(self):
         self.ensure_one()
         if self._context.get('accrual_entry_date'):
@@ -169,12 +170,14 @@ class SoCashLine(models.Model):
         self.ensure_one()
         if self._context.get('accrual_entry_date'):
             return self.suscription_line_ids.filtered(
-                lambda l: l.move_id.date and l.move_id.date <= self._context['accrual_entry_date']
-            )
-        else:
-            return self.suscription_line_ids
+                lambda l: l.move_id.date and l.move_id.date <= self._context['accrual_entry_date'] and \
+                          l.account_id.account_type in ('asset_receivable_others'))
 
-    @api.depends('move_lines_ids.move_id.state','order_id.state', 'price_total')
+        else:
+            return self.suscription_line_ids.filtered(
+                lambda l: l.account_id.account_type in ('asset_receivable_others'))
+
+    @api.depends('move_lines_ids.move_id.state', 'order_id.state', 'price_total')
     def _compute_amount_integrated(self):
         """ determines the integrated amount of the cash and credit lines"""
         for line in self:
@@ -183,29 +186,106 @@ class SoCashLine(models.Model):
                 amount = 0.0
                 for inv_line in line._get_integrated_lines():
                     if inv_line.move_id.state not in ['cancel'] and inv_line.move_id.move_type == 'integration':
-                        amount+=inv_line.debit
+                        amount += inv_line.debit
                 line.amount_integrated = amount
                 line.amount_to_integrate = line.price_total - line.amount_integrated
             else:
                 line.amount_integrated = 0
 
-    @api.depends('move_lines_ids.move_id.state','order_id.state', 'price_total',
-                 'move_lines_ids.move_id.payment_state')
+    @api.depends('suscription_line_ids')
     def _compute_amount_paid(self):
         """ determines the integrated amount of the cash and credit lines"""
         for line in self:
             if not line.display_type:
                 # compute qty_invoiced
                 amount = 0.0
-                for inv_line in line._get_subscribed_lines():
-                    if inv_line.move_id.state not in ['cancel'] or inv_line.move_id.payment_state == 'invoicing_legacy':
-                        if inv_line.move_id.move_type == 'suscription':
-                            for payment in inv_line.payment_group_ids:
-                                amount += payment.payments_amount if payment else 0.0
+                reconciled_lines = line._get_subscribed_lines()
+                if not reconciled_lines:
+                    line.amount_paid = 0.0
+
+                self.env['account.partial.reconcile'].flush_model([
+                    'credit_amount_currency', 'credit_move_id', 'debit_amount_currency',
+                    'debit_move_id', 'exchange_move_id',
+                ])
+                query = '''
+                            SELECT
+                                part.id,
+                                part.exchange_move_id,
+                                part.debit_amount_currency AS amount,
+                                part.credit_move_id AS counterpart_line_id
+                            FROM account_partial_reconcile part
+                            WHERE part.debit_move_id IN %s
+
+                            UNION ALL
+
+                            SELECT
+                                part.id,
+                                part.exchange_move_id,
+                                part.credit_amount_currency AS amount,
+                                part.debit_move_id AS counterpart_line_id
+                            FROM account_partial_reconcile part
+                            WHERE part.credit_move_id IN %s
+                        '''
+                self._cr.execute(query, [tuple(reconciled_lines.ids)] * 2)
+
+                partial_values_list = []  # lista de diccionarios de la conciliacion parcial
+                counterpart_line_ids = set()  # listado (recordset?) de lineas de pago
+                exchange_move_ids = set()  # (no se usa practicamente)
+                for values in self._cr.dictfetchall():
+                    partial_values_list.append({
+                        'aml_id': values['counterpart_line_id'],
+                        'partial_id': values['id'],
+                        'amount': values['amount'],
+                        'currency': self.currency_id,
+                    })
+                    counterpart_line_ids.add(values['counterpart_line_id'])
+                    if values['exchange_move_id']:
+                        exchange_move_ids.add(values['exchange_move_id'])
+
+                if exchange_move_ids:
+                    self.env['account.move.line'].flush_model(['move_id'])
+                    query = '''
+                        SELECT
+                            part.id,
+                            part.credit_move_id AS counterpart_line_id
+                        FROM account_partial_reconcile part
+                        JOIN account_move_line credit_line ON credit_line.id = part.credit_move_id
+                        WHERE credit_line.move_id IN %s AND part.debit_move_id IN %s
+
+                        UNION ALL
+
+                        SELECT
+                            part.id,
+                            part.debit_move_id AS counterpart_line_id
+                        FROM account_partial_reconcile part
+                        JOIN account_move_line debit_line ON debit_line.id = part.debit_move_id
+                        WHERE debit_line.move_id IN %s AND part.credit_move_id IN %s
+                    '''
+                    self._cr.execute(query, [tuple(exchange_move_ids), tuple(counterpart_line_ids)] * 2)
+
+                    for values in self._cr.dictfetchall():
+                        counterpart_line_ids.add(values['counterpart_line_id'])
+                        partial_values_list.append({
+                            'aml_id': values['counterpart_line_id'],
+                            'partial_id': values['id'],
+                            'currency': self.company_id.currency_id,
+                        })
+
+                counterpart_lines = {x.id: x for x in self.env['account.move.line'].browse(counterpart_line_ids)}
+                for partial_values in partial_values_list:
+                    partial_values['aml'] = counterpart_lines[partial_values['aml_id']]
+                    partial_values['is_exchange'] = partial_values['aml'].move_id.id in exchange_move_ids
+                    if partial_values['is_exchange']:
+                        partial_values['amount'] = abs(partial_values['aml'].balance)
+
+                for reconciled_partial in partial_values_list:
+                    amount += reconciled_partial['amount']
+
                 line.amount_paid = amount
                 line.amount_to_pay = line.price_total - line.amount_paid
             else:
                 line.amount_paid = 0
+                line.amount_to_pay = line.price_total - line.amount_paid
 
     @api.depends('price_unit', 'currency_id')
     def _compute_totals(self):
@@ -222,7 +302,7 @@ class SoCashLine(models.Model):
     def _compute_state(self):
         for line in self:
             if line.display_type:
-                line.state='draft'
+                line.state = 'draft'
                 continue
             line.state = 'subscribed' if all(
                 [len(line.suscription_line_ids) > 0, line.amount_integrated < 1]) else 'draft'
@@ -230,9 +310,10 @@ class SoCashLine(models.Model):
                 [len(line.suscription_line_ids) > 0, line.amount_integrated > 0,
                  line.amount_paid > 0]) else 'draft'
             line.state = 'contributed' if all([len(line.suscription_line_ids) > 0, line.amount_integrated > 0,
-                                                   line.amount_to_pay == 0]) else 'draft'
+                                               line.amount_to_pay == 0]) else 'draft'
+
     # HELPERS
-    def _prepare_account_move_line(self, move=False,):
+    def _prepare_account_move_line(self, move=False, ):
         self.ensure_one()
         aml_currency = move and move.currency_id or self.currency_id
         date = move and move.date or fields.Date.today()
@@ -249,11 +330,12 @@ class SoCashLine(models.Model):
         }
         return res
 
-    def _prepare_account_move_line_integration(self, move=False,):
+    def _prepare_account_move_line_integration(self, move=False, ):
         self.ensure_one()
         aml_currency = move and move.currency_id or self.currency_id
         date = move and move.date or fields.Date.today()
-        account_id=self.company_id.account_journal_payment_debit_account_id or self.env['account.account'].search(domain=[()],limit=1)
+        account_id = self.company_id.account_journal_payment_debit_account_id or self.env['account.account'].search(
+            domain=[()], limit=1)
         res = {
             'account_id': account_id.id,
             'display_type': self.display_type or 'product',
@@ -265,6 +347,7 @@ class SoCashLine(models.Model):
             'date_maturity': self.date_maturity,
         }
         return res
+
     # low level methods
 
     @api.model
@@ -282,11 +365,12 @@ class SoCashLine(models.Model):
         lines = self.filtered(lambda l: l.order_id.state == 'contributed')
         if 'price_unit' in values:
             for line in lines:
-                line_moves=line.suscription_line_ids.filtered(lambda aml: aml.state not in ('cancel','posted'))
+                line_moves = line.suscription_line_ids.filtered(lambda aml: aml.state not in ('cancel', 'posted'))
                 line_moves.write({'price_unit': line._get_stock_move_price_unit()})
         if 'currency_id' in values:
             line_moves = line.suscription_line_ids.filtered(lambda aml: aml.state not in ('cancel', 'posted'))
             line_moves.write({'currency_id': line.currency_id})
+
     #
     #  BUSSINESS METHODS
     #
@@ -298,5 +382,6 @@ class SoCashLine(models.Model):
 
         if order.currency_id != order.company_id.currency_id:
             price_unit = order.currency_id._convert(
-                price_unit, order.company_id.currency_id, self.company_id, self.date_order or fields.Date.today(), round=False)
+                price_unit, order.company_id.currency_id, self.company_id, self.date_order or fields.Date.today(),
+                round=False)
         return float_round(price_unit, precision_digits=price_unit_prec)
