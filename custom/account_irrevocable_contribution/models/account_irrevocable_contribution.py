@@ -88,10 +88,11 @@ class AccountIrrevocableContribution(models.Model):
                          compute='_compute_most_recent_quote')
     total_price = fields.Float(string='Amount to Cont.', default=0.0, compute='_compute_total_price')
     notes = fields.Html(string='Descripción')
-    is_public=fields.Boolean(string='Public', help='Public File',groups='account_financial_policies.account_financial_policies_group_manager')
-    private_notes=fields.Text(string='Private Notes', groups='account_financial_policies'
-                                                             '.account_financial_policies_stock_market_group_manager,'
-                                                             'account_financial_policies.account_financial_policies_group_manager')
+    is_public = fields.Boolean(string='Public', help='Public File',
+                               groups='account_financial_policies.account_financial_policies_group_manager')
+    private_notes = fields.Text(string='Private Notes', groups='account_financial_policies'
+                                                               '.account_financial_policies_stock_market_group_manager,'
+                                                               'account_financial_policies.account_financial_policies_group_manager')
 
     # Relational fields
     topic = fields.Many2one(string='Tema de Reunión',
@@ -166,7 +167,8 @@ class AccountIrrevocableContribution(models.Model):
             order.cash_total = order.cash_lines.price_total
             order.credit_total = order.credit_lines.price_total
             order.product_total = order.product_lines.price_total
-            order.amount_total = order.cash_lines.price_total + order.credit_lines.price_total + order.product_lines.price_total
+            order.amount_total = order.cash_lines.price_total + \
+                                 order.credit_lines.price_total + order.product_lines.price_total
 
     @api.depends('shares_qty', 'price')
     def _compute_total_price(self):
@@ -264,12 +266,12 @@ class AccountIrrevocableContribution(models.Model):
                 }
 
     def _search_amount_total(self, operator, value):
-        operator_map={
+        operator_map = {
             '>': '<', '>=': '<=',
             '<': '>', '<=': '>=',
         }
-        new_op=operator_map.get(operator, operator)
-        return [('amount_total',new_op,value)]
+        new_op = operator_map.get(operator, operator)
+        return [('amount_total', new_op, value)]
 
     @api.onchange('partner_id', 'company_id')
     def onchange_partner_id(self):
@@ -330,12 +332,12 @@ class AccountIrrevocableContribution(models.Model):
         if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
             args = args.copy() or []
             domain = [('state', '=', 'new')]
-            if not(name=='' and operator=='ilike'):
-                args+=['|','|',
-                       ('name', operator, name),
-                       ('short_name',operator, name),
-                       ('partner_id.name', operator, name),
-                       ('topic.name', operator, name)]
+            if not (name == '' and operator == 'ilike'):
+                args += ['|', '|',
+                         ('name', operator, name),
+                         ('short_name', operator, name),
+                         ('partner_id.name', operator, name),
+                         ('topic.name', operator, name)]
             return self.search(expression.AND([domain, args]), limit=limit).name_get()
 
     def name_get(self):
@@ -659,7 +661,7 @@ class AccountIrrevocableContribution(models.Model):
             'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
             'partner_id': self.partner_id.id,
             'fiscal_position_id': (
-                        self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
+                    self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
             'payment_reference': self.origin or '',
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': self.name,
@@ -689,7 +691,7 @@ class AccountIrrevocableContribution(models.Model):
             'invoice_user_id': self.user_id and self.user_id.id or self.env.user.id,
             'partner_id': partner_invoice.id,
             'fiscal_position_id': (
-                        self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
+                    self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(partner_invoice)).id,
             'payment_reference': self.partner_ref or '',
             'partner_bank_id': partner_bank_id.id,
             'invoice_origin': self.name,
