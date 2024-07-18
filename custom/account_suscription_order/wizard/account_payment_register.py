@@ -388,7 +388,7 @@ class AccountPaymentRegister2(models.TransientModel):
             else:
                 wizard.available_journal_ids = self.env['account.journal'].search([
                     ('company_id', '=', wizard.company_id.id),
-                    ('type', 'in', ('bank', 'cash')),
+                    ('type', 'in', ('bank')),
                 ])
 
     @api.depends('available_journal_ids')
@@ -399,7 +399,7 @@ class AccountPaymentRegister2(models.TransientModel):
                 wizard.journal_id = wizard._get_batch_journal(batch)
             else:
                 wizard.journal_id = self.env['account.journal'].search([
-                    ('type', 'in', ('bank', 'cash')),
+                    ('type', 'in', ('bank')),
                     ('company_id', '=', wizard.company_id.id),
                     ('id', 'in', self.available_journal_ids.ids)
                 ], limit=1)
